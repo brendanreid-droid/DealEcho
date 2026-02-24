@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ─────────────────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    // ── Reviews ────────────────────────────────────────────────────────────────
+    // Anyone can read reviews. Only authenticated users can create.
+    // Admins can moderate (update/delete).
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() 
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Users ──────────────────────────────────────────────────────────────────
+    // Users can read/write their own profile.
+    // Admins can read all profiles for management.
+    match /users/{userId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+    }
+
+    // ── Companies ─────────────────────────────────────────────────────────────
+    // Public read. Admins can manage data.
+    match /companies/{companyId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Webhook Debug Logs ──────────────────────────────────────────────────────
+    // Written by backend Cloud Functions (uses Admin SDK, bypasses rules).
+    // No client-side access.
+    match /webhooks_debug/{logId} {
+      allow read, write: if false;
+    }
+
+  }
+}

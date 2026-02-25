@@ -41,16 +41,21 @@ export const adminGetUsers = onCall({ cors: true }, async (request) => {
   });
 
   return {
-    users: listResult.users.map((u) => ({
-      uid: u.uid,
-      email: u.email ?? "",
-      displayName: u.displayName ?? "",
-      createdAt: u.metadata.creationTime,
-      role: (u.customClaims?.role as UserRole) ?? "free",
-      tier: (u.customClaims?.tier as string) ?? "free",
-      subscriptionStatus: firestoreMap[u.uid]?.subscriptionStatus ?? null,
-      currentPeriodEnd: firestoreMap[u.uid]?.currentPeriodEnd ?? null,
-    })),
+    users: listResult.users.map((u) => {
+      const fs = firestoreMap[u.uid] ?? {};
+      return {
+        uid: u.uid,
+        email: u.email ?? "",
+        displayName: u.displayName ?? "",
+        createdAt: u.metadata.creationTime,
+        // Prefer Firestore (written by both webhook & adminSetRole) over claims
+        role:
+          (fs.role as UserRole) ?? (u.customClaims?.role as UserRole) ?? "free",
+        tier: (fs.tier as string) ?? (u.customClaims?.tier as string) ?? "free",
+        subscriptionStatus: fs.subscriptionStatus ?? null,
+        currentPeriodEnd: fs.currentPeriodEnd ?? null,
+      };
+    }),
   };
 });
 
@@ -91,16 +96,23 @@ export const adminSetRole = onCall({ cors: true }, async (request) => {
   const tier =
     role === "paid" ? "paid_monthly" : role === "admin" ? "admin" : "free";
 
+  // Derive subscriptionStatus so the admin panel stays consistent
+  const subscriptionStatus =
+    role === "paid" ? "active" : role === "admin" ? null : null;
+
   // Set custom claim (authoritative)
   await auth.setCustomUserClaims(targetUid, { role, tier });
 
-  // Update Firestore (readable cache)
+  // Update Firestore (readable cache) — include subscriptionStatus
   await db
     .collection("users")
     .doc(targetUid)
-    .set({ role, tier, updatedAt: new Date().toISOString() }, { merge: true });
+    .set(
+      { role, tier, subscriptionStatus, updatedAt: new Date().toISOString() },
+      { merge: true },
+    );
 
-  return { success: true, uid: targetUid, role, tier };
+  return { success: true, uid: targetUid, role, tier, subscriptionStatus };
 });
 
 // ── adminDeleteContent ────────────────────────────────────────────────────────

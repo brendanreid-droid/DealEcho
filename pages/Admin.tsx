@@ -138,10 +138,21 @@ const Admin: React.FC = () => {
   // Change user role
   const handleRoleChange = async (uid: string, newRole: UserRole) => {
     try {
-      const fn = httpsCallable(functions, "adminSetRole");
-      await fn({ targetUid: uid, role: newRole });
+      const fn = httpsCallable<
+        { targetUid: string; role: UserRole },
+        {
+          success: boolean;
+          role: UserRole;
+          tier: string;
+          subscriptionStatus: string | null;
+        }
+      >(functions, "adminSetRole");
+      const res = await fn({ targetUid: uid, role: newRole });
+      const { role, tier, subscriptionStatus } = res.data;
       setUsers((prev) =>
-        prev.map((u) => (u.uid === uid ? { ...u, role: newRole } : u)),
+        prev.map((u) =>
+          u.uid === uid ? { ...u, role, tier, subscriptionStatus } : u,
+        ),
       );
       addToast("Role updated successfully", "success");
     } catch (err: unknown) {

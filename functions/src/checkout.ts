@@ -53,11 +53,16 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
     await userRef.set({ stripeCustomerId }, { merge: true });
   }
 
-  // 3. Choose the correct price ID
-  const priceId =
-    plan === "monthly"
-      ? process.env.STRIPE_MONTHLY_PRICE_ID!
-      : process.env.STRIPE_ANNUAL_PRICE_ID!;
+  // 3. Choose the correct price ID (prefer Firestore config, fallback to env vars)
+  let priceId: string;
+  const pricingSnap = await db.collection("config").doc("pricing").get();
+  const pricingData = pricingSnap.data();
+  if (plan === "monthly") {
+    priceId =
+      pricingData?.monthlyPriceId ?? process.env.STRIPE_MONTHLY_PRICE_ID!;
+  } else {
+    priceId = pricingData?.annualPriceId ?? process.env.STRIPE_ANNUAL_PRICE_ID!;
+  }
 
   const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:3000";
 
@@ -77,3 +82,67 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
 
   return { sessionUrl: session.url };
 });
+
+/**
+ * Cancels the authenticated user's active Stripe subscription.
+ * Downgrades the user to free role/tier immediately.
+ */
+export const cancelSubscription = onCall(
+  { cors: true, invoker: "public" },
+  async (request) => {
+    const stripe = getStripe();
+
+    if (!request.auth) {
+      throw new HttpsError(
+        "unauthenticated",
+        "You must be signed in to cancel your subscription.",
+      );
+    }
+
+    const uid = request.auth.uid;
+
+    // Look up the user's subscription from Firestore
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    const userData = userSnap.data();
+
+    if (!userData?.subscriptionId) {
+      throw new HttpsError(
+        "not-found",
+        "No active subscription found for your account.",
+      );
+    }
+
+    try {
+      // Cancel the subscription immediately in Stripe
+      await stripe.subscriptions.cancel(userData.subscriptionId);
+    } catch (err: any) {
+      // If subscription is already cancelled/invalid in Stripe, proceed to clean up locally
+      if (err.code !== "resource_missing") {
+        throw new HttpsError(
+          "internal",
+          err.message || "Failed to cancel subscription with Stripe.",
+        );
+      }
+    }
+
+    // Update Firestore to free
+    await userRef.set(
+      {
+        role: "free",
+        tier: "free",
+        subscriptionStatus: "cancelled",
+        subscriptionId: null,
+        currentPeriodEnd: null,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+
+    // Update Firebase custom claims
+    const { auth: adminAuth } = await import("./lib/firebaseAdmin");
+    await adminAuth.setCustomUserClaims(uid, { role: "free", tier: "free" });
+
+    return { success: true };
+  },
+);

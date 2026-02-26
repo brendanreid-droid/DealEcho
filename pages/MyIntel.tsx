@@ -1,7 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
+import { useAuth } from "../src/hooks/useAuth";
 
 const getTimeAgo = (dateStr: string): string => {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -37,6 +39,36 @@ const MyIntel: React.FC<MyIntelProps> = ({
   onSignInClick,
 }) => {
   const navigate = useNavigate();
+  const { refreshClaims } = useAuth();
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to cancel your Sales Pro subscription? You will lose access to all Pro features immediately.",
+      )
+    ) {
+      return;
+    }
+    setCancelling(true);
+    setCancelError(null);
+    setCancelSuccess(false);
+    try {
+      const functions = getFunctions(undefined, "australia-southeast1");
+      const cancelFn = httpsCallable(functions, "cancelSubscription");
+      await cancelFn({});
+      await refreshClaims();
+      setCancelSuccess(true);
+    } catch (err: any) {
+      setCancelError(
+        err.message || "Failed to cancel subscription. Please try again.",
+      );
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   // Hooks must be called before any early returns to satisfy the Rules of Hooks
   const trackedCompanies = useMemo(() => {
@@ -130,13 +162,43 @@ const MyIntel: React.FC<MyIntelProps> = ({
               {isPaid ? "Sales Pro Member" : "Pioneer Plan"}
             </div>
           </div>
+          {cancelSuccess && (
+            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+              Subscription cancelled successfully
+            </span>
+          )}
+          {cancelError && (
+            <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
+              {cancelError}
+            </span>
+          )}
           {!isPaid && (
             <Link
               to="/pricing"
-              className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors"
+              className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-900/30 flex items-center space-x-2"
             >
-              Upgrade to Sales Pro
+              <i className="fas fa-crown text-[9px]"></i>
+              <span>Upgrade to Sales Pro</span>
             </Link>
+          )}
+          {isPaid && (
+            <button
+              onClick={handleCancelSubscription}
+              disabled={cancelling}
+              className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50"
+            >
+              {cancelling ? (
+                <>
+                  <i className="fas fa-spinner fa-spin text-[9px]"></i>
+                  <span>Cancelling…</span>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-times-circle text-[9px]"></i>
+                  <span>Cancel Subscription</span>
+                </>
+              )}
+            </button>
           )}
         </div>
       </div>

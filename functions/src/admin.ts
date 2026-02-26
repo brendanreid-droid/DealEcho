@@ -160,3 +160,122 @@ export const adminEditContent = onCall({ cors: true }, async (request) => {
   await db.collection("reviews").doc(reviewId).update(allowed);
   return { success: true, reviewId };
 });
+
+// ── adminGetPricing ───────────────────────────────────────────────────────────
+/**
+ * Returns the current pricing configuration from Firestore.
+ * Admin only.
+ */
+export const adminGetPricing = onCall({ cors: true }, async (request) => {
+  requireAdmin(request);
+
+  const snap = await db.collection("config").doc("pricing").get();
+  if (!snap.exists) {
+    // Return defaults from env vars if no Firestore config exists yet
+    return {
+      monthlyAmount: 1500,
+      annualAmount: 14400,
+      currency: "aud",
+      monthlyPriceId: process.env.STRIPE_MONTHLY_PRICE_ID ?? null,
+      annualPriceId: process.env.STRIPE_ANNUAL_PRICE_ID ?? null,
+      stripeProductId: null,
+    };
+  }
+  return snap.data();
+});
+
+// ── adminUpdatePricing ────────────────────────────────────────────────────────
+/**
+ * Creates new Stripe Price objects and stores them in Firestore.
+ * Admin only. Accepts monthlyAmount and annualAmount in cents.
+ */
+export const adminUpdatePricing = onCall({ cors: true }, async (request) => {
+  requireAdmin(request);
+
+  const { monthlyAmount, annualAmount, currency } = request.data as {
+    monthlyAmount: number;
+    annualAmount: number;
+    currency?: string;
+  };
+
+  if (!monthlyAmount || !annualAmount) {
+    throw new HttpsError(
+      "invalid-argument",
+      "monthlyAmount and annualAmount (in cents) are required.",
+    );
+  }
+
+  if (monthlyAmount < 100 || annualAmount < 100) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Amounts must be at least 100 cents ($1.00).",
+    );
+  }
+
+  const { getStripe } = await import("./lib/stripe");
+  const stripe = getStripe();
+  const cur = currency ?? "aud";
+
+  // Find or create the product
+  const pricingSnap = await db.collection("config").doc("pricing").get();
+  let productId = pricingSnap.data()?.stripeProductId;
+
+  if (!productId) {
+    // Try to get product from existing price
+    const existingPriceId = process.env.STRIPE_MONTHLY_PRICE_ID;
+    if (existingPriceId) {
+      try {
+        const existingPrice = await stripe.prices.retrieve(existingPriceId);
+        productId =
+          typeof existingPrice.product === "string"
+            ? existingPrice.product
+            : existingPrice.product.id;
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  if (!productId) {
+    const product = await stripe.products.create({
+      name: "Sales Pro Intel",
+      description: "DealEcho Sales Pro subscription",
+    });
+    productId = product.id;
+  }
+
+  // Create new monthly price
+  const monthlyPrice = await stripe.prices.create({
+    unit_amount: monthlyAmount,
+    currency: cur,
+    recurring: { interval: "month" },
+    product: productId,
+  });
+
+  // Create new annual price
+  const annualPrice = await stripe.prices.create({
+    unit_amount: annualAmount,
+    currency: cur,
+    recurring: { interval: "year" },
+    product: productId,
+  });
+
+  // Store in Firestore
+  const pricingData = {
+    monthlyPriceId: monthlyPrice.id,
+    annualPriceId: annualPrice.id,
+    monthlyAmount,
+    annualAmount,
+    currency: cur,
+    stripeProductId: productId,
+    updatedAt: new Date().toISOString(),
+    updatedBy: request.auth!.uid,
+  };
+
+  await db
+    .collection("config")
+    .doc("pricing")
+    .set(pricingData, { merge: true });
+
+  return { success: true, ...pricingData };
+});

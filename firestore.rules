@@ -44,5 +44,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── Config (pricing, etc.) ────────────────────────────────────────────────
+    // Anyone can read config (pricing page needs it). Only admins can write.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
   }
 }

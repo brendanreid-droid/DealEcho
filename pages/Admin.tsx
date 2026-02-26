@@ -30,7 +30,7 @@ interface AdminReview {
   editedByAdmin?: boolean;
 }
 
-type Tab = "users" | "content";
+type Tab = "users" | "content" | "pricing";
 
 // ── Role badge UI ─────────────────────────────────────────────────────────────
 const ROLE_STYLES: Record<UserRole, string> = {
@@ -74,6 +74,14 @@ const Admin: React.FC = () => {
   const [editReview, setEditReview] = useState<AdminReview | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editSaving, setEditSaving] = useState(false);
+
+  // Pricing state
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingSaving, setPricingSaving] = useState(false);
+  const [monthlyPrice, setMonthlyPrice] = useState("");
+  const [annualPrice, setAnnualPrice] = useState("");
+  const [pricingCurrency, setPricingCurrency] = useState("aud");
+  const [currentPricing, setCurrentPricing] = useState<any>(null);
 
   const functions = getFunctions(undefined, "australia-southeast1");
 
@@ -128,12 +136,109 @@ const Admin: React.FC = () => {
     }
   }, []);
 
+  // Load pricing config
+  const loadPricing = useCallback(async () => {
+    setPricingLoading(true);
+    try {
+      const fn = httpsCallable<object, any>(functions, "adminGetPricing");
+      const result = await fn({});
+      const data = result.data;
+      setCurrentPricing(data);
+      setMonthlyPrice(((data.monthlyAmount ?? 0) / 100).toFixed(2));
+      setAnnualPrice(((data.annualAmount ?? 0) / 100).toFixed(2));
+      setPricingCurrency(data.currency ?? "aud");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load pricing";
+      addToast(msg, "error");
+    } finally {
+      setPricingLoading(false);
+    }
+  }, [functions]);
+
+  // Update pricing
+  const handleUpdatePricing = async () => {
+    const monthly = Math.round(parseFloat(monthlyPrice) * 100);
+    const annual = Math.round(parseFloat(annualPrice) * 100);
+
+    if (isNaN(monthly) || isNaN(annual) || monthly < 100 || annual < 100) {
+      addToast("Prices must be at least $1.00", "error");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Update prices to $${(monthly / 100).toFixed(2)}/mo and $${(annual / 100).toFixed(2)}/yr? This creates new Stripe price objects.`,
+      )
+    ) {
+      return;
+    }
+
+    setPricingSaving(true);
+    try {
+      const fn = httpsCallable<any, any>(functions, "adminUpdatePricing");
+      const result = await fn({
+        monthlyAmount: monthly,
+        annualAmount: annual,
+        currency: pricingCurrency,
+      });
+      setCurrentPricing(result.data);
+      addToast(
+        "Pricing updated successfully! New subscribers will see updated prices.",
+        "success",
+      );
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to update pricing";
+      addToast(msg, "error");
+    } finally {
+      setPricingSaving(false);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin && !isLoading) {
       loadUsers();
       loadReviews();
+      loadPricing();
     }
   }, [isAdmin, isLoading, loadUsers, loadReviews]);
+
+  // Real-time Firestore listener: reflect role/subscription changes without refresh
+  useEffect(() => {
+    if (!isAdmin || isLoading) return;
+
+    let unsubscribe: (() => void) | null = null;
+
+    (async () => {
+      const { getFirestore, collection, onSnapshot } =
+        await import("firebase/firestore");
+      const db = getFirestore();
+      unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
+        const changes: Record<string, any> = {};
+        snapshot.docs.forEach((doc) => {
+          changes[doc.id] = doc.data();
+        });
+        setUsers((prev) =>
+          prev.map((u) => {
+            const fsData = changes[u.uid];
+            if (!fsData) return u;
+            return {
+              ...u,
+              role: (fsData.role as UserRole) ?? u.role,
+              tier: fsData.tier ?? u.tier,
+              subscriptionStatus:
+                fsData.subscriptionStatus ?? u.subscriptionStatus,
+              currentPeriodEnd: fsData.currentPeriodEnd ?? u.currentPeriodEnd,
+            };
+          }),
+        );
+      });
+    })();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [isAdmin, isLoading]);
 
   // Change user role
   const handleRoleChange = async (uid: string, newRole: UserRole) => {
@@ -326,7 +431,7 @@ const Admin: React.FC = () => {
 
         {/* Tab bar */}
         <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
-          {(["users", "content"] as Tab[]).map((t) => (
+          {(["users", "content", "pricing"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -337,11 +442,13 @@ const Admin: React.FC = () => {
               }`}
             >
               <i
-                className={`fas ${t === "users" ? "fa-users" : "fa-comment-alt"} mr-2`}
+                className={`fas ${t === "users" ? "fa-users" : t === "content" ? "fa-comment-alt" : "fa-tags"} mr-2`}
               />
               {t === "users"
                 ? `Users (${stats.total})`
-                : `Reviews (${stats.reviews})`}
+                : t === "content"
+                  ? `Reviews (${stats.reviews})`
+                  : "Pricing"}
             </button>
           ))}
         </div>
@@ -653,6 +760,178 @@ const Admin: React.FC = () => {
                       : "No reviews match your search"}
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── PRICING TAB ── */}
+        {tab === "pricing" && (
+          <div className="max-w-2xl">
+            {pricingLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Current Pricing Info */}
+                {currentPricing && (
+                  <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">
+                      <i className="fas fa-info-circle text-indigo-400 mr-2" />
+                      Current Active Prices
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/5 rounded-2xl p-4">
+                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                          Monthly
+                        </div>
+                        <div className="text-2xl font-black text-white">
+                          {currentPricing.currency?.toUpperCase() ?? "AUD"} $
+                          {((currentPricing.monthlyAmount ?? 0) / 100).toFixed(
+                            2,
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono mt-1">
+                          {currentPricing.monthlyPriceId ?? "env default"}
+                        </div>
+                      </div>
+                      <div className="bg-white/5 rounded-2xl p-4">
+                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                          Annual
+                        </div>
+                        <div className="text-2xl font-black text-white">
+                          {currentPricing.currency?.toUpperCase() ?? "AUD"} $
+                          {((currentPricing.annualAmount ?? 0) / 100).toFixed(
+                            2,
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono mt-1">
+                          {currentPricing.annualPriceId ?? "env default"}
+                        </div>
+                      </div>
+                    </div>
+                    {currentPricing.updatedAt && (
+                      <div className="text-[10px] text-slate-500 mt-3">
+                        Last updated:{" "}
+                        {new Date(currentPricing.updatedAt).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Update Form */}
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">
+                    <i className="fas fa-edit text-indigo-400 mr-2" />
+                    Update Subscription Prices
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                        Currency
+                      </label>
+                      <select
+                        value={pricingCurrency}
+                        onChange={(e) => setPricingCurrency(e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 text-white text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors"
+                        style={{ colorScheme: "dark" }}
+                      >
+                        <option value="aud" className="bg-[#0f172a]">
+                          AUD (Australian Dollar)
+                        </option>
+                        <option value="usd" className="bg-[#0f172a]">
+                          USD (US Dollar)
+                        </option>
+                        <option value="gbp" className="bg-[#0f172a]">
+                          GBP (British Pound)
+                        </option>
+                        <option value="eur" className="bg-[#0f172a]">
+                          EUR (Euro)
+                        </option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                        Monthly Price ({pricingCurrency.toUpperCase()})
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">
+                          $
+                        </span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="1"
+                          value={monthlyPrice}
+                          onChange={(e) => setMonthlyPrice(e.target.value)}
+                          className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="15.00"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                        Annual Price ({pricingCurrency.toUpperCase()})
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">
+                          $
+                        </span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="1"
+                          value={annualPrice}
+                          onChange={(e) => setAnnualPrice(e.target.value)}
+                          className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="144.00"
+                        />
+                      </div>
+                      {monthlyPrice && annualPrice && (
+                        <div className="text-[10px] text-indigo-400 font-bold mt-2">
+                          That's ${(parseFloat(annualPrice) / 12).toFixed(2)}/mo
+                          —{" "}
+                          {Math.round(
+                            (1 -
+                              parseFloat(annualPrice) /
+                                12 /
+                                parseFloat(monthlyPrice)) *
+                              100,
+                          )}
+                          % savings vs monthly
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={handleUpdatePricing}
+                      disabled={pricingSaving}
+                      className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-colors disabled:opacity-60 mt-4"
+                    >
+                      {pricingSaving ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin mr-2" /> Creating
+                          Stripe Prices...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-save mr-2" /> Update Prices
+                        </>
+                      )}
+                    </button>
+
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      <i className="fas fa-info-circle mr-1" />
+                      This creates new Stripe Price objects and updates the
+                      checkout flow. Existing subscribers keep their current
+                      price. Only new subscribers will see the updated price.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -295,6 +295,28 @@ async function handleSubscriptionChange(
   // Set Firebase Custom Claims
   await auth.setCustomUserClaims(uid, { role, tier });
 
+  // If user is now paid, restore their real name on all their reviews
+  if (role === "paid") {
+    try {
+      const userRecord = await auth.getUser(uid);
+      const realName =
+        userRecord.displayName || userRecord.email?.split("@")[0] || "User";
+      const reviewsSnap = await db
+        .collection("reviews")
+        .where("userId", "==", uid)
+        .get();
+      if (!reviewsSnap.empty) {
+        const batch = db.batch();
+        reviewsSnap.docs.forEach((doc) => {
+          batch.update(doc.ref, { userName: realName });
+        });
+        await batch.commit();
+      }
+    } catch (e) {
+      console.error("Failed to restore review names:", (e as Error).message);
+    }
+  }
+
   if (debugRef)
     await debugRef.update({ result: "firestore_and_claims_updated" });
 }
@@ -318,6 +340,19 @@ async function handleSubscriptionDeleted(
   );
 
   await auth.setCustomUserClaims(uid, { role: "free", tier: "free" });
+
+  // Anonymize all reviews by this user
+  const reviewsSnap = await db
+    .collection("reviews")
+    .where("userId", "==", uid)
+    .get();
+  if (!reviewsSnap.empty) {
+    const batch = db.batch();
+    reviewsSnap.docs.forEach((doc) => {
+      batch.update(doc.ref, { userName: "Anonymous" });
+    });
+    await batch.commit();
+  }
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {

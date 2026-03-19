@@ -143,6 +143,19 @@ export const cancelSubscription = onCall(
     const { auth: adminAuth } = await import("./lib/firebaseAdmin");
     await adminAuth.setCustomUserClaims(uid, { role: "free", tier: "free" });
 
+    // Anonymize all reviews by this user
+    const reviewsSnap = await db
+      .collection("reviews")
+      .where("userId", "==", uid)
+      .get();
+    const batch = db.batch();
+    reviewsSnap.docs.forEach((doc) => {
+      batch.update(doc.ref, { userName: "Anonymous" });
+    });
+    if (!reviewsSnap.empty) {
+      await batch.commit();
+    }
+
     return { success: true };
   },
 );

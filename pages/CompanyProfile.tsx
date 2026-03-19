@@ -459,7 +459,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
                         </div>
                         <div>
                           <div className="text-sm font-black text-slate-800 tracking-tight">
-                            {r.userName || "Anonymous"}
+                            Verified User
                           </div>
                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             {new Date(r.createdAt).toLocaleDateString()}

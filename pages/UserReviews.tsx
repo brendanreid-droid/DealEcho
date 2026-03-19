@@ -18,7 +18,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
         <div>
           <h1 className="text-4xl font-extrabold text-slate-900 flex items-center">
             <i className="fas fa-user-shield text-indigo-600 mr-4"></i>
-            {userReviews[0]?.userName || "Contributor"} Intel
+            Verified User Intel
           </h1>
           <p className="text-slate-400 font-bold text-xs mt-3 uppercase tracking-[0.2em]">
             {userReviews.length} Reports Submitted

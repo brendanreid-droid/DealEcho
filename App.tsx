@@ -277,15 +277,10 @@ const Navigation: React.FC<{
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="container mx-auto px-6 flex items-center justify-between h-20">
+      <div className="container mx-auto px-6 flex items-center justify-between h-28">
         <div className="flex items-center space-x-12">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-[#4f46e5] text-white p-1.5 rounded-lg flex items-center justify-center">
-              <i className="fas fa-bullhorn text-sm"></i>
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-[#1e293b]">
-              DealEcho<span className="text-[#4f46e5]">.io</span>
-            </span>
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="DealEcho.io" className="h-24 w-auto object-contain" />
           </Link>
 
           <nav className="hidden lg:flex items-center space-x-8">

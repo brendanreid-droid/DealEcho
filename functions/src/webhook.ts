@@ -97,6 +97,7 @@ export const stripeWebhook = onRequest(
     secrets: ["STRIPE_WEBHOOK_SECRET"],
   },
   async (req, res) => {
+    res.removeHeader("x-powered-by");
     console.log("--- WEBHOOK INVOCATION START ---");
     console.log("Method:", req.method);
     console.log("Content-Type:", req.headers["content-type"]);
@@ -371,6 +372,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 export const getWebhookDebugLogs = onRequest(
   { cors: true },
   async (req, res) => {
+    res.removeHeader("x-powered-by");
     try {
       const snap = await db
         .collection("webhooks_debug")

@@ -1,5 +1,5 @@
 import sys
-from PIL import Image
+from PIL import Image, ImageChops
 
 def trim(image_path):
     print("Trimming", image_path)
@@ -16,7 +16,6 @@ def trim(image_path):
     else:
         # Get bounding box of non-background color (assuming white/transparent background)
         bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
-        from PIL import ImageChops
         diff = ImageChops.difference(im, bg)
         diff = ImageChops.add(diff, diff, 2.0, -100)
         bbox = diff.getbbox()
@@ -29,5 +28,4 @@ def trim(image_path):
         print("No trimming needed")
 
 if __name__ == "__main__":
-    from PIL import ImageChops
     trim(sys.argv[1])

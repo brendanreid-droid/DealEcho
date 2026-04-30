@@ -277,10 +277,10 @@ const Navigation: React.FC<{
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="container mx-auto px-6 flex items-center justify-between py-4">
+      <div className="container mx-auto px-6 flex items-center justify-between h-28">
         <div className="flex items-center space-x-12">
           <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="DealEcho.io" className="h-48 w-auto object-contain" />
+            <img src="/logo.png" alt="DealEcho.io" className="h-24 w-auto object-contain" />
           </Link>
 
           <nav className="hidden lg:flex items-center space-x-8">

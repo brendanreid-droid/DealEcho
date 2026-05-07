@@ -62,6 +62,20 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAggregateScoreHovered, setIsAggregateScoreHovered] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("newest");
+
+  // Mapping TCV bracket strings to numeric order for sorting
+  const TCV_ORDER: Record<string, number> = {
+    "< $10k": 1,
+    "$10k - $25k": 2,
+    "$25k - $50k": 3,
+    "$50k - $100k": 4,
+    "$100k - $250k": 5,
+    "$250k - $500k": 6,
+    "$500k - $750k": 7,
+    "$750k - $1M": 8,
+    "$1M+": 9,
+  };
 
   useEffect(() => {
     if (!company && companyId) {
@@ -95,6 +109,23 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     if (selectedTeam === "all") return companyReviews;
     return companyReviews.filter((r) => r.buyingTeam.includes(selectedTeam));
   }, [companyReviews, selectedTeam]);
+
+  // Sorted reviews based on user selection
+  const sortedReviews = useMemo(() => {
+    const sorted = [...filteredReviews];
+    switch (sortOrder) {
+      case "newest":
+        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      case "oldest":
+        return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case "deal-high":
+        return sorted.sort((a, b) => (TCV_ORDER[b.tcvBracket] || 0) - (TCV_ORDER[a.tcvBracket] || 0));
+      case "deal-low":
+        return sorted.sort((a, b) => (TCV_ORDER[a.tcvBracket] || 0) - (TCV_ORDER[b.tcvBracket] || 0));
+      default:
+        return sorted;
+    }
+  }, [filteredReviews, sortOrder, TCV_ORDER]);
 
   // Aggregated Stats for Header
   const statsSummary = useMemo(() => {
@@ -372,18 +403,44 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
 
         {/* Main Feed: Tactical Intelligence */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">
-                Intelligence Feed
-              </h2>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                {selectedTeam === "all"
-                  ? companyReviews.length
-                  : filteredReviews.length}{" "}
-                Verified Reports
-                {selectedTeam !== "all" && ` for ${selectedTeam}`}
-              </span>
+          <div className="space-y-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">
+                  Intelligence Feed
+                </h2>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {selectedTeam === "all"
+                    ? companyReviews.length
+                    : filteredReviews.length}{" "}
+                  Verified Reports
+                  {selectedTeam !== "all" && ` for ${selectedTeam}`}
+                </span>
+              </div>
+
+              {/* Sort Dropdown */}
+              {hasReviews && (
+                <div className="flex items-center gap-3">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                    Sort by
+                  </span>
+                  <div className="relative">
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                      className="appearance-none bg-white border border-slate-200 text-slate-700 text-xs font-bold pl-4 pr-9 py-2.5 rounded-xl cursor-pointer hover:border-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none transition-all shadow-sm"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="deal-high">Deal Size (High → Low)</option>
+                      <option value="deal-low">Deal Size (Low → High)</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <i className="fas fa-chevron-down text-[8px] text-slate-400"></i>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Buying Team Filter Pill List */}
@@ -416,7 +473,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
             )}
           </div>
 
-          {filteredReviews.length > 0 ? (
+          {sortedReviews.length > 0 ? (
             <div
               className={`relative p-2 rounded-[40px] transition-all duration-500 ${!isPro ? "bg-slate-100/80 border-2 border-dashed border-slate-200 overflow-hidden max-h-[600px]" : ""}`}
             >
@@ -447,7 +504,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
               <div
                 className={`space-y-6 transition-all duration-700 ${!isPro ? "filter blur-2xl opacity-40 pointer-events-none select-none scale-[0.98]" : ""}`}
               >
-                {filteredReviews.map((r) => (
+                {sortedReviews.map((r) => (
                   <div
                     key={r.id}
                     className="bg-white p-8 md:p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8 animate-in fade-in slide-in-from-bottom-2"

@@ -63,6 +63,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const [isAggregateScoreHovered, setIsAggregateScoreHovered] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
+  const [showReviewRuleModal, setShowReviewRuleModal] = useState(false);
 
   // Mapping TCV bracket strings to numeric order for sorting
   const TCV_ORDER: Record<string, number> = {
@@ -186,6 +187,26 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     }
   };
 
+  const handleLeaveReview = () => {
+    if (!user) {
+      onSignInClick();
+      return;
+    }
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const hasRecentReview = companyReviews.some(
+      (r) => r.userId === user.id && new Date(r.createdAt) > sixMonthsAgo
+    );
+
+    if (hasRecentReview) {
+      setShowReviewRuleModal(true);
+    } else {
+      navigate("/review/new", { state: { prefilledCompany: company } });
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-10">
       {/* Header Profile */}
@@ -292,6 +313,14 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
               >
                 {!user && <i className="fas fa-lock mr-2 text-[10px]"></i>}
                 {isTracking ? "Tracking Account" : "Track Account"}
+              </button>
+
+              <button
+                onClick={handleLeaveReview}
+                className="px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center bg-white text-slate-900 border border-slate-200 hover:bg-slate-50"
+              >
+                <i className="fas fa-pen-nib mr-2 text-[10px] text-indigo-500"></i>
+                Leave Review
               </button>
             </div>
           </div>
@@ -627,6 +656,36 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
           )}
         </div>
       </div>
+
+      {/* Review Rule Modal */}
+      {showReviewRuleModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[48px] p-10 md:p-16 max-w-xl w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300 text-center space-y-10">
+            <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[32px] flex items-center justify-center mx-auto text-4xl shadow-inner border border-rose-100/50">
+              <i className="fas fa-history"></i>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-3xl font-black text-slate-900 tracking-tight">
+                Review Policy
+              </h3>
+              <p className="text-slate-500 text-lg font-medium leading-relaxed">
+                To maintain the integrity of our intelligence network, users can only leave <span className="text-slate-900 font-bold">one review per company every 6 months</span>.
+              </p>
+              <p className="text-slate-400 text-sm font-medium">
+                Your last review for {company.name} was submitted recently. You can contribute to a different target account or check back later.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowReviewRuleModal(false)}
+              className="w-full bg-slate-900 text-white py-6 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-200"
+            >
+              Understood
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

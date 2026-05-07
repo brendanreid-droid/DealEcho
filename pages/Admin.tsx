@@ -28,9 +28,13 @@ interface AdminReview {
   status?: string;
   createdAt?: string;
   editedByAdmin?: boolean;
+  moderationStatus?: string;
+  moderationReason?: string;
+  flaggedSegments?: string[];
+  moderatedAt?: string;
 }
 
-type Tab = "users" | "content" | "pricing";
+type Tab = "users" | "content" | "flagged" | "pricing";
 
 // ── Role badge UI ─────────────────────────────────────────────────────────────
 const ROLE_STYLES: Record<UserRole, string> = {
@@ -69,6 +73,10 @@ const Admin: React.FC = () => {
   const [contentUserFilter, setContentUserFilter] = useState<string | null>(
     null,
   );
+
+  // Flagged reviews state
+  const [flaggedReviews, setFlaggedReviews] = useState<AdminReview[]>([]);
+  const [flaggedLoading, setFlaggedLoading] = useState(true);
 
   // Edit modal state
   const [editReview, setEditReview] = useState<AdminReview | null>(null);
@@ -136,6 +144,31 @@ const Admin: React.FC = () => {
     }
   }, []);
 
+  // Load flagged reviews
+  const loadFlaggedReviews = useCallback(async () => {
+    setFlaggedLoading(true);
+    try {
+      const { getFirestore, collection, getDocs, query, where, orderBy, limit } =
+        await import("firebase/firestore");
+      const db = getFirestore();
+      const q = query(
+        collection(db, "reviews"),
+        where("moderationStatus", "==", "flagged"),
+        orderBy("createdAt", "desc"),
+        limit(50),
+      );
+      const snap = await getDocs(q);
+      setFlaggedReviews(
+        snap.docs.map((d) => ({ id: d.id, ...d.data() }) as AdminReview),
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load flagged reviews";
+      addToast(msg, "error");
+    } finally {
+      setFlaggedLoading(false);
+    }
+  }, []);
+
   // Load pricing config
   const loadPricing = useCallback(async () => {
     setPricingLoading(true);
@@ -200,8 +233,9 @@ const Admin: React.FC = () => {
       loadUsers();
       loadReviews();
       loadPricing();
+      loadFlaggedReviews();
     }
-  }, [isAdmin, isLoading, loadUsers, loadReviews]);
+  }, [isAdmin, isLoading, loadUsers, loadReviews, loadFlaggedReviews]);
 
   // Real-time Firestore listener: reflect role/subscription changes without refresh
   useEffect(() => {
@@ -273,10 +307,24 @@ const Admin: React.FC = () => {
       const fn = httpsCallable(functions, "adminDeleteContent");
       await fn({ reviewId });
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      setFlaggedReviews((prev) => prev.filter((r) => r.id !== reviewId));
       addToast("Review deleted", "success");
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Failed to delete review";
+      addToast(msg, "error");
+    }
+  };
+
+  // Approve a flagged review
+  const handleApproveReview = async (reviewId: string) => {
+    try {
+      const fn = httpsCallable(functions, "adminEditContent");
+      await fn({ reviewId, updates: { moderationStatus: "approved", moderationReason: null, flaggedSegments: null } });
+      setFlaggedReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      addToast("Review approved and published", "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to approve review";
       addToast(msg, "error");
     }
   };
@@ -341,6 +389,7 @@ const Admin: React.FC = () => {
     paid: users.filter((u) => u.role === "paid").length,
     admins: users.filter((u) => u.role === "admin").length,
     reviews: reviews.length,
+    flagged: flaggedReviews.length,
   };
 
   return (
@@ -430,25 +479,32 @@ const Admin: React.FC = () => {
         </div>
 
         {/* Tab bar */}
-        <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
-          {(["users", "content", "pricing"] as Tab[]).map((t) => (
+        <div className="flex flex-wrap bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
+          {(["users", "content", "flagged", "pricing"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-6 py-2.5 rounded-xl text-sm font-black capitalize transition-all ${
+              className={`px-6 py-2.5 rounded-xl text-sm font-black capitalize transition-all relative ${
                 tab === t
                   ? "bg-indigo-600 text-white shadow-lg"
                   : "text-slate-400 hover:text-white"
               }`}
             >
               <i
-                className={`fas ${t === "users" ? "fa-users" : t === "content" ? "fa-comment-alt" : "fa-tags"} mr-2`}
+                className={`fas ${t === "users" ? "fa-users" : t === "content" ? "fa-comment-alt" : t === "flagged" ? "fa-shield-alt" : "fa-tags"} mr-2`}
               />
               {t === "users"
                 ? `Users (${stats.total})`
                 : t === "content"
                   ? `Reviews (${stats.reviews})`
-                  : "Pricing"}
+                  : t === "flagged"
+                    ? `Flagged`
+                    : "Pricing"}
+              {t === "flagged" && stats.flagged > 0 && (
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0a0f1e]">
+                  {stats.flagged}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -760,6 +816,135 @@ const Admin: React.FC = () => {
                       : "No reviews match your search"}
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── FLAGGED REVIEWS TAB ── */}
+        {tab === "flagged" && (
+          <div>
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 bg-rose-600/30 rounded-xl flex items-center justify-center">
+                  <i className="fas fa-shield-alt text-rose-400 text-sm" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black">Flagged Reviews</h2>
+                  <p className="text-slate-500 text-[11px] font-semibold uppercase tracking-widest">
+                    Reviews caught by server-side moderation
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {flaggedLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : flaggedReviews.length === 0 ? (
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center">
+                <div className="w-16 h-16 bg-emerald-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-check-circle text-emerald-400 text-2xl" />
+                </div>
+                <h3 className="text-lg font-black text-white mb-2">All Clear</h3>
+                <p className="text-slate-500 text-sm">No flagged reviews requiring attention.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {flaggedReviews.map((r) => (
+                  <div
+                    key={r.id}
+                    className="bg-white/5 border border-rose-500/20 rounded-3xl p-6 space-y-4"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-grow">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-white font-bold text-sm">
+                            {r.companyName ?? "Unknown Company"}
+                          </span>
+                          <span className="bg-rose-900/40 text-rose-400 text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest">
+                            Flagged
+                          </span>
+                          {r.status && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
+                              r.status === "Won" ? "bg-emerald-900/40 text-emerald-400" :
+                              r.status === "Lost" ? "bg-rose-900/40 text-rose-400" :
+                              "bg-amber-900/40 text-amber-400"
+                            }`}>{r.status}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-[10px] text-slate-500 font-semibold">
+                          <span>
+                            <i className="fas fa-user mr-1" />
+                            {r.userId?.slice(0, 8)}…
+                          </span>
+                          <span>
+                            <i className="fas fa-calendar mr-1" />
+                            {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "—"}
+                          </span>
+                          {r.moderatedAt && (
+                            <span>
+                              <i className="fas fa-clock mr-1" />
+                              Moderated: {new Date(r.moderatedAt).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => handleApproveReview(r.id)}
+                          className="px-4 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-600/40 transition-colors"
+                          title="Approve and publish this review"
+                        >
+                          <i className="fas fa-check mr-1.5" />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(r.id)}
+                          className="px-4 py-2 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400 text-xs font-bold hover:bg-rose-600/40 transition-colors"
+                          title="Delete this review permanently"
+                        >
+                          <i className="fas fa-trash mr-1.5" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Flagged reason */}
+                    <div className="bg-rose-950/30 border border-rose-500/10 rounded-2xl p-4">
+                      <div className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2">
+                        <i className="fas fa-exclamation-triangle mr-1.5" />
+                        Moderation Reason
+                      </div>
+                      <p className="text-rose-300/80 text-sm font-medium">
+                        {r.moderationReason || "No reason provided"}
+                      </p>
+                      {r.flaggedSegments && r.flaggedSegments.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {r.flaggedSegments.map((seg, i) => (
+                            <span
+                              key={i}
+                              className="bg-rose-900/40 text-rose-300 text-[10px] font-bold px-2 py-1 rounded-lg border border-rose-500/20"
+                            >
+                              {seg}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Review content */}
+                    <div className="bg-white/5 rounded-2xl p-4">
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                        Review Content
+                      </div>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        {r.content || "No content"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

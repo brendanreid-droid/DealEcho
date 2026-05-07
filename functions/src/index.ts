@@ -14,3 +14,4 @@ export {
   adminGetPricing,
   adminUpdatePricing,
 } from "./admin";
+export { moderateNewReview } from "./moderation";

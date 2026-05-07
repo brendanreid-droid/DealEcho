@@ -10,10 +10,16 @@ export const useReviews = () => {
   useEffect(() => {
     const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'), limit(200));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedReviews = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Review[];
+      const fetchedReviews = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter((doc: any) => {
+          // Show reviews that are approved or don't have a moderationStatus (legacy data)
+          const status = doc.moderationStatus;
+          return !status || status === 'approved';
+        }) as Review[];
       setReviews(fetchedReviews);
       setIsLoading(false);
     }, (error) => {
@@ -28,6 +34,7 @@ export const useReviews = () => {
       const { id, ...reviewData } = newReview;
       await addDoc(collection(db, 'reviews'), {
         ...reviewData,
+        moderationStatus: 'pending',
         createdAt: new Date().toISOString()
       });
       return true;

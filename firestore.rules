@@ -14,11 +14,15 @@ service cloud.firestore {
 
     // ── Reviews ────────────────────────────────────────────────────────────────
     // Anyone can read reviews. Only authenticated users can create.
+    // Users cannot set moderation fields — only Cloud Functions (Admin SDK) can.
     // Admins can moderate (update/delete).
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn() 
-                    && request.resource.data.userId == request.auth.uid;
+                    && request.resource.data.userId == request.auth.uid
+                    && !('moderationStatus' in request.resource.data && request.resource.data.moderationStatus != 'pending')
+                    && !('moderationReason' in request.resource.data)
+                    && !('flaggedSegments' in request.resource.data);
       allow update, delete: if isAdmin();
     }
 

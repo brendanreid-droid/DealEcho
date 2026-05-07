@@ -158,7 +158,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-10">
       {/* Header Profile */}
-      <div className="bg-white p-12 rounded-[48px] border border-slate-200 shadow-sm flex flex-col md:flex-row items-center md:items-start md:space-x-12 relative z-[100]">
+      <div className="bg-white p-12 rounded-[48px] border border-slate-200 shadow-sm flex flex-col md:flex-row items-center md:items-start md:space-x-12 relative">
         <CompanyLogo
           name={company.name}
           logoUrl={company.logoUrl}

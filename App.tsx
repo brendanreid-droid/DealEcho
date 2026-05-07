@@ -276,7 +276,7 @@ const Navigation: React.FC<{
   }
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-[1000]">
       <div className="container mx-auto px-6 flex items-center justify-between h-28">
         <div className="flex items-center space-x-12">
           <Link to="/" className="flex items-center">
@@ -358,7 +358,7 @@ const Navigation: React.FC<{
       </div>
 
       {isMenuOpen && (
-        <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-2xl p-6 space-y-2 z-50">
+        <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-2xl p-6 space-y-2 z-[999]">
           {navLinks.map((link) => (
             <Link
               key={link.name}

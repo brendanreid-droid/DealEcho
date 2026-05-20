@@ -159,7 +159,23 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   // Update AI Persona when the filtered set of reviews changes
   useEffect(() => {
     if (company && filteredReviews.length > 0) {
-      setIsAiLoading(true);
+      // Synchronously check if cached to avoid loading spinner flash for instant premium experience!
+      const reviewsSignature = filteredReviews
+        .map((r) => `${r.id}_${r.createdAt}`)
+        .sort()
+        .join("|");
+      const normalizedCompany = company.name.trim().toLowerCase();
+      const cacheKey = `dealecho_persona_cache:${normalizedCompany}:${reviewsSignature}`;
+      let isCached = false;
+      try {
+        isCached = !!sessionStorage.getItem(cacheKey);
+      } catch (e) {
+        // Fail silently
+      }
+
+      if (!isCached) {
+        setIsAiLoading(true);
+      }
       getAICompanyPersona(company.name, filteredReviews)
         .then(setAiPersona)
         .finally(() => setIsAiLoading(false));

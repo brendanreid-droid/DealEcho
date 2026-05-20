@@ -7,7 +7,35 @@ export const isGeminiAvailable = (): boolean => {
   return !!key && key.length > 20 && !key.toLowerCase().includes("placeholder");
 };
 
+// Helper functions for sessionStorage caching with fallback
+const getSessionCache = <T>(key: string): T | null => {
+  try {
+    const val = sessionStorage.getItem(key);
+    return val ? JSON.parse(val) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const setSessionCache = <T>(key: string, data: T): void => {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    // Fail silently if quota exceeded or sessionStorage is blocked
+  }
+};
+
 export const searchCompanies = async (query: string): Promise<Company[]> => {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return [];
+
+  const cacheKey = `dealecho_search_cache:${normalizedQuery}`;
+  const cached = getSessionCache<Company[]>(cacheKey);
+  if (cached) {
+    console.info(`[GeminiService] Search cache hit for: "${normalizedQuery}"`);
+    return cached;
+  }
+
   if (!isGeminiAvailable()) {
     console.warn("[GeminiService] No valid API key — AI search disabled.");
     return [];
@@ -38,11 +66,14 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
     });
 
     const results = JSON.parse(response.text || "[]");
-    return results.map((r: any, index: number) => ({
+    const formattedResults = results.map((r: any, index: number) => ({
       ...r,
       id: `ai-${index}-${Date.now()}`,
-      logoUrl: `https://logo.clearbit.com/${r.name.toLowerCase().replace(/\s/g, "")}.com`,
+      logoUrl: `https://logo.clearbit.com/${r.name.toLowerCase().replace(/\s/g, "").replace(/\./g, "")}.com`,
     }));
+
+    setSessionCache(cacheKey, formattedResults);
+    return formattedResults;
   } catch (error) {
     console.error("Search error:", error);
     return [];
@@ -135,6 +166,19 @@ export const getAICompanyPersona = async (
       competition: "Unknown",
     },
   };
+
+  const reviewsSignature = reviews
+    .map((r) => `${r.id}_${r.createdAt}`)
+    .sort()
+    .join("|");
+  const normalizedCompany = companyName.trim().toLowerCase();
+  const cacheKey = `dealecho_persona_cache:${normalizedCompany}:${reviewsSignature}`;
+
+  const cached = getSessionCache<CompanyPersona>(cacheKey);
+  if (cached) {
+    console.info(`[GeminiService] Persona cache hit for company: "${normalizedCompany}"`);
+    return cached;
+  }
 
   if (!isGeminiAvailable()) {
     console.warn(
@@ -231,24 +275,11 @@ export const getAICompanyPersona = async (
       },
     });
 
-    return JSON.parse(response.text || "{}");
+    const result = JSON.parse(response.text || "{}");
+    setSessionCache(cacheKey, result);
+    return result;
   } catch (error) {
     console.error("Persona generation error:", error);
-    return {
-      summary: "Insufficient data to generate persona intelligence.",
-      keyTraits: [],
-      strategicAdvice: "Monitor recent reviews for emerging patterns.",
-      teamPlaybooks: [],
-      meddpicc: {
-        metrics: "Unknown",
-        economicBuyer: "Unknown",
-        decisionCriteria: "Unknown",
-        decisionProcess: "Unknown",
-        paperProcess: "Unknown",
-        identifyPain: "Unknown",
-        champion: "Unknown",
-        competition: "Unknown",
-      },
-    };
+    return fallback;
   }
 };

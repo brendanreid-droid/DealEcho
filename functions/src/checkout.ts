@@ -41,7 +41,9 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
   // 2. Look up or create Stripe customer
   const userRef = db.collection("users").doc(uid);
   const userSnap = await userRef.get();
-  let stripeCustomerId: string | undefined = userSnap.data()?.stripeCustomerId;
+  const userData = userSnap.data();
+  let stripeCustomerId: string | undefined = userData?.stripeCustomerId;
+  const hasUsedTrial = !!userData?.hasUsedTrial;
 
   if (!stripeCustomerId) {
     const customer = await stripe.customers.create({
@@ -77,6 +79,7 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
     metadata: { firebaseUID: uid, plan },
     subscription_data: {
       metadata: { firebaseUID: uid, plan },
+      ...(!hasUsedTrial ? { trial_period_days: 30 } : {}),
     },
   });
 

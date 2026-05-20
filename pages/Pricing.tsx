@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useLocation, useNavigate } from "react-router-dom";
-import { doc, getDoc, getFirestore } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../src/firebase/config";
 import { useAuth } from "../src/hooks/useAuth";
 
 interface PricingProps {
@@ -19,6 +20,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
   const [monthlyAmount, setMonthlyAmount] = useState(15);
   const [annualAmount, setAnnualAmount] = useState(144);
   const [priceCurrency, setPriceCurrency] = useState("AUD");
+  const [hasUsedTrial, setHasUsedTrial] = useState(false);
 
   const { search } = useLocation();
   const navigate = useNavigate();
@@ -29,7 +31,6 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
   useEffect(() => {
     const fetchPricing = async () => {
       try {
-        const db = getFirestore();
         const snap = await getDoc(doc(db, "config", "pricing"));
         if (snap.exists()) {
           const data = snap.data();
@@ -43,6 +44,25 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     };
     fetchPricing();
   }, []);
+
+  // Fetch user trial eligibility
+  useEffect(() => {
+    if (!user) {
+      setHasUsedTrial(false);
+      return;
+    }
+    const fetchEligibility = async () => {
+      try {
+        const snap = await getDoc(doc(db, "users", user.id));
+        if (snap.exists()) {
+          setHasUsedTrial(!!snap.data()?.hasUsedTrial);
+        }
+      } catch (err) {
+        console.error("Error fetching trial eligibility:", err);
+      }
+    };
+    fetchEligibility();
+  }, [user]);
 
   // ── Handle redirect back from Stripe ──────────────────────────────────────
   useEffect(() => {
@@ -159,6 +179,11 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
       )}
 
       <div className="text-center mb-16 space-y-4">
+        {!isPaid && !hasUsedTrial && (
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest mb-4 shadow-lg shadow-emerald-600/20 animate-pulse">
+            <i className="fas fa-gift text-sm"></i> Limited Offer: First Month Free
+          </div>
+        )}
         <h1 className="text-4xl md:text-6xl font-black text-[#1e293b] tracking-tight">
           Invest in your <span className="text-[#4f46e5]">Closing Rate</span>.
         </h1>
@@ -244,6 +269,12 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
                 ? `Billed Annually ($${(annualAmount / 12).toFixed(0)}/mo) (${priceCurrency})`
                 : `Billed Monthly (${priceCurrency})`}
             </p>
+            {!isPaid && !hasUsedTrial && (
+              <div className="mt-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2 flex items-center gap-2 text-emerald-400 text-xs font-bold w-fit">
+                <i className="fas fa-gift text-sm animate-bounce"></i>
+                First Month $0 — 30-Day Free Trial
+              </div>
+            )}
           </div>
 
           <ul className="space-y-4 mb-10 flex-grow">
@@ -269,17 +300,32 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
               Active Subscription
             </button>
           ) : (
-            <button
-              onClick={handleSubscribe}
-              disabled={isProcessing}
-              className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/20"
-            >
-              {isProcessing ? (
-                <i className="fas fa-spinner fa-spin"></i>
-              ) : (
-                "Upgrade to Pro"
+            <div className="space-y-3">
+              <button
+                onClick={handleSubscribe}
+                disabled={isProcessing}
+                className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg ${
+                  !hasUsedTrial
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/20"
+                    : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-900/20"
+                }`}
+              >
+                {isProcessing ? (
+                  <i className="fas fa-spinner fa-spin"></i>
+                ) : !hasUsedTrial ? (
+                  "Start 30-Day Free Trial"
+                ) : (
+                  "Upgrade to Pro"
+                )}
+              </button>
+              
+              {!hasUsedTrial && (
+                <p className="text-[11px] text-slate-400 text-center font-medium leading-normal">
+                  <i className="fas fa-lock mr-1.5 text-slate-500"></i>
+                  $0 today. Billed after 30 days. Cancel anytime.
+                </p>
               )}
-            </button>
+            </div>
           )}
         </div>
       </div>

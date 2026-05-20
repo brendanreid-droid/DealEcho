@@ -275,23 +275,26 @@ async function handleSubscriptionChange(
       : subscription.customer.id;
 
   // Update Firestore user doc
+  const updateData: any = {
+    role,
+    tier,
+    stripeCustomerId: customerId,
+    subscriptionId: subscription.id,
+    subscriptionStatus: subscription.status,
+    currentPeriodEnd: new Date(
+      subscription.current_period_end * 1000,
+    ).toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (role === "paid") {
+    updateData.hasUsedTrial = true;
+  }
+
   await db
     .collection("users")
     .doc(uid)
-    .set(
-      {
-        role,
-        tier,
-        stripeCustomerId: customerId,
-        subscriptionId: subscription.id,
-        subscriptionStatus: subscription.status,
-        currentPeriodEnd: new Date(
-          subscription.current_period_end * 1000,
-        ).toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true },
-    );
+    .set(updateData, { merge: true });
 
   // Set Firebase Custom Claims
   await auth.setCustomUserClaims(uid, { role, tier });

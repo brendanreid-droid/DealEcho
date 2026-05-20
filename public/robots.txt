@@ -1,0 +1,11 @@
+# robots.txt for DealEcho B2B Intelligence Hub
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow admin portal paths to prevent raw state indexation
+Disallow: /admin
+
+# Sitemaps location
+Sitemap: https://dealecho.io/sitemap.xml

@@ -74,8 +74,8 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
     customer: stripeCustomerId,
     payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${frontendUrl}/#/pricing?checkout=success`,
-    cancel_url: `${frontendUrl}/#/pricing?checkout=cancelled`,
+    success_url: `${frontendUrl}/pricing?checkout=success`,
+    cancel_url: `${frontendUrl}/pricing?checkout=cancelled`,
     metadata: { firebaseUID: uid, plan },
     subscription_data: {
       metadata: { firebaseUID: uid, plan },

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../src/firebase/config";
 import { useAuth } from "../src/hooks/useAuth";
+import { useSEO } from "../src/hooks/useSEO";
 
 interface PricingProps {
   user: any;
@@ -11,6 +12,12 @@ interface PricingProps {
 }
 
 const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
+  useSEO({
+    title: "DealEcho Pricing - Unlock Advanced B2B Buyer Intelligence & Playbooks",
+    description: "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, AI MEDDPICC strategic blueprints, and stakeholder buying team personas.",
+    keywords: "Sales Pro pricing, sales intelligence subscription, MEDDPICC trial, B2B deal close rate, DealEcho",
+  });
+
   const [isAnnual, setIsAnnual] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<{

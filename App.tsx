@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { HashRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -118,7 +118,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <ScrollToTop />
       <div className="min-h-screen flex flex-col bg-slate-100">
         <Navigation
@@ -241,7 +241,7 @@ const App: React.FC = () => {
         />
         <Footer />
       </div>
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 

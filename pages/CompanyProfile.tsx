@@ -3,6 +3,7 @@ import { useLocation, useParams, useNavigate, Link } from "react-router-dom";
 import { Company, Review } from "../types";
 import { getAICompanyPersona, CompanyPersona } from "../services/geminiService";
 import CompanyLogo from "../components/CompanyLogo";
+import { useSEO } from "../src/hooks/useSEO";
 
 interface CompanyProfileProps {
   user: any;
@@ -155,6 +156,47 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       scope: (totals.scope / count).toFixed(1),
     };
   }, [companyReviews]);
+
+  // Construct structured Google-friendly aggregate review schema (JSON-LD)
+  const seoSchema = useMemo(() => {
+    if (!company) return undefined;
+    const count = companyReviews.length;
+    const baseSchema: Record<string, any> = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": company.name,
+      "description": company.description || `${company.name} target account overview and B2B sales intelligence.`,
+      "url": window.location.href,
+      "logo": company.logoUrl || `https://logo.clearbit.com/${company.name.toLowerCase().replace(/\s/g, "")}.com`,
+    };
+
+    if (count > 0) {
+      const averageRating = (
+        (parseFloat(statsSummary.resp) +
+         parseFloat(statsSummary.neg) +
+         parseFloat(statsSummary.intent) +
+         parseFloat(statsSummary.scope)) / 4
+      ).toFixed(1);
+
+      baseSchema.aggregateRating = {
+        "@type": "AggregateRating",
+        "ratingValue": averageRating,
+        "bestRating": "5",
+        "worstRating": "1",
+        "ratingCount": count.toString(),
+      };
+    }
+    return baseSchema;
+  }, [company, companyReviews, statsSummary]);
+
+  useSEO({
+    title: company ? `${company.name} B2B Buyer Intelligence & Ratings | DealEcho` : "B2B Target Account Sales Intel | DealEcho",
+    description: company 
+      ? `Access verified sales reviews, aggregate buyer responsiveness, negotiation scores, and MEDDPICC buying team personas for ${company.name}.`
+      : "Access B2B sales cycle insights, buyer personas, and MEDDPICC deal execution ratings for enterprise target accounts.",
+    keywords: company ? `${company.name} sales, ${company.name} reviews, ${company.name} MEDDPICC, B2B sales intelligence` : "B2B sales intelligence, MEDDPICC, account planning",
+    schema: seoSchema,
+  });
 
   // Update AI Persona when the filtered set of reviews changes
   useEffect(() => {

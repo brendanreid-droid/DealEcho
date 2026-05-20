@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
+import { useSEO } from "../src/hooks/useSEO";
 
 interface HomeProps {
   user: any;
@@ -22,6 +23,12 @@ const Home: React.FC<HomeProps> = ({
   onToggleTrack,
   isLoading,
 }) => {
+  useSEO({
+    title: "DealEcho - Crowdsourced B2B Sales Intelligence & Account Insights",
+    description: "Access verified B2B buyer intelligence, aggregate sales execution ratings, stakeholder buying team personas, and real customer-side feedback for elite tech accounts.",
+    keywords: "B2B sales intelligence, MEDDPICC, buying teams, account planning, sales feedback, DealEcho",
+  });
+
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 

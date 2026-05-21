@@ -1,40 +1,81 @@
 import { useState, useEffect, useCallback } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 export const useTracking = (userId: string | undefined, isPro: boolean) => {
   const [trackedCompanies, setTrackedCompanies] = useState<string[]>([]);
 
-  // Load user-specific tracking data when userId changes
+  // Load user-specific tracking data from Firestore (single source of truth) with localStorage fallback
   useEffect(() => {
-    if (userId) {
+    if (!userId) {
+      setTrackedCompanies([]);
+      return;
+    }
+
+    const loadTracking = async () => {
+      try {
+        // 1. Try loading from Firestore
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const data = userDocSnap.data();
+          if (data.trackedCompanies) {
+            setTrackedCompanies(data.trackedCompanies);
+            localStorage.setItem(`dealecho_tracked_${userId}`, JSON.stringify(data.trackedCompanies));
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load tracking list from Firestore:', err);
+      }
+
+      // 2. Fallback to localStorage if Firestore lookup fails or document doesn't exist yet
       const saved = localStorage.getItem(`dealecho_tracked_${userId}`);
       setTrackedCompanies(saved ? JSON.parse(saved) : []);
-    } else {
-      setTrackedCompanies([]);
+    };
+
+    loadTracking();
+  }, [userId]);
+
+  // Synchronize local changes to Firestore and localStorage
+  const saveTracking = useCallback(async (newTracked: string[]) => {
+    if (!userId) return;
+    
+    // Save to local storage instantly for fast UI feedback
+    localStorage.setItem(`dealecho_tracked_${userId}`, JSON.stringify(newTracked));
+    
+    try {
+      // Sync to Firestore user profile document so backend triggers can see it
+      const userDocRef = doc(db, 'users', userId);
+      await setDoc(userDocRef, { trackedCompanies: newTracked }, { merge: true });
+    } catch (err) {
+      console.error('Failed to sync tracking list to Firestore:', err);
     }
   }, [userId]);
 
-  // Save to user-specific storage whenever data changes
-  useEffect(() => {
-    if (userId) {
-      localStorage.setItem(`dealecho_tracked_${userId}`, JSON.stringify(trackedCompanies));
-    }
-  }, [trackedCompanies, userId]);
-
   const toggleTrack = useCallback((id: string) => {
     if (!userId) return;
+    
     setTrackedCompanies((prev) => {
       const isTracked = prev.includes(id);
+      let updated: string[];
+      
       if (isTracked) {
-        return prev.filter((cid) => cid !== id);
+        updated = prev.filter((cid) => cid !== id);
       } else {
         if (!isPro && prev.length >= 3) {
           alert('Pioneer plan is limited to 3 tracked accounts. Upgrade to Sales Pro for unlimited tracking!');
           return prev;
         }
-        return [...prev, id];
+        updated = [...prev, id];
       }
+      
+      // Save changes async
+      saveTracking(updated);
+      return updated;
     });
-  }, [userId, isPro]);
+  }, [userId, isPro, saveTracking]);
 
   return { trackedCompanies, toggleTrack };
 };

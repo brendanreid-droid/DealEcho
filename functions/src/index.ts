@@ -15,3 +15,9 @@ export {
   adminUpdatePricing,
 } from "./admin";
 export { moderateNewReview } from "./moderation";
+
+// Automated Lifecycle Email Triggers (Resend)
+export { sendWelcomeEmail } from "./triggers/welcomeTrigger";
+export { onReviewStatusApproved } from "./triggers/trackedAlertTrigger";
+export { checkInactiveUsers } from "./triggers/inactivityTrigger";
+

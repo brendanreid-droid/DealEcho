@@ -45,36 +45,42 @@ export const onReviewCreated = onDocumentCreated(
       const reviewSummary = afterData.content || "No description provided.";
 
       const sendPromises = usersSnapshot.docs.map(async (doc) => {
-          const userData = doc.data();
-          // If the user document does not contain a valid email, fall back to the Firebase Auth record.
-          let email = userData.email;
-          let name = userData.name || "there";
+        const userData = doc.data();
+        // Try to get email from Firestore user doc (email or identifier field)
+        let email = userData.email ?? userData.identifier;
+        let name = userData.name || "there";
+
+        // If still missing or malformed, fall back to Firebase Auth
+        if (!email || !email.includes("@")) {
+          try {
+            const userRecord = await auth.getUser(doc.id);
+            email = userRecord.email ?? email;
+            name = userRecord.displayName || name;
+
+            // If still invalid, use the default notification email
             if (!email || !email.includes("@")) {
-              try {
-                const userRecord = await auth.getUser(doc.id);
-                email = userRecord.email;
-                name = userRecord.displayName || name;
-                // If still invalid, use fallback email
-                if (!email || !email.includes("@")) {
-                  console.warn(`User ${doc.id} missing email in Auth; using fallback ${DEFAULT_NOTIFICATION_EMAIL}`);
-                  email = DEFAULT_NOTIFICATION_EMAIL;
-                }
-                // Update Firestore with any discovered email/name
-                const updates: any = {};
-                if (userRecord.email) updates.email = userRecord.email;
-                if (userRecord.displayName) updates.name = userRecord.displayName;
-                if (Object.keys(updates).length) {
-                  await db.collection('users').doc(doc.id).set(updates, { merge: true });
-                }
-              } catch (e) {
-                console.warn(`Unable to fetch Auth for ${doc.id}: ${e}`);
-                email = DEFAULT_NOTIFICATION_EMAIL;
-              }
+              console.warn(`User ${doc.id} missing email in Auth; using fallback ${DEFAULT_NOTIFICATION_EMAIL}`);
+              email = DEFAULT_NOTIFICATION_EMAIL;
             }
-            if (!email || !email.includes("@")) {
-              console.log(`Skipping user ${doc.id} – email still invalid after all fallbacks`);
-              return;
+
+            // Update Firestore with any discovered email/name
+            const updates: any = {};
+            if (userRecord.email) updates.email = userRecord.email;
+            if (userRecord.displayName) updates.name = userRecord.displayName;
+            if (Object.keys(updates).length) {
+              await db.collection('users').doc(doc.id).set(updates, { merge: true });
             }
+          } catch (e) {
+            console.warn(`Unable to fetch Auth for ${doc.id}: ${e}`);
+            email = DEFAULT_NOTIFICATION_EMAIL;
+          }
+        }
+
+        // Final sanity check – if still invalid, skip sending
+        if (!email || !email.includes("@")) {
+          console.log(`Skipping user ${doc.id} – email still invalid after all fallbacks`);
+          return;
+        }
         const component = React.createElement(TrackedAlertEmail, {
           name,
           email,

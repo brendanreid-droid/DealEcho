@@ -2,14 +2,6 @@ import { Resend } from "resend";
 import { render } from "@react-email/render";
 import * as React from "react";
 
-// Initialize Resend with env variable
-const resendApiKey = process.env.RESEND_API_KEY;
-if (!resendApiKey) {
-  console.warn("⚠️ Warning: RESEND_API_KEY environment variable is not configured. Emails will fail to send in production.");
-}
-
-export const resend = new Resend(resendApiKey || "mock-resend-key");
-
 interface SendEmailParams {
   to: string;
   subject: string;
@@ -24,6 +16,12 @@ export async function sendReactEmail({
   from = "DealEcho <no-reply@dealecho.io>",
 }: SendEmailParams) {
   try {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      console.warn("⚠️ Warning: RESEND_API_KEY environment variable is not set. Attempting mock Resend send.");
+    }
+    const resend = new Resend(resendApiKey || "mock-resend-key");
+
     // Compile React Email component into plain HTML string
     const html = await render(component);
     

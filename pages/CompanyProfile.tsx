@@ -80,17 +80,23 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   };
 
   useEffect(() => {
-    if (!company && companyId) {
-      setCompany({
-        id: companyId,
-        name: decodeURIComponent(companyId),
-        industry: "Technology",
-        country: "Global",
-        description: "Enterprise target account.",
-        logoUrl: `https://logo.clearbit.com/${decodeURIComponent(companyId).toLowerCase().replace(/\s/g, "")}.com`,
-      });
+    if (companyId) {
+      const matchingReview = reviews.find((r) => r.companyId === companyId);
+      
+      // If we don't have a company state, or if the current company name is just the ID (placeholder) and we found a matching review
+      if (!company || (company.name === company.id && matchingReview && matchingReview.companyName !== matchingReview.companyId)) {
+        const name = matchingReview?.companyName || decodeURIComponent(companyId);
+        setCompany({
+          id: companyId,
+          name: name,
+          industry: "Technology",
+          country: "Global",
+          description: "Enterprise target account.",
+          logoUrl: `https://logo.clearbit.com/${name.toLowerCase().replace(/\s/g, "")}.com`,
+        });
+      }
     }
-  }, [companyId, company]);
+  }, [companyId, company, reviews]);
 
   const companyReviews = useMemo(() => {
     if (!company) return [];

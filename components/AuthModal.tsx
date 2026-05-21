@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../src/firebase/config";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,7 +14,7 @@ interface AuthModalProps {
   ) => Promise<void>;
 }
 
-type AuthMode = "signin" | "signup";
+type AuthMode = "signin" | "signup" | "forgot";
 
 // ── FieldInput: defined at module level to prevent focus-stealing remounts ────
 // IMPORTANT: This must NOT be defined inside AuthModal, otherwise React treats
@@ -127,6 +129,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isResetSuccess, setIsResetSuccess] = useState(false);
 
   // Per-field validation errors (shown on blur / submit)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -147,6 +150,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setFieldErrors({});
     setFirebaseError("");
     setShowSwitchHint(false);
+    setIsResetSuccess(false);
   };
 
   const switchMode = (newMode: AuthMode) => {
@@ -184,6 +188,25 @@ const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     setFirebaseError("");
     setShowSwitchHint(false);
+    setIsResetSuccess(false);
+
+    if (mode === "forgot") {
+      const emailErr = validateField("email", email);
+      if (emailErr) return;
+
+      setIsEmailLoading(true);
+      try {
+        await sendPasswordResetEmail(auth, email.trim());
+        setIsResetSuccess(true);
+      } catch (err: any) {
+        const code: string = err?.code ?? "";
+        setFirebaseError(getAuthErrorMessage(code));
+      } finally {
+        setIsEmailLoading(false);
+      }
+      return;
+    }
+
     if (!validateAll()) return;
 
     setIsEmailLoading(true);
@@ -217,41 +240,52 @@ const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] overflow-y-auto">
       <div
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
         onClick={onClose}
       ></div>
-      <div className="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative z-10 overflow-hidden">
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative z-10 overflow-hidden my-8">
         {/* ── Header ── */}
         <div className="bg-[#0f172a] px-10 pt-10 pb-6 text-white relative">
           <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/20 blur-[80px] rounded-full -mr-10 -mt-10"></div>
           <h2 className="text-3xl font-black tracking-tight mb-4 relative z-10">
-            {mode === "signin" ? "Welcome Back" : "Get Started"}
+            {mode === "signin"
+              ? "Welcome Back"
+              : mode === "signup"
+                ? "Get Started"
+                : "Reset Password"}
           </h2>
-          {/* Tab toggle */}
-          <div className="relative z-10 flex bg-white/10 rounded-2xl p-1 w-fit">
-            <button
-              onClick={() => switchMode("signin")}
-              className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${
-                mode === "signin"
-                  ? "bg-white text-slate-900 shadow"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => switchMode("signup")}
-              className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${
-                mode === "signup"
-                  ? "bg-white text-slate-900 shadow"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
+          {mode === "forgot" ? (
+            <p className="text-slate-300 text-xs font-semibold leading-relaxed relative z-10 max-w-[320px]">
+              Enter your email address and we'll send you a secure link to reset your password.
+            </p>
+          ) : (
+            /* Tab toggle */
+            <div className="relative z-10 flex bg-white/10 rounded-2xl p-1 w-fit">
+              <button
+                onClick={() => switchMode("signin")}
+                className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${
+                  mode === "signin"
+                    ? "bg-white text-slate-900 shadow"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => switchMode("signup")}
+                className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${
+                  mode === "signup"
+                    ? "bg-white text-slate-900 shadow"
+                    : "text-white/60 hover:text-white"
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Body ── */}
@@ -291,23 +325,47 @@ const AuthModal: React.FC<AuthModalProps> = ({
               error={fieldErrors.email}
             />
 
-            <FieldInput
-              id="password"
-              type="password"
-              placeholder={
-                mode === "signup" ? "Password (min 6 characters)" : "Password"
-              }
-              value={password}
-              onChange={(v) => {
-                setPassword(v);
-                if (fieldErrors.password) validateField("password", v);
-              }}
-              onBlur={() => validateField("password", password)}
-              autoComplete={
-                mode === "signup" ? "new-password" : "current-password"
-              }
-              error={fieldErrors.password}
-            />
+            {mode !== "forgot" && (
+              <FieldInput
+                id="password"
+                type="password"
+                placeholder={
+                  mode === "signup" ? "Password (min 6 characters)" : "Password"
+                }
+                value={password}
+                onChange={(v) => {
+                  setPassword(v);
+                  if (fieldErrors.password) validateField("password", v);
+                }}
+                onBlur={() => validateField("password", password)}
+                autoComplete={
+                  mode === "signup" ? "new-password" : "current-password"
+                }
+                error={fieldErrors.password}
+              />
+            )}
+
+            {mode === "signin" && (
+              <div className="flex justify-end px-1">
+                <button
+                  type="button"
+                  onClick={() => switchMode("forgot")}
+                  className="text-xs font-bold text-slate-400 hover:text-indigo-600 transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            )}
+
+            {/* Success Alert Banner */}
+            {isResetSuccess && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
+                <p className="text-emerald-700 text-[12px] font-semibold leading-snug">
+                  <i className="fas fa-check-circle mr-1.5"></i>
+                  Reset link sent successfully! Check your email inbox.
+                </p>
+              </div>
+            )}
 
             {/* Firebase-level error + switch hint */}
             {firebaseError && (
@@ -355,60 +413,76 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 </svg>
               ) : mode === "signin" ? (
                 "Sign In"
-              ) : (
+              ) : mode === "signup" ? (
                 "Create Account"
+              ) : (
+                "Send Reset Link"
               )}
             </button>
+
+            {mode === "forgot" && (
+              <button
+                type="button"
+                onClick={() => switchMode("signin")}
+                className="w-full flex items-center justify-center py-3.5 border-2 border-slate-100 hover:bg-slate-50 text-slate-600 rounded-2xl font-black text-sm transition-all"
+              >
+                Back to Sign In
+              </button>
+            )}
           </form>
 
           {/* Divider */}
-          <div className="relative py-1">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-100"></div>
-            </div>
-            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-[0.2em] text-slate-300">
-              <span className="bg-white px-4">or continue with</span>
-            </div>
-          </div>
+          {mode !== "forgot" && (
+            <>
+              <div className="relative py-1">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-100"></div>
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-black tracking-[0.2em] text-slate-300">
+                  <span className="bg-white px-4">or continue with</span>
+                </div>
+              </div>
 
-          {/* Google button */}
-          <button
-            onClick={handleGoogleClick}
-            disabled={isGoogleLoading}
-            className="w-full flex items-center justify-between p-4 bg-white border-2 border-slate-100 text-slate-700 rounded-[20px] font-black text-sm hover:bg-slate-50 transition-all disabled:opacity-70 disabled:cursor-not-allowed group"
-          >
-            <div className="flex items-center">
-              <img
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                className="w-5 h-5 mr-4"
-                alt="google"
-              />
-              <span>Continue with Google</span>
-            </div>
-            {isGoogleLoading ? (
-              <svg
-                className="animate-spin h-4 w-4 text-slate-400"
-                fill="none"
-                viewBox="0 0 24 24"
+              {/* Google button */}
+              <button
+                onClick={handleGoogleClick}
+                disabled={isGoogleLoading}
+                className="w-full flex items-center justify-between p-4 bg-white border-2 border-slate-100 text-slate-700 rounded-[20px] font-black text-sm hover:bg-slate-50 transition-all disabled:opacity-70 disabled:cursor-not-allowed group"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                />
-              </svg>
-            ) : (
-              <i className="fas fa-arrow-right opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0"></i>
-            )}
-          </button>
+                <div className="flex items-center">
+                  <img
+                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    className="w-5 h-5 mr-4"
+                    alt="google"
+                  />
+                  <span>Continue with Google</span>
+                </div>
+                {isGoogleLoading ? (
+                  <svg
+                    className="animate-spin h-4 w-4 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    />
+                  </svg>
+                ) : (
+                  <i className="fas fa-arrow-right opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0"></i>
+                )}
+              </button>
+            </>
+          )}
 
           <p className="text-center text-[11px] text-slate-400 leading-relaxed">
             By continuing, you agree to our{" "}
@@ -430,6 +504,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
         >
           <i className="fas fa-times text-xl"></i>
         </button>
+        </div>
       </div>
     </div>
   );

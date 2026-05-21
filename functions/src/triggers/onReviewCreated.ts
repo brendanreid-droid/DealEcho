@@ -46,6 +46,14 @@ export const onReviewCreated = onDocumentCreated(
 
       const sendPromises = usersSnapshot.docs.map(async (doc) => {
         const userData = doc.data();
+        
+        // Check if user has explicitly opted out of real-time alerts
+        const prefs = userData.notificationPreferences;
+        if (prefs && prefs.realTimeAlerts === false) {
+          console.log(`Skipping user ${doc.id} – opted out of real-time email alerts.`);
+          return;
+        }
+
         // Try to get email from Firestore user doc (email or identifier field)
         let email = userData.email ?? userData.identifier;
         let name = userData.name || "there";
@@ -84,6 +92,7 @@ export const onReviewCreated = onDocumentCreated(
         const component = React.createElement(TrackedAlertEmail, {
           name,
           email,
+          userUid: doc.id,
           companyName,
           companyId,
           reviewSummary,

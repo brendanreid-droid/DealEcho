@@ -30,6 +30,7 @@ import GlobalTrends from "./pages/GlobalTrends";
 import MyIntel from "./pages/MyIntel";
 import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
+import Unsubscribe from "./pages/Unsubscribe";
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { mockReviews } from "./mockReviews";
@@ -185,6 +186,10 @@ const App: React.FC = () => {
             <Route
               path="/pricing"
               element={<Pricing user={user} isPaid={isPaid} />}
+            />
+            <Route
+              path="/unsubscribe"
+              element={<Unsubscribe />}
             />
             <Route
               path="/admin"

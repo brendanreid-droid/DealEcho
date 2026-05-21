@@ -5,6 +5,7 @@ import { DealEchoEmailLayout } from "./Layout";
 interface TrackedAlertProps {
   name: string;
   email: string;
+  userUid?: string;
   companyName: string;
   companyId: string;
   reviewSummary: string;
@@ -19,6 +20,7 @@ interface TrackedAlertProps {
 export const TrackedAlertEmail: React.FC<TrackedAlertProps> = ({
   name,
   email,
+  userUid,
   companyName,
   companyId,
   reviewSummary,
@@ -31,6 +33,7 @@ export const TrackedAlertEmail: React.FC<TrackedAlertProps> = ({
     <DealEchoEmailLayout
       previewTextText={`New buyer intelligence just posted for ${companyName}.`}
       userEmail={email}
+      userUid={userUid}
     >
       <Text style={alertBadge}>NEW INTELLIGENCE DEPLOYED</Text>
       <Heading style={h1}>Update on {companyName}</Heading>

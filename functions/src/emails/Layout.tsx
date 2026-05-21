@@ -14,12 +14,14 @@ interface EmailLayoutProps {
   previewTextText: string;
   children: React.ReactNode;
   userEmail?: string;
+  userUid?: string;
 }
 
 export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
   previewTextText,
   children,
   userEmail,
+  userUid,
 }) => {
   return (
     <Html>
@@ -55,7 +57,7 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
               {" • "}
               <Link href="https://dealecho.io/pricing" style={footerLink}>Pricing</Link>
               {" • "}
-              <Link href="https://dealecho.io/unsubscribe" style={footerLink}>Unsubscribe</Link>
+              <Link href={`https://dealecho.io/unsubscribe?email=${encodeURIComponent(userEmail || "")}&uid=${userUid || ""}`} style={footerLink}>Unsubscribe / Preferences</Link>
             </Text>
           </Section>
         </Container>

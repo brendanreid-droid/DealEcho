@@ -5,7 +5,7 @@ import { useAuth } from "../src/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type UserRole = "free" | "paid" | "admin";
+type UserRole = "free" | "paid" | "admin" | "free_full";
 
 interface AdminUser {
   uid: string;
@@ -16,6 +16,7 @@ interface AdminUser {
   tier: string;
   subscriptionStatus: string | null;
   currentPeriodEnd: string | null;
+  suspended?: boolean;
 }
 
 interface AdminReview {
@@ -40,6 +41,7 @@ type Tab = "users" | "content" | "flagged" | "pricing";
 const ROLE_STYLES: Record<UserRole, string> = {
   admin: "bg-indigo-100 text-indigo-700 border border-indigo-200",
   paid: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+  free_full: "bg-sky-100 text-sky-700 border border-sky-200",
   free: "bg-slate-100 text-slate-500 border border-slate-200",
 };
 
@@ -47,7 +49,7 @@ const RoleBadge: React.FC<{ role: UserRole }> = ({ role }) => (
   <span
     className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-widest ${ROLE_STYLES[role]}`}
   >
-    {role}
+    {role === "free_full" ? "free full" : role}
   </span>
 );
 
@@ -90,6 +92,13 @@ const Admin: React.FC = () => {
   const [annualPrice, setAnnualPrice] = useState("");
   const [pricingCurrency, setPricingCurrency] = useState("aud");
   const [currentPricing, setCurrentPricing] = useState<any>(null);
+
+  // Create User modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createEmail, setCreateEmail] = useState("");
+  const [createDisplayName, setCreateDisplayName] = useState("");
+  const [createRole, setCreateRole] = useState<UserRole>("free");
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   const functions = getFunctions(undefined, "australia-southeast1");
 
@@ -296,6 +305,94 @@ const Admin: React.FC = () => {
       addToast("Role updated successfully", "success");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update role";
+      addToast(msg, "error");
+    }
+  };
+
+  // Create User Manually
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createEmail || !createDisplayName || !createRole) {
+      addToast("All fields are required", "error");
+      return;
+    }
+    setIsCreatingUser(true);
+    try {
+      const fn = httpsCallable<
+        { email: string; displayName: string; role: UserRole },
+        { success: boolean; user: AdminUser }
+      >(functions, "adminCreateUser");
+      const res = await fn({
+        email: createEmail,
+        displayName: createDisplayName,
+        role: createRole,
+      });
+      if (res.data.success) {
+        setUsers((prev) => [res.data.user, ...prev]);
+        setIsCreateModalOpen(false);
+        setCreateEmail("");
+        setCreateDisplayName("");
+        setCreateRole("free");
+        addToast("User created successfully! Invitation sent.", "success");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to create user";
+      addToast(msg, "error");
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  // Toggle suspension state of user
+  const handleToggleSuspension = async (uid: string, currentSuspended: boolean) => {
+    const action = currentSuspended ? "reactivate" : "suspend";
+    if (!window.confirm(`Are you sure you want to ${action} this user?`)) return;
+
+    try {
+      const fn = httpsCallable<
+        { targetUid: string; suspend: boolean },
+        { success: boolean; uid: string; suspended: boolean }
+      >(functions, "adminToggleUserSuspension");
+      const res = await fn({ targetUid: uid, suspend: !currentSuspended });
+      if (res.data.success) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.uid === uid ? { ...u, suspended: res.data.suspended } : u
+          )
+        );
+        addToast(
+          `User ${res.data.suspended ? "suspended" : "reactivated"} successfully`,
+          "success"
+        );
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to toggle suspension";
+      addToast(msg, "error");
+    }
+  };
+
+  // Delete User from Auth and Firestore (keep reviews)
+  const handleDeleteUser = async (uid: string) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this user? Their profile and Auth credentials will be wiped, but all of their posts/reviews will remain in the database."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const fn = httpsCallable<
+        { targetUid: string },
+        { success: boolean; uid: string }
+      >(functions, "adminDeleteUser");
+      const res = await fn({ targetUid: uid });
+      if (res.data.success) {
+        setUsers((prev) => prev.filter((u) => u.uid !== uid));
+        addToast("User deleted successfully. Posts remain active.", "success");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete user";
       addToast(msg, "error");
     }
   };
@@ -512,8 +609,8 @@ const Admin: React.FC = () => {
         {/* ── USERS TAB ── */}
         {tab === "users" && (
           <div>
-            <div className="mb-4">
-              <div className="relative max-w-sm">
+            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="relative w-full max-w-sm">
                 <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm" />
                 <input
                   type="text"
@@ -523,6 +620,13 @@ const Admin: React.FC = () => {
                   className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
                 />
               </div>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/10"
+              >
+                <i className="fas fa-user-plus text-xs" />
+                Create User
+              </button>
             </div>
 
             {usersLoading ? (
@@ -562,13 +666,25 @@ const Admin: React.FC = () => {
                       >
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-indigo-600/30 flex items-center justify-center text-sm font-black text-indigo-400">
-                              {(u.displayName || u.email)?.[0]?.toUpperCase() ??
-                                "?"}
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${
+                              u.suspended 
+                                ? "bg-rose-950/40 text-rose-400 border border-rose-500/20" 
+                                : "bg-indigo-600/30 text-indigo-400"
+                            }`}>
+                              {u.suspended ? (
+                                <i className="fas fa-lock text-xs" />
+                              ) : (
+                                (u.displayName || u.email)?.[0]?.toUpperCase() ?? "?"
+                              )}
                             </div>
                             <div>
-                              <div className="font-semibold text-sm text-white">
+                              <div className={`font-semibold text-sm flex items-center gap-2 ${u.suspended ? "text-slate-500 line-through" : "text-white"}`}>
                                 {u.displayName || "—"}
+                                {u.suspended && (
+                                  <span className="bg-rose-900/40 border border-rose-500/30 text-rose-300 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md">
+                                    Locked
+                                  </span>
+                                )}
                               </div>
                               <div className="text-slate-500 text-xs">
                                 {u.email}
@@ -639,6 +755,12 @@ const Admin: React.FC = () => {
                                 Paid
                               </option>
                               <option
+                                value="free_full"
+                                className="bg-[#0f172a] text-white"
+                              >
+                                Free Full
+                              </option>
+                              <option
                                 value="admin"
                                 className="bg-[#0f172a] text-white"
                               >
@@ -655,6 +777,24 @@ const Admin: React.FC = () => {
                             >
                               <i className="fas fa-eye mr-1" />
                               Content
+                            </button>
+                            <button
+                              onClick={() => handleToggleSuspension(u.uid, u.suspended ?? false)}
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-colors ${
+                                u.suspended
+                                  ? "bg-emerald-600/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/40"
+                                  : "bg-amber-600/20 border-amber-500/30 text-amber-400 hover:bg-amber-600/40"
+                              }`}
+                              title={u.suspended ? "Reactivate User" : "Suspend User"}
+                            >
+                              <i className={`fas ${u.suspended ? "fa-unlock" : "fa-ban"} text-xs`} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(u.uid)}
+                              className="w-8 h-8 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400 hover:bg-rose-600/40 transition-colors flex items-center justify-center"
+                              title="Delete User"
+                            >
+                              <i className="fas fa-trash-alt text-xs" />
                             </button>
                           </div>
                         </td>
@@ -1164,6 +1304,107 @@ const Admin: React.FC = () => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative">
+            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/10 blur-[80px] rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+            
+            <h3 className="text-xl font-black mb-1 relative z-10">Create New User Manually</h3>
+            <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6 relative z-10 max-w-sm">
+              Enter user details to manually provision their account. They will automatically receive a secure activation link via email to select their password.
+            </p>
+
+            <form onSubmit={handleCreateUser} className="space-y-4 relative z-10">
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. John Doe"
+                  value={createDisplayName}
+                  onChange={(e) => setCreateDisplayName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. john@company.com"
+                  value={createEmail}
+                  onChange={(e) => setCreateEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                  Membership Type
+                </label>
+                <select
+                  value={createRole}
+                  onChange={(e) => setCreateRole(e.target.value as UserRole)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                  style={{ colorScheme: "dark" }}
+                >
+                  <option value="free" className="bg-[#0f172a] text-white">
+                    Free (Pioneer Plan)
+                  </option>
+                  <option value="paid" className="bg-[#0f172a] text-white">
+                    Paid (Sales Pro Plan)
+                  </option>
+                  <option value="free_full" className="bg-[#0f172a] text-white">
+                    Free Full (Complimentary Full Access)
+                  </option>
+                  <option value="admin" className="bg-[#0f172a] text-white">
+                    Administrator
+                  </option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={isCreatingUser}
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20"
+                >
+                  {isCreatingUser ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-paper-plane" />
+                      Create & Send Invite
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setCreateEmail("");
+                    setCreateDisplayName("");
+                    setCreateRole("free");
+                  }}
+                  className="flex-1 py-3 bg-white/5 border border-white/10 text-slate-400 font-black text-sm rounded-2xl hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../src/firebase/config";
 import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
 import { useAuth } from "../src/hooks/useAuth";
@@ -296,6 +298,86 @@ const MyIntel: React.FC<MyIntelProps> = ({
                 </Link>
               </div>
             )}
+          </div>
+
+          {/* Email Notification Settings Card */}
+          <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+            <h3 className="text-lg font-bold flex items-center text-slate-900">
+              <i className="fas fa-envelope-open-text text-indigo-500 mr-3"></i>
+              Email Notifications
+            </h3>
+            
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+              Customize how and when you receive intelligence reports on your tracked accounts.
+            </p>
+
+            <div className="space-y-4">
+              <label className="flex items-start space-x-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={user.notificationPreferences?.realTimeAlerts !== false}
+                  onChange={async (e) => {
+                    try {
+                      const userDocRef = doc(db, "users", user.id);
+                      await setDoc(
+                        userDocRef,
+                        {
+                          notificationPreferences: {
+                            realTimeAlerts: e.target.checked,
+                            weeklyDigest: user.notificationPreferences?.weeklyDigest !== false,
+                          },
+                        },
+                        { merge: true }
+                      );
+                    } catch (err) {
+                      console.error("Failed to update notification settings", err);
+                    }
+                  }}
+                  className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                    Real-time Alerts
+                  </span>
+                  <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
+                    Instantly receive an email report when a new vetted review is created on any tracked account.
+                  </p>
+                </div>
+              </label>
+
+              <label className="flex items-start space-x-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={user.notificationPreferences?.weeklyDigest !== false}
+                  onChange={async (e) => {
+                    try {
+                      const userDocRef = doc(db, "users", user.id);
+                      await setDoc(
+                        userDocRef,
+                        {
+                          notificationPreferences: {
+                            realTimeAlerts: user.notificationPreferences?.realTimeAlerts !== false,
+                            weeklyDigest: e.target.checked,
+                          },
+                        },
+                        { merge: true }
+                      );
+                    } catch (err) {
+                      console.error("Failed to update notification settings", err);
+                    }
+                  }}
+                  className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                    Weekly Digest
+                  </span>
+                  <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
+                    A summary of the week's key buyer activity, trends, and scorecard movements.
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 

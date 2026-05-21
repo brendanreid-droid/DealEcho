@@ -98,7 +98,8 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
           const tokenResult = await getIdTokenResult(appAuth.currentUser, true);
           if (
             tokenResult.claims.role === "paid" ||
-            tokenResult.claims.role === "admin"
+            tokenResult.claims.role === "admin" ||
+            tokenResult.claims.role === "free_full"
           ) {
             setMessage({
               text: "Upgrade successful! Welcome to Sales Pro. 🎉",

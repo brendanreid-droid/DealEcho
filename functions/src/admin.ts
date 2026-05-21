@@ -4,8 +4,11 @@ import {
   CallableRequest,
 } from "firebase-functions/v2/https";
 import { db, auth } from "./lib/firebaseAdmin";
+import { sendReactEmail } from "./lib/email";
+import * as React from "react";
+import { InviteEmail } from "./emails/InviteEmail";
 
-type UserRole = "free" | "paid" | "admin";
+type UserRole = "free" | "paid" | "admin" | "free_full";
 
 /** Guard: ensures caller has admin custom claim */
 function requireAdmin(request: CallableRequest<any>) {
@@ -54,6 +57,7 @@ export const adminGetUsers = onCall({ cors: true }, async (request) => {
         tier: (fs.tier as string) ?? (u.customClaims?.tier as string) ?? "free",
         subscriptionStatus: fs.subscriptionStatus ?? null,
         currentPeriodEnd: fs.currentPeriodEnd ?? null,
+        suspended: u.disabled ?? fs.suspended ?? false,
       };
     }),
   };
@@ -78,10 +82,10 @@ export const adminSetRole = onCall({ cors: true }, async (request) => {
       "targetUid and role are required.",
     );
   }
-  if (!["free", "paid", "admin"].includes(role)) {
+  if (!["free", "paid", "admin", "free_full"].includes(role)) {
     throw new HttpsError(
       "invalid-argument",
-      "Role must be free, paid, or admin.",
+      "Role must be free, paid, admin, or free_full.",
     );
   }
 
@@ -94,11 +98,11 @@ export const adminSetRole = onCall({ cors: true }, async (request) => {
   }
 
   const tier =
-    role === "paid" ? "paid_monthly" : role === "admin" ? "admin" : "free";
+    role === "paid" ? "paid_monthly" : role === "admin" ? "admin" : role === "free_full" ? "free_full" : "free";
 
   // Derive subscriptionStatus so the admin panel stays consistent
   const subscriptionStatus =
-    role === "paid" ? "active" : role === "admin" ? null : null;
+    role === "paid" ? "active" : role === "admin" ? null : role === "free_full" ? "free_full" : null;
 
   // Set custom claim (authoritative)
   await auth.setCustomUserClaims(targetUid, { role, tier });
@@ -278,4 +282,201 @@ export const adminUpdatePricing = onCall({ cors: true }, async (request) => {
     .set(pricingData, { merge: true });
 
   return { success: true, ...pricingData };
+});
+
+// ── adminCreateUser ───────────────────────────────────────────────────────────
+/**
+ * Manually creates a new user, sets their role/claims, generates a password
+ * reset/creation link, and dispatches a brand-aligned InviteEmail.
+ * Admin only.
+ */
+export const adminCreateUser = onCall(
+  { cors: true, secrets: ["RESEND_API_KEY"] },
+  async (request) => {
+    requireAdmin(request);
+
+    const { email, displayName, role } = request.data as {
+      email: string;
+      displayName: string;
+      role: UserRole;
+    };
+
+    if (!email || !displayName || !role) {
+      throw new HttpsError(
+        "invalid-argument",
+        "email, displayName, and role are required."
+      );
+    }
+
+    if (!["free", "paid", "admin", "free_full"].includes(role)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Role must be free, paid, admin, or free_full."
+      );
+    }
+
+    try {
+      // 1. Create the user in Firebase Auth
+      const userRecord = await auth.createUser({
+        email,
+        displayName,
+        emailVerified: true,
+      });
+
+      const uid = userRecord.uid;
+
+      // 2. Set custom claims
+      const tier =
+        role === "paid" ? "paid_monthly" : role === "admin" ? "admin" : role === "free_full" ? "free_full" : "free";
+      await auth.setCustomUserClaims(uid, { role, tier });
+
+      // 3. Create Firestore user document
+      const subscriptionStatus =
+        role === "paid" ? "active" : role === "admin" ? null : role === "free_full" ? "free_full" : null;
+
+      const userData = {
+        uid,
+        email,
+        displayName,
+        role,
+        tier,
+        subscriptionStatus,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        suspended: false,
+        notificationPreferences: {
+          realTimeAlerts: true,
+          weeklyDigest: true,
+        },
+      };
+
+      await db.collection("users").doc(uid).set(userData);
+
+      // 4. Generate password reset link
+      const actionCodeSettings = {
+        url: "https://dealecho.io", // Redirect back to DealEcho home page after resetting password
+      };
+      const setupLink = await auth.generatePasswordResetLink(email, actionCodeSettings);
+
+      // 5. Send Invite Email via Resend
+      const inviteComponent = React.createElement(InviteEmail, {
+        name: displayName,
+        email,
+        role,
+        setupLink,
+      });
+
+      await sendReactEmail({
+        to: email,
+        subject: "Welcome to DealEcho - Activate your account",
+        component: inviteComponent,
+      });
+
+      return {
+        success: true,
+        user: {
+          uid,
+          email,
+          displayName,
+          role,
+          tier,
+          subscriptionStatus,
+          createdAt: userData.createdAt,
+          suspended: false,
+        },
+      };
+    } catch (err: any) {
+      console.error("Error manually creating user:", err);
+      throw new HttpsError("internal", err.message || "Failed to create user.");
+    }
+  }
+);
+
+// ── adminToggleUserSuspension ──────────────────────────────────────────────────
+/**
+ * Suspends or reactivates a user in Firebase Auth and Firestore.
+ * Revokes refresh tokens instantly when suspending.
+ * Admin only.
+ */
+export const adminToggleUserSuspension = onCall({ cors: true }, async (request) => {
+  requireAdmin(request);
+
+  const { targetUid, suspend } = request.data as {
+    targetUid: string;
+    suspend: boolean;
+  };
+
+  if (!targetUid || typeof suspend !== "boolean") {
+    throw new HttpsError(
+      "invalid-argument",
+      "targetUid and suspend (boolean) are required."
+    );
+  }
+
+  if (targetUid === request.auth!.uid) {
+    throw new HttpsError(
+      "failed-precondition",
+      "You cannot suspend your own admin account."
+    );
+  }
+
+  try {
+    // 1. Toggle disabled in Firebase Auth
+    await auth.updateUser(targetUid, { disabled: suspend });
+
+    // 2. Revoke refresh tokens if suspending so they are booted off immediately
+    if (suspend) {
+      await auth.revokeRefreshTokens(targetUid);
+    }
+
+    // 3. Update Firestore status
+    await db.collection("users").doc(targetUid).set(
+      {
+        suspended: suspend,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+
+    return { success: true, uid: targetUid, suspended: suspend };
+  } catch (err: any) {
+    console.error("Error toggling user suspension:", err);
+    throw new HttpsError("internal", err.message || "Failed to toggle suspension.");
+  }
+});
+
+// ── adminDeleteUser ───────────────────────────────────────────────────────────
+/**
+ * Completely deletes a user's Auth account and Firestore profile.
+ * Does NOT delete their reviews/posts (natively retained).
+ * Admin only.
+ */
+export const adminDeleteUser = onCall({ cors: true }, async (request) => {
+  requireAdmin(request);
+
+  const { targetUid } = request.data as { targetUid: string };
+
+  if (!targetUid) {
+    throw new HttpsError("invalid-argument", "targetUid is required.");
+  }
+
+  if (targetUid === request.auth!.uid) {
+    throw new HttpsError(
+      "failed-precondition",
+      "You cannot delete your own admin account."
+    );
+  }
+
+  try {
+    // 1. Delete from Firebase Auth
+    await auth.deleteUser(targetUid);
+
+    // 2. Delete from Firestore users collection
+    await db.collection("users").doc(targetUid).delete();
+
+    return { success: true, uid: targetUid };
+  } catch (err: any) {
+    console.error("Error deleting user:", err);
+    throw new HttpsError("internal", err.message || "Failed to delete user.");
+  }
 });

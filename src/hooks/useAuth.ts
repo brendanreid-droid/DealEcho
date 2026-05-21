@@ -3,14 +3,18 @@ import { onAuthStateChanged, User, getIdTokenResult } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 
-export type UserRole = 'free' | 'paid' | 'admin';
-export type UserTier = 'free' | 'paid_monthly' | 'paid_annual';
+export type UserRole = 'free' | 'paid' | 'admin' | 'free_full';
+export type UserTier = 'free' | 'paid_monthly' | 'paid_annual' | 'free_full';
 
 export interface MappedUser {
   id: string;
   name: string;
   email: string;
   avatar: string;
+  notificationPreferences?: {
+    realTimeAlerts: boolean;
+    weeklyDigest: boolean;
+  };
 }
 
 export interface AuthState {
@@ -56,12 +60,23 @@ export const useAuth = (): AuthState => {
         setUser(mapUser(fbUser));
         await readClaims(fbUser);
 
-        // Also listen to Firestore user doc for real-time role/tier updates (e.g. from webhooks)
+        // Also listen to Firestore user doc for real-time role/tier updates (e.g. from webhooks) and notification preferences
         unsubscribeFirestore = onSnapshot(doc(db, 'users', fbUser.uid), (snap) => {
           if (snap.exists()) {
             const data = snap.data();
             if (data.role) setRole(data.role as UserRole);
             if (data.tier) setTier(data.tier as UserTier);
+            setUser((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    notificationPreferences: data.notificationPreferences ?? {
+                      realTimeAlerts: true,
+                      weeklyDigest: true,
+                    },
+                  }
+                : null
+            );
           }
         });
       } else {
@@ -91,7 +106,7 @@ export const useAuth = (): AuthState => {
     role,
     tier,
     isAdmin: role === 'admin',
-    isPaid: role === 'paid' || role === 'admin',
+    isPaid: role === 'paid' || role === 'admin' || role === 'free_full',
     isLoading,
     refreshClaims,
   };

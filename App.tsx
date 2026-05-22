@@ -32,6 +32,7 @@ import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
 import Unsubscribe from "./pages/Unsubscribe";
 import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { mockReviews } from "./mockReviews";
@@ -195,6 +196,10 @@ const App: React.FC = () => {
             <Route
               path="/terms"
               element={<Terms />}
+            />
+            <Route
+              path="/privacy"
+              element={<Privacy />}
             />
             <Route
               path="/admin"
@@ -397,6 +402,10 @@ const Footer: React.FC = () => (
       <div className="flex justify-center space-x-6">
         <Link to="/terms" className="text-slate-400 hover:text-indigo-600 font-bold transition-colors">
           Terms of Use
+        </Link>
+        <span className="text-slate-300">|</span>
+        <Link to="/privacy" className="text-slate-400 hover:text-indigo-600 font-bold transition-colors">
+          Privacy Policy
         </Link>
       </div>
     </div>

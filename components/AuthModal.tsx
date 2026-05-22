@@ -490,7 +490,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
               Terms of Use
             </a>{" "}
             and{" "}
-            <a href="#" className="underline hover:text-indigo-600">
+            <a href="/privacy" className="underline hover:text-indigo-600">
               Privacy Policy
             </a>
             .

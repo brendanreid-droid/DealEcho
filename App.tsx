@@ -31,6 +31,7 @@ import MyIntel from "./pages/MyIntel";
 import Pricing from "./pages/Pricing";
 import Admin from "./pages/Admin";
 import Unsubscribe from "./pages/Unsubscribe";
+import Terms from "./pages/Terms";
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { mockReviews } from "./mockReviews";
@@ -190,6 +191,10 @@ const App: React.FC = () => {
             <Route
               path="/unsubscribe"
               element={<Unsubscribe />}
+            />
+            <Route
+              path="/terms"
+              element={<Terms />}
             />
             <Route
               path="/admin"
@@ -387,8 +392,13 @@ const Navigation: React.FC<{
 
 const Footer: React.FC = () => (
   <footer className="bg-slate-200 border-t border-slate-300 py-12 mt-auto">
-    <div className="container mx-auto px-6 text-center text-slate-500 text-sm font-medium">
+    <div className="container mx-auto px-6 text-center text-slate-500 text-sm font-medium space-y-2">
       <p>&copy; 2024 DealEcho.io. All rights reserved.</p>
+      <div className="flex justify-center space-x-6">
+        <Link to="/terms" className="text-slate-400 hover:text-indigo-600 font-bold transition-colors">
+          Terms of Use
+        </Link>
+      </div>
     </div>
   </footer>
 );

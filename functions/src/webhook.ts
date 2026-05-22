@@ -55,7 +55,7 @@ async function resolveFirebaseUID(
     const customer = (await stripe.customers.retrieve(
       customerId,
     )) as Stripe.Customer;
-    if (!customer.deleted && customer.metadata?.firebaseUID) {
+    if (!(customer as any).deleted && customer.metadata?.firebaseUID) {
       if (debugRef)
         await debugRef.update({
           resolutionPath: "customer_metadata",

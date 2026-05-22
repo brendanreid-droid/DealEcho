@@ -91,7 +91,6 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
         await refreshClaims();
         // After refreshClaims, the useAuth hook will have the latest role.
         // We can't read isPaid directly here (stale closure), so we re-check via auth token.
-        const { auth: fbAuth } = await import("firebase/auth");
         const { getIdTokenResult } = await import("firebase/auth");
         const { auth: appAuth } = await import("../src/firebase/config");
         if (appAuth.currentUser) {

@@ -240,7 +240,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto">
+    <div className="fixed inset-0 z-[2000] overflow-y-auto">
       <div
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
         onClick={onClose}
@@ -486,8 +486,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
           <p className="text-center text-[11px] text-slate-400 leading-relaxed">
             By continuing, you agree to our{" "}
-            <a href="#" className="underline hover:text-indigo-600">
-              Terms of Service
+            <a href="/terms" className="underline hover:text-indigo-600">
+              Terms of Use
             </a>{" "}
             and{" "}
             <a href="#" className="underline hover:text-indigo-600">

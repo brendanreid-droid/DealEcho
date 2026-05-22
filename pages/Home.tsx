@@ -144,7 +144,7 @@ const Home: React.FC<HomeProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-12">
           <div>
             <h2 className="text-2xl md:text-[32px] font-bold text-[#1e293b]">
-              Live Buyer Intel
+              Recent Reviews
             </h2>
             <p className="text-slate-500 mt-1 md:mt-2 text-base md:text-lg font-medium">
               Recently analysed accounts.
@@ -164,7 +164,7 @@ const Home: React.FC<HomeProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {companyStats.map((company) => (
+            {companyStats.slice(0, 10).map((company) => (
               <CompanyCard
                 key={company.name}
                 company={company}

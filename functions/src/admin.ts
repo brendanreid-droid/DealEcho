@@ -361,7 +361,7 @@ export const adminCreateUser = onCall(
 
       // 4. Generate password reset link
       const actionCodeSettings = {
-        url: "https://dealecho.io", // Redirect back to DealEcho home page after resetting password
+        url: "https://dealecho-io-sales-intel-hub.web.app", // Redirect back to DealEcho home page after resetting password
       };
       const setupLink = await auth.generatePasswordResetLink(email, actionCodeSettings);
 

@@ -7,6 +7,7 @@ import { db, auth } from "./lib/firebaseAdmin";
 import { sendReactEmail } from "./lib/email";
 import * as React from "react";
 import { InviteEmail } from "./emails/InviteEmail";
+import { NewsletterEmail } from "./emails/NewsletterEmail";
 
 type UserRole = "free" | "paid" | "admin" | "free_full";
 
@@ -480,3 +481,107 @@ export const adminDeleteUser = onCall({ cors: true }, async (request) => {
     throw new HttpsError("internal", err.message || "Failed to delete user.");
   }
 });
+
+// ── adminSendNewsletter ───────────────────────────────────────────────────────
+/**
+ * Sends a community digest or newsletter to all active subscribed users, or
+ * a single test target address.
+ * Admin only. Secrets: RESEND_API_KEY.
+ */
+export const adminSendNewsletter = onCall(
+  { cors: true, secrets: ["RESEND_API_KEY"] },
+  async (request) => {
+    requireAdmin(request);
+
+    const { subject, preheaderText, title, content, isTest, testEmail } = request.data as {
+      subject: string;
+      preheaderText: string;
+      title: string;
+      content: string;
+      isTest: boolean;
+      testEmail?: string;
+    };
+
+    if (!subject || !title || !content) {
+      throw new HttpsError(
+        "invalid-argument",
+        "subject, title, and content are required."
+      );
+    }
+
+    // Clean and segment content by double-newlines into paragraphs
+    const paragraphs = content
+      .split(/\n\s*\n/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    if (isTest) {
+      const targetEmail = testEmail || request.auth!.token.email || "";
+      if (!targetEmail) {
+        throw new HttpsError(
+          "invalid-argument",
+          "testEmail or administrator email is required for testing."
+        );
+      }
+
+      await sendReactEmail({
+        to: targetEmail,
+        subject: `[TEST] ${subject}`,
+        component: React.createElement(NewsletterEmail, {
+          title,
+          preheaderText: preheaderText || "Newsletter preview",
+          paragraphs,
+          email: targetEmail,
+          uid: request.auth!.uid,
+        }),
+      });
+
+      return { success: true, sentCount: 1, isTest: true };
+    }
+
+    // Broadcast Mass Send Mode
+    // 1. Fetch all Firestore user documents
+    const usersSnap = await db.collection("users").get();
+    const activeSubscribedUsers = usersSnap.docs
+      .map((d) => ({ uid: d.id, ...d.data() }) as any)
+      .filter((u) => {
+        // Exclude suspended
+        if (u.suspended === true) return false;
+        // Exclude opted-out of weekly digests/newsletters
+        if (u.notificationPreferences?.weeklyDigest === false) return false;
+        // Require valid email field
+        if (!u.email) return false;
+        return true;
+      });
+
+    // 2. Dispatch emails in parallel batches of 10
+    const batchSize = 10;
+    let sentCount = 0;
+
+    for (let i = 0; i < activeSubscribedUsers.length; i += batchSize) {
+      const batch = activeSubscribedUsers.slice(i, i + batchSize);
+      await Promise.all(
+        batch.map(async (u) => {
+          try {
+            await sendReactEmail({
+              to: u.email,
+              subject,
+              component: React.createElement(NewsletterEmail, {
+                title,
+                preheaderText: preheaderText || "Latest updates from DealEcho",
+                paragraphs,
+                email: u.email,
+                uid: u.uid,
+              }),
+            });
+            sentCount++;
+          } catch (err) {
+            console.error(`Failed to send newsletter to ${u.email}:`, err);
+          }
+        })
+      );
+    }
+
+    return { success: true, sentCount, isTest: false };
+  }
+);

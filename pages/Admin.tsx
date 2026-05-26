@@ -35,7 +35,7 @@ interface AdminReview {
   moderatedAt?: string;
 }
 
-type Tab = "users" | "content" | "flagged" | "pricing";
+type Tab = "users" | "content" | "flagged" | "pricing" | "newsletter";
 
 // ── Role badge UI ─────────────────────────────────────────────────────────────
 const ROLE_STYLES: Record<UserRole, string> = {
@@ -92,6 +92,14 @@ const Admin: React.FC = () => {
   const [annualPrice, setAnnualPrice] = useState("");
   const [pricingCurrency, setPricingCurrency] = useState("aud");
   const [currentPricing, setCurrentPricing] = useState<any>(null);
+
+  // Newsletter state
+  const [newsletterSubject, setNewsletterSubject] = useState("");
+  const [newsletterPreheader, setNewsletterPreheader] = useState("");
+  const [newsletterTitle, setNewsletterTitle] = useState("");
+  const [newsletterContent, setNewsletterContent] = useState("");
+  const [newsletterSending, setNewsletterSending] = useState(false);
+  const [newsletterTestEmail, setNewsletterTestEmail] = useState("");
 
   // Create User modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -451,6 +459,73 @@ const Admin: React.FC = () => {
     }
   };
 
+  // Mass send or test send the newsletter via adminSendNewsletter callable function
+  const handleSendNewsletter = async (isTest: boolean) => {
+    if (!newsletterSubject || !newsletterTitle || !newsletterContent) {
+      addToast("Subject, Title, and Content are required.", "error");
+      return;
+    }
+
+    if (isTest && !newsletterTestEmail) {
+      addToast("Test email address is required.", "error");
+      return;
+    }
+
+    if (!isTest) {
+      const activeCount = users.filter((u) => !u.suspended).length;
+      if (
+        !window.confirm(
+          `Are you sure you want to MASS BROADCAST this newsletter to all active subscribed users? This will instantly trigger delivery to up to ${activeCount} active user profiles.`
+        )
+      ) {
+        return;
+      }
+    }
+
+    setNewsletterSending(true);
+    try {
+      const fn = httpsCallable<
+        {
+          subject: string;
+          preheaderText: string;
+          title: string;
+          content: string;
+          isTest: boolean;
+          testEmail?: string;
+        },
+        { success: boolean; sentCount: number; isTest: boolean }
+      >(functions, "adminSendNewsletter");
+
+      const res = await fn({
+        subject: newsletterSubject,
+        preheaderText: newsletterPreheader,
+        title: newsletterTitle,
+        content: newsletterContent,
+        isTest,
+        testEmail: isTest ? newsletterTestEmail : undefined,
+      });
+
+      if (res.data.success) {
+        if (res.data.isTest) {
+          addToast(`Test newsletter successfully sent to ${newsletterTestEmail}!`, "success");
+        } else {
+          addToast(`Newsletter successfully broadcasted to ${res.data.sentCount} active users!`, "success");
+          // Clear composer states on successful mass delivery
+          setNewsletterSubject("");
+          setNewsletterPreheader("");
+          setNewsletterTitle("");
+          setNewsletterContent("");
+        }
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to deliver newsletter.";
+      addToast(msg, "error");
+    } finally {
+      setNewsletterSending(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
@@ -577,7 +652,7 @@ const Admin: React.FC = () => {
 
         {/* Tab bar */}
         <div className="flex flex-wrap bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
-          {(["users", "content", "flagged", "pricing"] as Tab[]).map((t) => (
+          {(["users", "content", "flagged", "pricing", "newsletter"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -588,7 +663,17 @@ const Admin: React.FC = () => {
               }`}
             >
               <i
-                className={`fas ${t === "users" ? "fa-users" : t === "content" ? "fa-comment-alt" : t === "flagged" ? "fa-shield-alt" : "fa-tags"} mr-2`}
+                className={`fas ${
+                  t === "users"
+                    ? "fa-users"
+                    : t === "content"
+                      ? "fa-comment-alt"
+                      : t === "flagged"
+                        ? "fa-shield-alt"
+                        : t === "pricing"
+                          ? "fa-tags"
+                          : "fa-paper-plane"
+                } mr-2`}
               />
               {t === "users"
                 ? `Users (${stats.total})`
@@ -596,7 +681,9 @@ const Admin: React.FC = () => {
                   ? `Reviews (${stats.reviews})`
                   : t === "flagged"
                     ? `Flagged`
-                    : "Pricing"}
+                    : t === "pricing"
+                      ? "Pricing"
+                      : "Newsletter"}
               {t === "flagged" && stats.flagged > 0 && (
                 <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0a0f1e]">
                   {stats.flagged}
@@ -1259,6 +1346,204 @@ const Admin: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── NEWSLETTER TAB ── */}
+        {tab === "newsletter" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-fade-in text-white">
+            {/* Left side: Composer Form */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-5 relative">
+              <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none"></div>
+              
+              <div>
+                <h3 className="text-base font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
+                  <i className="fas fa-edit text-indigo-400" />
+                  Newsletter Composer
+                </h3>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                  Compose updates, monthly metrics, or feature announcements to broadcast to active subscribed members.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                    Email Subject Line
+                  </label>
+                  <input
+                    type="text"
+                    value={newsletterSubject}
+                    onChange={(e) => setNewsletterSubject(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                    placeholder="e.g. DealEcho Monthly Intel: Insights & New Vetted Reports"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                    Preheader Text (Email Preview Snippet)
+                  </label>
+                  <input
+                    type="text"
+                    value={newsletterPreheader}
+                    onChange={(e) => setNewsletterPreheader(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                    placeholder="e.g. Discover this month's top enterprise buying patterns and deal reviews."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                    Newsletter Title (Header/Headline)
+                  </label>
+                  <input
+                    type="text"
+                    value={newsletterTitle}
+                    onChange={(e) => setNewsletterTitle(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                    placeholder="e.g. May Intel Report: What's Shifting?"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                    Newsletter Body Content (Double newlines segment paragraphs)
+                  </label>
+                  <textarea
+                    value={newsletterContent}
+                    onChange={(e) => setNewsletterContent(e.target.value)}
+                    rows={8}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors resize-none leading-relaxed"
+                    placeholder={`Write your newsletter content here...\n\nUse double newlines to separate paragraphs cleanly.\n\nE.g. We have added 50+ new vetted deal reviews this month!`}
+                  />
+                </div>
+              </div>
+
+              {/* Test send widget */}
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-3">
+                <div className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">
+                  🧪 Test Delivery System
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={newsletterTestEmail}
+                    onChange={(e) => setNewsletterTestEmail(e.target.value)}
+                    placeholder="E.g. admin@dealecho.io"
+                    className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500 transition-colors text-white"
+                  />
+                  <button
+                    onClick={() => handleSendNewsletter(true)}
+                    disabled={newsletterSending}
+                    className="px-4 py-2 bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-black rounded-xl hover:bg-indigo-600/40 transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    Send Test
+                  </button>
+                </div>
+              </div>
+
+              {/* Broadcast Send button */}
+              <button
+                onClick={() => handleSendNewsletter(false)}
+                disabled={newsletterSending || !newsletterSubject || !newsletterTitle || !newsletterContent}
+                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/10"
+              >
+                {newsletterSending ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-1" /> Broadcasting Newsletter...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane mr-1" />
+                    Broadcast to All Subscribed Users
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Right side: Real-time Live Preview */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4 sticky top-24">
+              <div>
+                <h3 className="text-base font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
+                  <i className="fas fa-eye text-sky-400" />
+                  Live Client Preview
+                </h3>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                  Real-time preview of how the newsletter will render in your subscribers' email clients.
+                </p>
+              </div>
+
+              {/* Mockup email inbox preview bar */}
+              <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4 text-xs font-semibold text-slate-400 space-y-1">
+                <div>
+                  <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider mr-2">Subject:</span>
+                  <span className="text-white">{newsletterSubject || "(No subject set)"}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider mr-2">Snippet:</span>
+                  <span>{newsletterPreheader || "(No snippet set)"}</span>
+                </div>
+              </div>
+
+              {/* Mockup Client Viewport */}
+              <div className="border border-white/10 rounded-2xl overflow-hidden bg-white text-slate-900 shadow-xl max-h-[500px] overflow-y-auto scrollbar-thin">
+                {/* Email Header */}
+                <div className="bg-[#101426] py-6 px-8 text-center">
+                  <h1 className="text-white text-lg font-black tracking-widest uppercase m-0">
+                    DEAL<span className="text-indigo-400">ECHO</span>
+                  </h1>
+                  <span className="text-slate-400 font-bold uppercase text-[9px] tracking-widest mt-1 block">
+                    Sales Intelligence Hub
+                  </span>
+                </div>
+
+                {/* Email Body */}
+                <div className="p-8 space-y-4">
+                  <h2 className="text-[#0f172a] text-xl font-black tracking-tight leading-tight mb-4 border-b pb-2 border-slate-100">
+                    {newsletterTitle || "Headline Title"}
+                  </h2>
+
+                  {newsletterContent ? (
+                    newsletterContent.split(/\n\s*\n/).filter(Boolean).map((p, idx) => (
+                      <p key={idx} className="text-slate-600 text-sm leading-relaxed whitespace-pre-line text-left">
+                        {p}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-slate-400 text-sm italic text-left">
+                      Start writing your content on the left to see paragraphs render dynamically here...
+                    </p>
+                  )}
+
+                  {/* CTA Button */}
+                  <div className="text-center pt-4">
+                    <span className="inline-block px-8 py-3 bg-[#4f46e5] text-white text-xs font-black uppercase tracking-wider rounded-xl cursor-default">
+                      Explore Intel Dashboard
+                    </span>
+                  </div>
+
+                  {/* Signoff */}
+                  <div className="text-slate-600 text-sm pt-4 text-left">
+                    Good selling,<br />
+                    <strong className="text-slate-900">The DealEcho Team</strong>
+                  </div>
+                </div>
+
+                {/* Email Footer */}
+                <div className="bg-slate-50 border-t border-slate-100 py-6 px-8 text-center text-[10px] text-slate-400 space-y-2">
+                  <div className="font-bold text-slate-500">
+                    &copy; {new Date().getFullYear()} DealEcho.io. All rights reserved.
+                  </div>
+                  <div>
+                    You received this email because you are a registered member of DealEcho.io.
+                  </div>
+                  <div className="text-indigo-600 font-bold">
+                    Dashboard • Pricing • Unsubscribe / Preferences
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

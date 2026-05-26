@@ -24,6 +24,7 @@ export {
   adminCreateUser,
   adminToggleUserSuspension,
   adminDeleteUser,
+  adminSendNewsletter,
 } from "./admin";
 export { moderateNewReview } from "./moderation";
 

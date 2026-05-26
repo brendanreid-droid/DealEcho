@@ -599,7 +599,7 @@ const Admin: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white">
       {/* Toast notifications */}
-      <div className="fixed top-6 right-6 z-50 flex flex-col gap-2">
+      <div className="fixed top-24 right-6 z-50 flex flex-col gap-2">
         {toasts.map((t) => (
           <div
             key={t.id}

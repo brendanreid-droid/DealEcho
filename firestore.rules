@@ -55,5 +55,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Newsletters (campaign history) ──────────────────────────────────────────
+    // Only administrators can read or write campaign analytics.
+    match /newsletters/{newsletterId} {
+      allow read, write: if isAdmin();
+      
+      match /opens/{uid} {
+        allow read, write: if isAdmin();
+      }
+    }
+
   }
 }

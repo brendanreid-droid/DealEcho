@@ -227,7 +227,7 @@ const Admin: React.FC = () => {
       const db = getFirestore();
       const q = query(collection(db, "newsletters"), orderBy("sentAt", "desc"));
       const snap = await getDocs(q);
-      setNewsletters(snap.docs.map((d) => d.data()));
+      setNewsletters(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err: unknown) {
       const msg =
         err instanceof Error

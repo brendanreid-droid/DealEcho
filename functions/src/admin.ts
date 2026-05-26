@@ -540,7 +540,11 @@ export const adminSendNewsletter = onCall(
     }
 
     // Broadcast Mass Send Mode
-    // 1. Fetch all Firestore user documents
+    // 1. Initialize a new newsletter document to track open rates
+    const newsletterRef = db.collection("newsletters").doc();
+    const newsletterId = newsletterRef.id;
+
+    // 2. Fetch all Firestore user documents
     const usersSnap = await db.collection("users").get();
     const activeSubscribedUsers = usersSnap.docs
       .map((d) => ({ uid: d.id, ...d.data() }) as any)
@@ -554,7 +558,7 @@ export const adminSendNewsletter = onCall(
         return true;
       });
 
-    // 2. Dispatch emails in parallel batches of 10
+    // 3. Dispatch emails in parallel batches of 10
     const batchSize = 10;
     let sentCount = 0;
 
@@ -572,6 +576,7 @@ export const adminSendNewsletter = onCall(
                 paragraphs,
                 email: u.email,
                 uid: u.uid,
+                newsletterId,
               }),
             });
             sentCount++;
@@ -581,6 +586,18 @@ export const adminSendNewsletter = onCall(
         })
       );
     }
+
+    // 4. Save campaign history record in Firestore
+    await newsletterRef.set({
+      id: newsletterId,
+      subject,
+      title,
+      preheaderText: preheaderText || "Latest updates from DealEcho",
+      content,
+      sentAt: new Date().toISOString(),
+      sentCount,
+      opens: 0,
+    });
 
     return { success: true, sentCount, isTest: false };
   }

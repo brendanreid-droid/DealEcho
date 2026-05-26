@@ -100,6 +100,10 @@ const Admin: React.FC = () => {
   const [newsletterContent, setNewsletterContent] = useState("");
   const [newsletterSending, setNewsletterSending] = useState(false);
   const [newsletterTestEmail, setNewsletterTestEmail] = useState("");
+  const [newsletters, setNewsletters] = useState<any[]>([]);
+  const [newslettersLoading, setNewslettersLoading] = useState(false);
+  const [newsletterSubTab, setNewsletterSubTab] = useState<"compose" | "history">("compose");
+  const [selectedHistoryNewsletter, setSelectedHistoryNewsletter] = useState<any | null>(null);
 
   // Create User modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -205,6 +209,27 @@ const Admin: React.FC = () => {
     }
   }, [functions]);
 
+  // Load newsletters campaign history
+  const loadCampaigns = useCallback(async () => {
+    setNewslettersLoading(true);
+    try {
+      const { getFirestore, collection, getDocs, orderBy, query } =
+        await import("firebase/firestore");
+      const db = getFirestore();
+      const q = query(collection(db, "newsletters"), orderBy("sentAt", "desc"));
+      const snap = await getDocs(q);
+      setNewsletters(snap.docs.map((d) => d.data()));
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to load newsletter campaigns.";
+      addToast(msg, "error");
+    } finally {
+      setNewslettersLoading(false);
+    }
+  }, []);
+
   // Update pricing
   const handleUpdatePricing = async () => {
     const monthly = Math.round(parseFloat(monthlyPrice) * 100);
@@ -251,8 +276,9 @@ const Admin: React.FC = () => {
       loadReviews();
       loadPricing();
       loadFlaggedReviews();
+      loadCampaigns();
     }
-  }, [isAdmin, isLoading, loadUsers, loadReviews, loadFlaggedReviews]);
+  }, [isAdmin, isLoading, loadUsers, loadReviews, loadFlaggedReviews, loadCampaigns]);
 
   // Real-time Firestore listener: reflect role/subscription changes without refresh
   useEffect(() => {
@@ -1351,7 +1377,38 @@ const Admin: React.FC = () => {
 
         {/* ── NEWSLETTER TAB ── */}
         {tab === "newsletter" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-fade-in text-white">
+          <div>
+            {/* Newsletter Sub-navigation */}
+            <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
+              <button
+                onClick={() => setNewsletterSubTab("compose")}
+                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all ${
+                  newsletterSubTab === "compose"
+                    ? "bg-indigo-600 text-white shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <i className="fas fa-edit mr-2" />
+                Compose Campaign
+              </button>
+              <button
+                onClick={() => {
+                  setNewsletterSubTab("history");
+                  loadCampaigns();
+                }}
+                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all ${
+                  newsletterSubTab === "history"
+                    ? "bg-indigo-600 text-white shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <i className="fas fa-history mr-2" />
+                Sent Campaigns
+              </button>
+            </div>
+
+            {newsletterSubTab === "compose" ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-fade-in text-white">
             {/* Left side: Composer Form */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-5 relative">
               <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none"></div>
@@ -1545,8 +1602,83 @@ const Admin: React.FC = () => {
               </div>
             </div>
           </div>
+        ) : (
+          /* Sent Campaigns History Subtab */
+          <div>
+            {newslettersLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : newsletters.length === 0 ? (
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center text-white">
+                <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-paper-plane text-indigo-400 text-2xl" />
+                </div>
+                <h3 className="text-lg font-black text-white mb-2">No Campaigns Yet</h3>
+                <p className="text-slate-500 text-sm">You haven't broadcasted any newsletters to active users yet.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-3xl border border-white/10 text-white animate-fade-in">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5">
+                      {["Date Sent", "Subject Line", "Headline", "Recipients", "Opens", "Open Rate", "Actions"].map((h) => (
+                        <th key={h} className="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-slate-500">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {newsletters.map((n, i) => {
+                      const openRate = n.sentCount > 0 ? Math.round((n.opens / n.sentCount) * 100) : 0;
+                      return (
+                        <tr key={n.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}>
+                          <td className="px-5 py-4 text-slate-400 text-xs">
+                            {n.sentAt ? new Date(n.sentAt).toLocaleString() : "—"}
+                          </td>
+                          <td className="px-5 py-4 text-white text-sm font-semibold max-w-xs truncate">
+                            {n.subject}
+                          </td>
+                          <td className="px-5 py-4 text-slate-400 text-xs truncate max-w-xs">
+                            {n.title}
+                          </td>
+                          <td className="px-5 py-4 text-white text-xs font-bold">
+                            {n.sentCount}
+                          </td>
+                          <td className="px-5 py-4 text-emerald-400 text-xs font-bold">
+                            {n.opens}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+                              openRate >= 50 ? "bg-emerald-950/40 text-emerald-400 border border-emerald-500/20" :
+                              openRate >= 20 ? "bg-indigo-950/40 text-indigo-400 border border-indigo-500/20" :
+                              "bg-slate-900 text-slate-400 border border-slate-700/30"
+                            }`}>
+                              {openRate}%
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <button
+                              onClick={() => setSelectedHistoryNewsletter(n)}
+                              className="px-3 py-1.5 bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-black rounded-xl hover:bg-indigo-600/40 transition-colors"
+                            >
+                              <i className="fas fa-eye mr-1" />
+                              Inspect Copy
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         )}
       </div>
+    )}
+  </div>
 
       {/* Edit Modal */}
       {editReview && (
@@ -1690,6 +1822,99 @@ const Admin: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Campaign Inspector Modal */}
+      {selectedHistoryNewsletter && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/75 backdrop-blur-sm animate-fade-in text-white">
+          <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-thin">
+            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none"></div>
+
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div>
+                <h3 className="text-xl font-black mb-1">Campaign Details</h3>
+                <p className="text-slate-500 text-xs font-semibold">
+                  Sent on {new Date(selectedHistoryNewsletter.sentAt).toLocaleString()}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedHistoryNewsletter(null)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <i className="fas fa-times-circle text-xl" />
+              </button>
+            </div>
+
+            {/* Campaign Metrics row */}
+            <div className="grid grid-cols-3 gap-4 mb-6 relative z-10">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                  Recipients
+                </div>
+                <div className="text-xl font-black text-white">
+                  {selectedHistoryNewsletter.sentCount}
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                  Unique Opens
+                </div>
+                <div className="text-xl font-black text-emerald-400">
+                  {selectedHistoryNewsletter.opens}
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                  Open Rate
+                </div>
+                <div className="text-xl font-black text-indigo-400">
+                  {selectedHistoryNewsletter.sentCount > 0
+                    ? Math.round((selectedHistoryNewsletter.opens / selectedHistoryNewsletter.sentCount) * 100)
+                    : 0}%
+                </div>
+              </div>
+            </div>
+
+            {/* Campaign Metadata */}
+            <div className="space-y-3 mb-6 relative z-10 text-sm">
+              <div className="bg-white/5 rounded-2xl p-4 space-y-2 border border-white/5">
+                <div>
+                  <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider mr-2">Subject:</span>
+                  <span className="text-white font-semibold">{selectedHistoryNewsletter.subject}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider mr-2">Snippet:</span>
+                  <span className="text-slate-300">{selectedHistoryNewsletter.preheaderText}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Campaign Copy Preview */}
+            <div className="bg-white rounded-2xl p-6 text-slate-900 max-h-[300px] overflow-y-auto scrollbar-thin relative z-10 shadow-inner">
+              <h2 className="text-[#0f172a] text-lg font-black tracking-tight mb-4 border-b pb-2 border-slate-100">
+                {selectedHistoryNewsletter.title}
+              </h2>
+              {selectedHistoryNewsletter.content ? (
+                selectedHistoryNewsletter.content.split(/\n\s*\n/).filter(Boolean).map((p: string, idx: number) => (
+                  <p key={idx} className="text-slate-600 text-sm leading-relaxed whitespace-pre-line text-left mb-3">
+                    {p}
+                  </p>
+                ))
+              ) : (
+                <p className="text-slate-400 text-sm italic">No content copy found.</p>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end relative z-10">
+              <button
+                onClick={() => setSelectedHistoryNewsletter(null)}
+                className="px-6 py-3 bg-white/5 border border-white/10 text-slate-400 font-black text-xs rounded-2xl hover:bg-white/10 transition-colors"
+              >
+                Close Inspector
+              </button>
+            </div>
           </div>
         </div>
       )}

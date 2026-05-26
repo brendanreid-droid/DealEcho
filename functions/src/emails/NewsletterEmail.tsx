@@ -10,6 +10,7 @@ interface NewsletterEmailProps {
   ctaUrl?: string;
   email: string;
   uid: string;
+  newsletterId?: string;
 }
 
 export const NewsletterEmail: React.FC<NewsletterEmailProps> = ({
@@ -20,6 +21,7 @@ export const NewsletterEmail: React.FC<NewsletterEmailProps> = ({
   ctaUrl = "https://dealecho.io",
   email,
   uid,
+  newsletterId,
 }) => {
   return (
     <DealEchoEmailLayout
@@ -47,6 +49,17 @@ export const NewsletterEmail: React.FC<NewsletterEmailProps> = ({
         Good selling,<br />
         <strong>The DealEcho Team</strong>
       </Text>
+
+      {/* Transparent 1x1 GIF tracking pixel */}
+      {newsletterId && uid && (
+        <img
+          src={`https://australia-southeast1-dealecho-io-sales-intel-hub.cloudfunctions.net/trackNewsletterOpen?newsletterId=${newsletterId}&uid=${uid}`}
+          width="1"
+          height="1"
+          style={{ display: "none" }}
+          alt=""
+        />
+      )}
     </DealEchoEmailLayout>
   );
 };

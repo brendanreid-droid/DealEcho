@@ -36,4 +36,7 @@ export { checkInactiveUsers } from "./triggers/inactivityTrigger";
 // Notification Preferences
 export { updateNotificationPreferences } from "./notifications";
 
+// Newsletter Tracking
+export { trackNewsletterOpen } from "./triggers/trackNewsletterOpen";
+
 

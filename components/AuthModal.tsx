@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { sendPasswordResetEmail } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth } from "../src/firebase/config";
 
 interface AuthModalProps {
@@ -196,7 +196,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
       setIsEmailLoading(true);
       try {
-        await sendPasswordResetEmail(auth, email.trim());
+        const functions = getFunctions(undefined, "australia-southeast1");
+        const resetFn = httpsCallable<{ email: string }, { success: boolean }>(functions, "sendCustomPasswordResetEmail");
+        await resetFn({ email: email.trim() });
         setIsResetSuccess(true);
       } catch (err: any) {
         const code: string = err?.code ?? "";

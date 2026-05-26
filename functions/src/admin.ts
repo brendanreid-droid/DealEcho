@@ -317,6 +317,12 @@ export const adminCreateUser = onCall(
     }
 
     try {
+      // 0. Register in temporary tracking collection to prevent duplicate welcome onboarding triggers
+      await db.collection("admin_created_users").doc(email.trim().toLowerCase()).set({
+        email: email.trim().toLowerCase(),
+        createdAt: new Date().toISOString(),
+      });
+
       // 1. Create the user in Firebase Auth
       const userRecord = await auth.createUser({
         email,

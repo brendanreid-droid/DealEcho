@@ -39,4 +39,7 @@ export { updateNotificationPreferences } from "./notifications";
 // Newsletter Tracking
 export { trackNewsletterOpen } from "./triggers/trackNewsletterOpen";
 
+// Custom Auth Handlers
+export { sendCustomPasswordResetEmail } from "./authCustom";
+
 

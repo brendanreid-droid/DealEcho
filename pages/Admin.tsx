@@ -111,6 +111,15 @@ const Admin: React.FC = () => {
   const [createDisplayName, setCreateDisplayName] = useState("");
   const [createRole, setCreateRole] = useState<UserRole>("free");
   const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [isCreateSuccess, setIsCreateSuccess] = useState(false);
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setIsCreateSuccess(false);
+    setCreateEmail("");
+    setCreateDisplayName("");
+    setCreateRole("free");
+  };
 
   const functions = getFunctions(undefined, "australia-southeast1");
 
@@ -363,10 +372,7 @@ const Admin: React.FC = () => {
       });
       if (res.data.success) {
         setUsers((prev) => [res.data.user, ...prev]);
-        setIsCreateModalOpen(false);
-        setCreateEmail("");
-        setCreateDisplayName("");
-        setCreateRole("free");
+        setIsCreateSuccess(true);
         addToast("User created successfully! Invitation sent.", "success");
       }
     } catch (err: unknown) {
@@ -1731,97 +1737,113 @@ const Admin: React.FC = () => {
           <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative">
             <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/10 blur-[80px] rounded-full -mr-10 -mt-10 pointer-events-none"></div>
             
-            <h3 className="text-xl font-black mb-1 relative z-10">Create New User Manually</h3>
-            <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6 relative z-10 max-w-sm">
-              Enter user details to manually provision their account. They will automatically receive a secure activation link via email to select their password.
-            </p>
-
-            <form onSubmit={handleCreateUser} className="space-y-4 relative z-10">
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. John Doe"
-                  value={createDisplayName}
-                  onChange={(e) => setCreateDisplayName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="e.g. john@company.com"
-                  value={createEmail}
-                  onChange={(e) => setCreateEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                  Membership Type
-                </label>
-                <select
-                  value={createRole}
-                  onChange={(e) => setCreateRole(e.target.value as UserRole)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
-                  style={{ colorScheme: "dark" }}
-                >
-                  <option value="free" className="bg-[#0f172a] text-white">
-                    Free (Pioneer Plan)
-                  </option>
-                  <option value="paid" className="bg-[#0f172a] text-white">
-                    Paid (Sales Pro Plan)
-                  </option>
-                  <option value="free_full" className="bg-[#0f172a] text-white">
-                    Free Full (Complimentary Full Access)
-                  </option>
-                  <option value="admin" className="bg-[#0f172a] text-white">
-                    Administrator
-                  </option>
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={isCreatingUser}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20"
-                >
-                  {isCreatingUser ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-paper-plane" />
-                      Create & Send Invite
-                    </>
-                  )}
-                </button>
+            {isCreateSuccess ? (
+              <div className="text-center py-6 relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/10 animate-pulse">
+                  <i className="fas fa-check text-2xl" />
+                </div>
+                <h3 className="text-xl font-black mb-2 text-white">Invitation Dispatched!</h3>
+                <p className="text-slate-400 text-sm mb-8 leading-relaxed max-w-sm text-center">
+                  An account has been successfully provisioned. A branded welcome activation email containing a secure password setup link was sent via Resend.
+                </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsCreateModalOpen(false);
-                    setCreateEmail("");
-                    setCreateDisplayName("");
-                    setCreateRole("free");
-                  }}
-                  className="flex-1 py-3 bg-white/5 border border-white/10 text-slate-400 font-black text-sm rounded-2xl hover:bg-white/10 transition-colors"
+                  onClick={closeCreateModal}
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl transition-colors shadow-lg shadow-emerald-600/20 cursor-pointer"
                 >
-                  Cancel
+                  Done
                 </button>
               </div>
-            </form>
+            ) : (
+              <>
+                <h3 className="text-xl font-black mb-1 relative z-10">Create New User Manually</h3>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6 relative z-10 max-w-sm">
+                  Enter user details to manually provision their account. They will automatically receive a secure activation link via email to select their password.
+                </p>
+
+                <form onSubmit={handleCreateUser} className="space-y-4 relative z-10">
+                  <div>
+                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. John Doe"
+                      value={createDisplayName}
+                      onChange={(e) => setCreateDisplayName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. john@company.com"
+                      value={createEmail}
+                      onChange={(e) => setCreateEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                      Membership Type
+                    </label>
+                    <select
+                      value={createRole}
+                      onChange={(e) => setCreateRole(e.target.value as UserRole)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                      style={{ colorScheme: "dark" }}
+                    >
+                      <option value="free" className="bg-[#0f172a] text-white">
+                        Free (Pioneer Plan)
+                      </option>
+                      <option value="paid" className="bg-[#0f172a] text-white">
+                        Paid (Sales Pro Plan)
+                      </option>
+                      <option value="free_full" className="bg-[#0f172a] text-white">
+                        Free Full (Complimentary Full Access)
+                      </option>
+                      <option value="admin" className="bg-[#0f172a] text-white">
+                        Administrator
+                      </option>
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="submit"
+                      disabled={isCreatingUser}
+                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 cursor-pointer"
+                    >
+                      {isCreatingUser ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin" />
+                          Creating Account...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-paper-plane" />
+                          Create & Send Invite
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeCreateModal}
+                      className="flex-1 py-3 bg-white/5 border border-white/10 text-slate-400 font-black text-sm rounded-2xl hover:bg-white/10 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}

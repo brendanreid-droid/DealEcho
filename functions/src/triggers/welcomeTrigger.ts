@@ -2,6 +2,7 @@ import * as functions from "firebase-functions/v1";
 import { sendReactEmail } from "../lib/email";
 import * as React from "react";
 import { WelcomeEmail } from "../emails/WelcomeEmail";
+import { db } from "../lib/firebaseAdmin";
 
 export const sendWelcomeEmail = functions
   .region("australia-southeast1")
@@ -16,6 +17,20 @@ export const sendWelcomeEmail = functions
     if (!email) {
       console.log("No email address found for the new user. Skipping welcome email.");
       return;
+    }
+
+    // Check if the user was manually created/invited by an admin
+    try {
+      const emailLower = email.trim().toLowerCase();
+      const trackingDoc = await db.collection("admin_created_users").doc(emailLower).get();
+      if (trackingDoc.exists) {
+        console.log(`Skipping automated welcome email for manually created admin user: ${emailLower}`);
+        // Clean up tracking document immediately to prevent orphaned docs
+        await trackingDoc.ref.delete();
+        return;
+      }
+    } catch (dbErr) {
+      console.error("Non-fatal: Failed to check admin_created_users collection:", dbErr);
     }
 
     console.log(`Processing welcome email for new user: ${email} (${name})`);

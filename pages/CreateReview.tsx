@@ -172,13 +172,19 @@ const CreateReview: React.FC<CreateReviewProps> = ({
     }
     setIsSubmitting(true);
     setError(null);
-    const moderation = await moderateReview(content);
-    if (!moderation.isSafe) {
-      setError(
-        `Flagged: ${moderation.reason}. Please ensure no personal names are included.`,
-      );
-      setIsSubmitting(false);
-      return;
+    // Client-side moderation is best-effort UX only (instant feedback when a
+    // key is configured). The authoritative check runs server-side in a Cloud
+    // Function trigger: reviews are written with moderationStatus 'pending'
+    // and only become publicly visible once approved.
+    if (isGeminiAvailable()) {
+      const moderation = await moderateReview(content);
+      if (!moderation.isSafe) {
+        setError(
+          `Flagged: ${moderation.reason}. Please ensure no personal names are included.`,
+        );
+        setIsSubmitting(false);
+        return;
+      }
     }
     const newReview: Review = {
       id: Math.random().toString(36).substr(2, 9),

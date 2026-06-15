@@ -26,7 +26,8 @@ export {
   adminDeleteUser,
   adminSendNewsletter,
 } from "./admin";
-export { moderateNewReview } from "./moderation";
+// export { moderateNewReview } from "./moderation";
+export { onReviewWritten } from "./reviewModeration";
 
 // Automated Lifecycle Email Triggers (Resend)
 export { sendWelcomeEmail } from "./triggers/welcomeTrigger";

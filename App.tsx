@@ -5,22 +5,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
   updateProfile,
-  getIdTokenResult,
-  User as FirebaseUser,
 } from "firebase/auth";
-import { auth, googleProvider, db } from "./src/firebase/config";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  limit,
-  serverTimestamp,
-} from "firebase/firestore";
-import { Company, Review } from "./types";
+import { auth, googleProvider } from "./src/firebase/config";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import CreateReview from "./pages/CreateReview";
@@ -35,10 +22,11 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { mockReviews } from "./mockReviews";
+
 import { useAuth } from "./src/hooks/useAuth";
 import { useReviews } from "./src/hooks/useReviews";
 import { useTracking } from "./src/hooks/useTracking";
+import { useReviewSummaries } from "./src/hooks/useReviewSummaries";
 
 // Helper component to scroll to top on every navigation
 const ScrollToTop = () => {
@@ -58,6 +46,10 @@ const App: React.FC = () => {
     isLoading: reviewsLoading,
     addReview: handleAddReview,
   } = useReviews();
+  const {
+    summaries: reviewSummaries,
+    isLoading: summariesLoading,
+  } = useReviewSummaries();
   const { trackedCompanies, toggleTrack: toggleTrackCompany } = useTracking(
     user?.id,
     isPaid,
@@ -145,8 +137,8 @@ const App: React.FC = () => {
                   user={user}
                   isPaid={isPaid}
                   onSignInClick={triggerSignIn}
-                  reviews={reviews}
-                  isLoading={reviewsLoading}
+                  reviewSummaries={reviewSummaries}
+                  isLoading={summariesLoading}
                   trackedIds={trackedCompanies}
                   onToggleTrack={toggleTrackCompany}
                 />
@@ -154,7 +146,7 @@ const App: React.FC = () => {
             />
             <Route
               path="/search"
-              element={<Search reviews={reviews} isLoading={reviewsLoading} />}
+              element={<Search reviewSummaries={reviewSummaries} isLoading={summariesLoading} />}
             />
             <Route
               path="/review/new"

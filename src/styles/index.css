@@ -1,0 +1,50 @@
+/* ── Fonts: self-imported via Google Fonts (swap to self-hosted later if desired) ── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+  }
+  /* Visible keyboard focus everywhere (accessibility floor) */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+@layer components {
+  /* ── Reusable card primitive ── */
+  .de-card {
+    @apply bg-white border border-slate-200 rounded-card shadow-card transition-all duration-200;
+  }
+  .de-card-interactive {
+    @apply de-card cursor-pointer hover:-translate-y-1 hover:border-accent-100 hover:shadow-lift;
+  }
+
+  /* ── Buttons ── */
+  .de-btn-primary {
+    @apply bg-navy text-white font-semibold rounded-control px-4 py-2.5 transition-colors hover:bg-black;
+  }
+  .de-btn-accent {
+    @apply bg-accent text-white font-semibold rounded-control px-4 py-2.5 transition-colors hover:bg-accent-700;
+  }
+
+  /* ── Score ring (used in cards) ── */
+  .de-ring-track {
+    stroke: #e9edf3;
+  }
+}
+
+/* ── Respect reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    }
+}

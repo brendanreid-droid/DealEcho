@@ -54,7 +54,9 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
         count: data.count, 
         winRate: Math.round((data.wins / data.count) * 100),
         avgResp: (data.respTotal / data.count).toFixed(1),
-        tireKickerScore: Math.round((data.wasteTotal / (data.count * 5)) * 100)
+        // Risk = inverse of average Buyer Intent (timeWasterLevel is stored high-is-good:
+        // 1 = Tire Kicker ... 5 = Critical). avg 5.0 -> 0% risk, avg 1.0 -> 100% risk.
+        tireKickerScore: Math.round(((data.count * 5 - data.wasteTotal) / (data.count * 4)) * 100)
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 6);

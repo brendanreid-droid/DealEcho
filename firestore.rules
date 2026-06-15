@@ -8,16 +8,28 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isPro() {
+      return isSignedIn()
+        && request.auth.token.role in ['paid', 'admin', 'free_full'];
+    }
+
     function isAdmin() {
       return isSignedIn() && request.auth.token.role == 'admin';
     }
 
+    // ── Review Summaries ────────────────────────────────────────────────────────
+    // Public read. Only Cloud Function (Admin SDK) can write.
+    match /review_summaries/{summaryId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // ── Reviews ────────────────────────────────────────────────────────────────
-    // Anyone can read reviews. Only authenticated users can create.
+    // Only Pro members can read reviews. Only authenticated users can create.
     // Users cannot set moderation fields — only Cloud Functions (Admin SDK) can.
     // Admins can moderate (update/delete).
     match /reviews/{reviewId} {
-      allow read: if true;
+      allow read: if isPro();
       allow create: if isSignedIn() 
                     && request.resource.data.userId == request.auth.uid
                     && !('moderationStatus' in request.resource.data && request.resource.data.moderationStatus != 'pending')

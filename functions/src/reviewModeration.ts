@@ -1,0 +1,163 @@
+/**
+ * reviewModeration.ts — server-side review pipeline for DealEcho
+ *
+ * Two responsibilities:
+ *  1. MODERATION (authoritative): when a review is created with
+ *     moderationStatus 'pending', run Gemini moderation server-side and flip
+ *     the status to 'approved' or 'rejected'. The API key never leaves the
+ *     server (stored as a Firebase secret, NOT in the client bundle).
+ *  2. PUBLIC SUMMARIES: maintain a `review_summaries` collection containing
+ *     only the fields free users may see (scores + truncated excerpt). This
+ *     lets Firestore rules lock the full `reviews` collection to Pro users,
+ *     closing the paywall leak properly.
+ *
+ * Setup:
+ *   cd functions
+ *   npm i @google/genai
+ *   firebase functions:secrets:set GEMINI_API_KEY
+ *   # then export these functions from functions/src/index.ts:
+ *   #   export { onReviewWritten } from "./reviewModeration";
+ *   firebase deploy --only functions:onReviewWritten
+ *
+ * Backfill existing reviews once (creates summaries for legacy docs):
+ *   set RUN_BACKFILL guidance at bottom of this file.
+ */
+
+import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { defineSecret } from "firebase-functions/params";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { initializeApp, getApps } from "firebase-admin/app";
+import { GoogleGenAI } from "@google/genai";
+
+if (getApps().length === 0) initializeApp();
+
+const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
+const REGION = "australia-southeast1"; // matches existing Stripe functions
+const EXCERPT_LENGTH = 140; // characters of content exposed to free users
+
+interface ModerationVerdict {
+  isSafe: boolean;
+  reason?: string;
+}
+
+async function moderate(content: string, apiKey: string): Promise<ModerationVerdict> {
+  const ai = new GoogleGenAI({ apiKey });
+  const prompt = `You are a content moderator for a B2B sales review platform.
+Reviews describe a company's BUYING behaviour. Reject content that contains:
+- Personal names of individuals (first names, surnames, or identifiable role+name combos)
+- Defamatory claims, profanity, hate speech, or harassment
+- Confidential pricing details or contract terms attributable to a named deal
+- Contact details (emails, phone numbers)
+
+Respond ONLY with minified JSON: {"isSafe": boolean, "reason": "short reason if unsafe"}
+
+REVIEW:
+"""${content}"""`;
+
+  const result = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: prompt,
+  });
+
+  try {
+    const text = (result.text ?? "").replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(text);
+    return { isSafe: !!parsed.isSafe, reason: parsed.reason };
+  } catch {
+    // If the model response is unparseable, fail CLOSED: leave for human review.
+    return { isSafe: false, reason: "Automatic moderation inconclusive — held for admin review" };
+  }
+}
+
+/** Fields safe to expose publicly to non-Pro users. */
+function toSummary(reviewId: string, data: FirebaseFirestore.DocumentData) {
+  const content: string = data.content ?? "";
+  return {
+    reviewId,
+    companyId: data.companyId ?? "",
+    companyName: data.companyName ?? "",
+    industry: data.industry ?? "",
+    country: data.country ?? "",
+    location: data.location ?? "",
+    status: data.status ?? "Ongoing",
+    communicationRating: data.communicationRating ?? 0,
+    negotiationLevel: data.negotiationLevel ?? 0,
+    timeWasterLevel: data.timeWasterLevel ?? 0,
+    clarityOfScope: data.clarityOfScope ?? 3,
+    excerpt:
+      content.length > EXCERPT_LENGTH
+        ? content.slice(0, EXCERPT_LENGTH).trimEnd() + "…"
+        : content,
+    createdAt: data.createdAt ?? new Date().toISOString(),
+    syncedAt: FieldValue.serverTimestamp(),
+  };
+}
+
+export const onReviewWritten = onDocumentWritten(
+  {
+    document: "reviews/{reviewId}",
+    region: REGION,
+    secrets: [GEMINI_API_KEY],
+  },
+  async (event) => {
+    const db = getFirestore();
+    const reviewId = event.params.reviewId;
+    const after = event.data?.after;
+
+    // Deleted review → remove its public summary
+    if (!after?.exists) {
+      await db.doc(`review_summaries/${reviewId}`).delete().catch(() => {});
+      return;
+    }
+
+    const data = after.data()!;
+
+    // ── 1. Moderation: only act on pending reviews ──────────────────────────
+    if (data.moderationStatus === "pending") {
+      let verdict: ModerationVerdict;
+      try {
+        verdict = await moderate(data.content ?? "", GEMINI_API_KEY.value());
+      } catch (err) {
+        console.error(`Moderation call failed for ${reviewId}:`, err);
+        // Fail closed: keep pending so an admin can review in /admin.
+        return;
+      }
+
+      await after.ref.update({
+        moderationStatus: verdict.isSafe ? "approved" : "rejected",
+        moderationReason: verdict.reason ?? null,
+        moderatedAt: FieldValue.serverTimestamp(),
+      });
+      // The update above re-triggers this function; the summary sync happens
+      // on that second invocation (status will no longer be 'pending').
+      return;
+    }
+
+    // ── 2. Summary sync: mirror approved reviews, remove everything else ────
+    const isApproved = !data.moderationStatus || data.moderationStatus === "approved";
+    const summaryRef = db.doc(`review_summaries/${reviewId}`);
+    if (isApproved) {
+      await summaryRef.set(toSummary(reviewId, data), { merge: true });
+    } else {
+      await summaryRef.delete().catch(() => {});
+    }
+  },
+);
+
+/*
+ * ── One-time backfill for legacy reviews ────────────────────────────────────
+ * Run locally with the Admin SDK (e.g. `npx ts-node scripts/backfill.ts`) or
+ * temporarily as an HTTPS function. Pseudocode:
+ *
+ *   const snap = await db.collection("reviews").get();
+ *   for (const doc of snap.docs) {
+ *     const d = doc.data();
+ *     const approved = !d.moderationStatus || d.moderationStatus === "approved";
+ *     if (approved) {
+ *       await db.doc(`review_summaries/${doc.id}`).set(toSummary(doc.id, d), { merge: true });
+ *     }
+ *   }
+ *
+ * Verify `review_summaries` is fully populated BEFORE tightening firestore.rules,
+ * otherwise free users will see an empty site.
+ */

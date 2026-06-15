@@ -23,10 +23,13 @@ export interface Review {
   isTender: boolean;
   buyingTeam: string[];
   location: string;
-  communicationRating: number;
-  negotiationLevel: number; // 1 (Easy) to 5 (Aggressive)
-  timeWasterLevel: number; // 1 (Productive) to 5 (Tire Kicker)
-  clarityOfScope: number; // 1 (Vague) to 5 (Crystal Clear)
+  communicationRating: number; // Responsiveness: 1 (Ghosting) → 5 (Instant). Higher = better.
+  negotiationLevel: number; // Negotiation Ease: 1 (Brutal) → 5 (Instant). Higher = better.
+  timeWasterLevel: number; // Buyer Intent: 1 (Tire Kicker) → 5 (Critical). Higher = better.
+  // NOTE: negotiationLevel / timeWasterLevel are legacy field names whose stored
+  // semantics are HIGH-IS-GOOD (see CreateReview star tooltips). Do NOT invert
+  // them when aggregating into health scores.
+  clarityOfScope: number; // Scope Maturity: 1 (Vague) → 5 (Crystal Clear). Higher = better.
   industry: string;
   country: string;
   content: string;

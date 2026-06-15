@@ -1,10 +1,13 @@
-import React, { useMemo, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import React, { useMemo, useState, useEffect } from "react";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useSEO } from "../src/hooks/useSEO";
 import { ReviewSummary } from "../src/hooks/useReviewSummaries";
 import CompanyCard, { CompanyCardData } from "../src/components/CompanyCard";
+import CompanyLogo from "../components/CompanyLogo";
 import { CardGridSkeleton } from "../src/components/Skeleton";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
+import { searchCompanies } from "../services/geminiService";
+import { Company } from "../types";
 
 interface SearchProps {
   user: any;
@@ -16,6 +19,50 @@ interface SearchProps {
   isLoading?: boolean;
 }
 
+const AiCompanyCard: React.FC<{ company: Company }> = ({ company }) => {
+  return (
+    <Link
+      to={`/company/${company.id}`}
+      state={{ company }}
+      className="de-card-interactive p-6 block group"
+    >
+      {/* Header: logo + name + "No Reviews" badge */}
+      <div className="flex justify-between items-start mb-5">
+        <div className="flex gap-3 items-center min-w-0">
+          <CompanyLogo name={company.name} logoUrl={company.logoUrl} size="md" />
+          <div className="min-w-0">
+            <h3 className="font-bold text-[16.5px] text-slate-900 truncate">
+              {company.name}
+            </h3>
+            <p className="text-xs text-slate-500 truncate mt-0.5">
+              {company.industry}
+              {company.country ? ` · ${company.country}` : ""}
+            </p>
+          </div>
+        </div>
+        <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+          No Reviews
+        </span>
+      </div>
+
+      {/* Excerpt/Description (holds space to match reviewed card) */}
+      <p className="text-[13.5px] leading-relaxed text-slate-500 line-clamp-3 mb-6 min-h-[60px]">
+        {company.description || "No description available. Be the first to start tracking or review this account."}
+      </p>
+
+      {/* Footer */}
+      <div className="flex justify-between items-center pt-4 border-t border-slate-100 text-xs font-semibold">
+        <span className="text-accent group-hover:underline">
+          Be the first to review
+        </span>
+        <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform">
+          View Profile →
+        </span>
+      </div>
+    </Link>
+  );
+};
+
 const Search: React.FC<SearchProps> = ({
   isPaid,
   reviewSummaries,
@@ -26,12 +73,21 @@ const Search: React.FC<SearchProps> = ({
   const q = searchParams.get("q") || "";
   const [localQuery, setLocalQuery] = useState(q);
 
+  const [aiCompanies, setAiCompanies] = useState<Company[]>([]);
+  const [isAiSearching, setIsAiSearching] = useState(false);
+
   useSEO({
     title: q ? `Search "${q}" - DealEcho` : "Search - DealEcho",
     description: `Find buyer intelligence and account insights${q ? ` for ${q}` : ""}.`,
     keywords: "B2B sales intelligence, account planning, buyer research",
   });
 
+  // Keep search input synced with URL query parameter
+  useEffect(() => {
+    setLocalQuery(q);
+  }, [q]);
+
+  // Aggregate local Firestore reviews summaries into company stats
   const companies: CompanyCardData[] = useMemo(() => {
     const stats: Record<string, any> = {};
     reviewSummaries.forEach((s) => {
@@ -87,6 +143,7 @@ const Search: React.FC<SearchProps> = ({
     });
   }, [reviewSummaries]);
 
+  // Filter reviewed companies locally
   const results = useMemo(() => {
     if (!q.trim()) return [];
     const query = q.toLowerCase();
@@ -99,15 +156,52 @@ const Search: React.FC<SearchProps> = ({
       .sort((a, b) => b.healthIndex - a.healthIndex);
   }, [q, companies]);
 
+  // Search company entities via Gemini Google Search tool in Cloud Function
+  useEffect(() => {
+    if (!q.trim()) {
+      setAiCompanies([]);
+      return;
+    }
+
+    let active = true;
+    const fetchAiCompanies = async () => {
+      setIsAiSearching(true);
+      try {
+        const results = await searchCompanies(q);
+        if (active) {
+          setAiCompanies(results);
+        }
+      } catch (err) {
+        console.error("AI search failed:", err);
+      } finally {
+        if (active) {
+          setIsAiSearching(false);
+        }
+      }
+    };
+
+    fetchAiCompanies();
+
+    return () => {
+      active = false;
+    };
+  }, [q]);
+
+  // Exclude AI search results that are already present in the reviewed accounts
+  const filteredAiCompanies = useMemo(() => {
+    const reviewedNames = new Set(results.map((r) => r.name.toLowerCase()));
+    return aiCompanies.filter((c) => !reviewedNames.has(c.name.toLowerCase()));
+  }, [aiCompanies, results]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (localQuery.trim())
-      navigate(`/search?q=${encodeURIComponent(localQuery)}`);
+    if (localQuery.trim()) navigate(`/search?q=${encodeURIComponent(localQuery)}`);
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto px-6 py-14">
+        {/* Search input bar */}
         <form onSubmit={handleSearch} className="mb-10">
           <div className="relative max-w-2xl mx-auto">
             <svg
@@ -144,28 +238,65 @@ const Search: React.FC<SearchProps> = ({
               Results for “{q}”
             </h1>
             <p className="text-slate-500 text-sm mb-7">
-              {results.length} account{results.length !== 1 ? "s" : ""} found
+              {results.length + filteredAiCompanies.length} account{results.length + filteredAiCompanies.length !== 1 ? "s" : ""} found
             </p>
 
-            {isLoading ? (
-              <CardGridSkeleton count={3} />
-            ) : results.length === 0 ? (
-              <div className="de-card p-12 text-center">
-                <p className="text-slate-600 font-medium">
-                  No accounts match “{q}”.
-                </p>
-                <p className="text-slate-400 text-sm mt-1">
-                  Try a broader term, or be the first to add intel on this
-                  account.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {results.map((c) => (
-                  <CompanyCard key={c.id} company={c} isPro={isPaid} />
-                ))}
-              </div>
-            )}
+            <div className="space-y-10">
+              {/* 1. Reviewed Accounts Section */}
+              {isLoading ? (
+                <div>
+                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                    Loading reviewed accounts...
+                  </h2>
+                  <CardGridSkeleton count={3} />
+                </div>
+              ) : results.length > 0 ? (
+                <div>
+                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                    Reviewed Accounts ({results.length})
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {results.map((c) => (
+                      <CompanyCard key={c.id} company={c} isPro={isPaid} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* 2. AI / Global Search Accounts Section */}
+              {isAiSearching ? (
+                <div>
+                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                    Searching web for “{q}”...
+                  </h2>
+                  <CardGridSkeleton count={3} />
+                </div>
+              ) : filteredAiCompanies.length > 0 ? (
+                <div>
+                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                    Other Accounts ({filteredAiCompanies.length})
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {filteredAiCompanies.map((c) => (
+                      <AiCompanyCard key={c.id} company={c} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* No results placeholder */}
+              {!isLoading && !isAiSearching && results.length === 0 && filteredAiCompanies.length === 0 && (
+                <div className="de-card p-12 text-center">
+                  <p className="text-slate-600 font-medium">
+                    No accounts match “{q}”.
+                  </p>
+                  <p className="text-slate-400 text-sm mt-1">
+                    Try a broader term, or be the first to add intel on this
+                    account.
+                  </p>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <div className="de-card p-12 text-center">

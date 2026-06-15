@@ -28,6 +28,7 @@ export {
 } from "./admin";
 // export { moderateNewReview } from "./moderation";
 export { onReviewWritten } from "./reviewModeration";
+export { searchCompanyEntities, getAICompanyPersona } from "./searchCompanies";
 
 // Automated Lifecycle Email Triggers (Resend)
 export { sendWelcomeEmail } from "./triggers/welcomeTrigger";

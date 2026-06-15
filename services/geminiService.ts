@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { Company, AIModerationResult, Review } from "../types";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
@@ -37,38 +38,16 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
     return cached;
   }
 
-  if (!isGeminiAvailable()) {
-    console.warn("[GeminiService] No valid API key — AI search disabled.");
-    return [];
-  }
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Search for companies matching: "${query}". Return a JSON array of objects with: name, industry, country, domain (e.g. atlassian.com, when known, otherwise empty string), and a brief description. Use real data from your knowledge or search.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              industry: { type: Type.STRING },
-              country: { type: Type.STRING },
-              domain: { type: Type.STRING },
-              description: { type: Type.STRING },
-            },
-            required: ["name", "industry", "country"],
-          },
-        },
-      },
-    });
+    const functions = getFunctions(undefined, "australia-southeast1");
+    const searchFn = httpsCallable<{ query: string }, { results: any[] }>(
+      functions,
+      "searchCompanyEntities"
+    );
+    const result = await searchFn({ query });
+    const rawResults = result.data.results || [];
 
-    const results = JSON.parse(response.text || "[]");
-    const formattedResults = results.map((r: any, index: number) => ({
+    const formattedResults = rawResults.map((r: any, index: number) => ({
       ...r,
       id: `ai-${index}-${Date.now()}`,
       logoUrl: companyLogoUrl({ name: r.name, domain: r.domain || guessDomainFromName(r.name) }),
@@ -77,7 +56,7 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
     setSessionCache(cacheKey, formattedResults);
     return formattedResults;
   } catch (error) {
-    console.error("Search error:", error);
+    console.error("Search error via Cloud Function:", error);
     return [];
   }
 };
@@ -182,106 +161,22 @@ export const getAICompanyPersona = async (
     return cached;
   }
 
-  if (!isGeminiAvailable()) {
-    console.warn(
-      "[GeminiService] No valid API key — skipping AI persona generation.",
-    );
-    return fallback;
-  }
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-  const reviewsSummary = reviews
-    .map(
-      (r) =>
-        `Team: ${r.buyingTeam.join(", ")}, Status: ${r.status}, TCV: ${r.tcvBracket}, Content: ${r.content}`,
-    )
-    .join("\n\n");
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `Based on these B2B sales reviews for "${companyName}", generate a structured "Buyer Persona Summary".
-      
-      Requirements:
-      1. MEDDPICC Blueprint: High-level strategic advice for each pillar.
-      2. Departmental Playbooks: Provide specific tactics for interacting with the distinct departments mentioned in the reviews (e.g. IT, Legal, Procurement).
-      3. General Strategic Advice: A summary of the account's overall vendor-readiness and culture.
+    const functions = getFunctions(undefined, "australia-southeast1");
+    const personaFn = httpsCallable<
+      { companyName: string; reviews: any[] },
+      { persona: CompanyPersona }
+    >(functions, "getAICompanyPersona");
+    const result = await personaFn({ companyName, reviews });
+    const persona = result.data.persona;
 
-      Reviews:
-      ${reviewsSummary}`,
-      config: {
-        systemInstruction:
-          "You are a world-class sales enablement strategist. Analyse buyer behaviour across different departments and return structured MEDDPICC and Departmental Playbook intelligence in JSON format.",
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            summary: { type: Type.STRING },
-            keyTraits: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-            },
-            strategicAdvice: { type: Type.STRING },
-            teamPlaybooks: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  teamName: {
-                    type: Type.STRING,
-                    description:
-                      "e.g. 'Legal / Compliance' or 'IT / Engineering'",
-                  },
-                  tactic: {
-                    type: Type.STRING,
-                    description:
-                      "One-sentence actionable tactic for this team.",
-                  },
-                },
-                required: ["teamName", "tactic"],
-              },
-            },
-            meddpicc: {
-              type: Type.OBJECT,
-              properties: {
-                metrics: { type: Type.STRING },
-                economicBuyer: { type: Type.STRING },
-                decisionCriteria: { type: Type.STRING },
-                decisionProcess: { type: Type.STRING },
-                paperProcess: { type: Type.STRING },
-                identifyPain: { type: Type.STRING },
-                champion: { type: Type.STRING },
-                competition: { type: Type.STRING },
-              },
-              required: [
-                "metrics",
-                "economicBuyer",
-                "decisionCriteria",
-                "decisionProcess",
-                "paperProcess",
-                "identifyPain",
-                "champion",
-                "competition",
-              ],
-            },
-          },
-          required: [
-            "summary",
-            "keyTraits",
-            "strategicAdvice",
-            "teamPlaybooks",
-            "meddpicc",
-          ],
-        },
-      },
-    });
-
-    const result = JSON.parse(response.text || "{}");
-    setSessionCache(cacheKey, result);
-    return result;
+    if (persona) {
+      setSessionCache(cacheKey, persona);
+      return persona;
+    }
+    return fallback;
   } catch (error) {
-    console.error("Persona generation error:", error);
+    console.error("Persona generation error via Cloud Function:", error);
     return fallback;
   }
 };

@@ -155,7 +155,7 @@ const Home: React.FC<HomeProps> = ({
             the <span className="text-accent-soft">first call.</span>
           </h1>
           <p className="text-lg text-slate-300 max-w-xl mx-auto mb-9 leading-relaxed">
-            Crowdsourced intelligence from real enterprise sales cycles — see
+            Crowdsourced intelligence from real enterprise sales cycles. See
             how target accounts actually buy before you spend a quarter finding
             out.
           </p>
@@ -178,7 +178,7 @@ const Home: React.FC<HomeProps> = ({
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Look up any account — try “Atlassian”"
+                placeholder="Look up any account"
                 aria-label="Company lookup"
                 className="w-full rounded-card bg-white text-slate-900 placeholder-slate-400 pl-12 pr-32 py-4 text-base shadow-hero focus:outline-none focus:ring-4 focus:ring-accent/40"
               />

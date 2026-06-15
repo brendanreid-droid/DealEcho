@@ -54,10 +54,10 @@ const FieldInput: React.FC<FieldInputProps> = ({
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           autoComplete={autoComplete}
-          className={`w-full px-4 py-3.5 rounded-2xl border-2 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:outline-none transition-colors ${isPassword ? "pr-12" : ""} ${
+          className={`w-full px-4 py-3.5 rounded-control border-2 bg-slate-50 text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:outline-none transition-colors ${isPassword ? "pr-12" : ""} ${
             error
-              ? "border-rose-400 focus:border-rose-400"
-              : "border-slate-100 focus:border-indigo-400"
+              ? "border-signal-risk focus:border-signal-risk"
+              : "border-slate-100 focus:border-accent"
           }`}
         />
         {isPassword && (
@@ -75,7 +75,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
         )}
       </div>
       {error && (
-        <p className="text-rose-500 text-[11px] font-semibold mt-1 px-1 flex items-center">
+        <p className="text-signal-risk text-[11px] font-semibold mt-1 px-1 flex items-center">
           <Icon name="fa-exclamation-circle" className="mr-1" size={11} />
           {error}
         </p>
@@ -250,10 +250,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
         onClick={onClose}
       ></div>
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative z-10 overflow-hidden my-8">
+        <div className="bg-white w-full max-w-md rounded-card shadow-2xl relative z-10 overflow-hidden my-8">
         {/* ── Header ── */}
         <div className="bg-[#0f172a] px-10 pt-10 pb-6 text-white relative">
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/20 blur-[80px] rounded-full -mr-10 -mt-10"></div>
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/25 blur-[80px] rounded-full -mr-10 -mt-10"></div>
           <h2 className="text-3xl font-black tracking-tight mb-4 relative z-10">
             {mode === "signin"
               ? "Welcome Back"
@@ -267,7 +267,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             </p>
           ) : (
             /* Tab toggle */
-            <div className="relative z-10 flex bg-white/10 rounded-2xl p-1 w-fit">
+            <div className="relative z-10 flex bg-white/10 rounded-control p-1 w-fit">
               <button
                 onClick={() => switchMode("signin")}
                 className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${
@@ -354,7 +354,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="button"
                   onClick={() => switchMode("forgot")}
-                  className="text-xs font-bold text-slate-400 hover:text-indigo-600 transition-colors"
+                  className="text-xs font-bold text-slate-400 hover:text-accent transition-colors"
                 >
                   Forgot Password?
                 </button>
@@ -373,16 +373,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
             {/* Firebase-level error + switch hint */}
             {firebaseError && (
-              <div className="bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 flex items-start gap-1.5">
-                <Icon name="fa-exclamation-circle" className="text-rose-600 mt-0.5" size={14} />
-                <p className="text-rose-600 text-[12px] font-semibold leading-snug">
+              <div className="bg-rose-50/50 border border-signal-risk/20 rounded-control px-4 py-3 flex items-start gap-1.5">
+                <Icon name="fa-exclamation-circle" className="text-signal-risk mt-0.5" size={14} />
+                <p className="text-signal-risk text-[12px] font-semibold leading-snug">
                   {firebaseError}
                 </p>
                 {showSwitchHint && (
                   <button
                     type="button"
                     onClick={() => switchMode("signin")}
-                    className="mt-1.5 text-indigo-600 text-[12px] font-black underline underline-offset-2"
+                    className="mt-1.5 text-accent text-[12px] font-black underline underline-offset-2"
                   >
                     Sign in instead →
                   </button>
@@ -393,7 +393,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="submit"
               disabled={isEmailLoading}
-              className="w-full flex items-center justify-center py-3.5 bg-[#4f46e5] text-white rounded-2xl font-black text-sm hover:bg-indigo-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-indigo-100"
+              className="w-full flex items-center justify-center py-3.5 bg-accent text-white rounded-control font-semibold text-sm hover:bg-accent-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-accent/10"
             >
               {isEmailLoading ? (
                 <svg
@@ -428,7 +428,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="button"
                 onClick={() => switchMode("signin")}
-                className="w-full flex items-center justify-center py-3.5 border-2 border-slate-100 hover:bg-slate-50 text-slate-600 rounded-2xl font-black text-sm transition-all"
+                className="w-full flex items-center justify-center py-3.5 border-2 border-slate-100 hover:bg-slate-50 text-slate-600 rounded-control font-semibold text-sm transition-all"
               >
                 Back to Sign In
               </button>
@@ -451,7 +451,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 onClick={handleGoogleClick}
                 disabled={isGoogleLoading}
-                className="w-full flex items-center justify-between p-4 bg-white border-2 border-slate-100 text-slate-700 rounded-[20px] font-black text-sm hover:bg-slate-50 transition-all disabled:opacity-70 disabled:cursor-not-allowed group"
+                className="w-full flex items-center justify-between p-4 bg-white border-2 border-slate-100 text-slate-700 rounded-control font-semibold text-sm hover:bg-slate-50 transition-all disabled:opacity-70 disabled:cursor-not-allowed group"
               >
                 <div className="flex items-center">
                   <img
@@ -490,11 +490,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
           <p className="text-center text-[11px] text-slate-400 leading-relaxed">
             By continuing, you agree to our{" "}
-            <a href="/terms" className="underline hover:text-indigo-600">
+            <a href="/terms" className="underline hover:text-accent">
               Terms of Use
             </a>{" "}
             and{" "}
-            <a href="/privacy" className="underline hover:text-indigo-600">
+            <a href="/privacy" className="underline hover:text-accent">
               Privacy Policy
             </a>
             .

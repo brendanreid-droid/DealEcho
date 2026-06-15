@@ -40,7 +40,6 @@ export const useReviews = () => {
       return true;
     } catch (err) {
       console.error("Failed to save review:", err);
-      alert("Failed to save review. Please try again.");
       return false;
     }
   }, []);

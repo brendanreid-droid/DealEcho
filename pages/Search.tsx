@@ -4,6 +4,7 @@ import { useSEO } from "../src/hooks/useSEO";
 import { ReviewSummary } from "../src/hooks/useReviewSummaries";
 import CompanyCard, { CompanyCardData } from "../src/components/CompanyCard";
 import { CardGridSkeleton } from "../src/components/Skeleton";
+import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
 interface SearchProps {
   user: any;
@@ -66,8 +67,7 @@ const Search: React.FC<SearchProps> = ({
       const avgNeg = c.negTotal / c.count;
       const avgWaste = c.wasteTotal / c.count;
       const avgScope = c.scopeTotal / c.count;
-      const domain =
-        c.name.toLowerCase().replace(/\s/g, "").replace(/\./g, "") + ".com";
+      const domainGuess = guessDomainFromName(c.name);
       return {
         id: c.id,
         name: c.name,
@@ -75,7 +75,7 @@ const Search: React.FC<SearchProps> = ({
         location: c.location,
         reports: c.count,
         excerpt: c.excerpt,
-        logoUrl: `https://logo.clearbit.com/${domain}`,
+        logoUrl: companyLogoUrl({ name: c.name, domain: domainGuess }),
         healthIndex: Math.round(
           ((avgResp + avgNeg + avgWaste + avgScope) / 20) * 100,
         ),

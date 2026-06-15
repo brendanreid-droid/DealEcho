@@ -5,6 +5,8 @@ import { getAICompanyPersona, CompanyPersona } from "../services/geminiService";
 import CompanyLogo from "../components/CompanyLogo";
 import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
+import ScoreRing from "../src/components/ScoreRing";
+import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
 interface CompanyProfileProps {
   user: any;
@@ -62,7 +64,6 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   );
   const [aiPersona, setAiPersona] = useState<CompanyPersona | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [isAggregateScoreHovered, setIsAggregateScoreHovered] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [showReviewRuleModal, setShowReviewRuleModal] = useState(false);
@@ -93,7 +94,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
           industry: "Technology",
           country: "Global",
           description: "Enterprise target account.",
-          logoUrl: `https://logo.clearbit.com/${name.toLowerCase().replace(/\s/g, "")}.com`,
+          logoUrl: companyLogoUrl({ name, domain: guessDomainFromName(name) }),
         });
       }
     }
@@ -174,7 +175,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       "name": company.name,
       "description": company.description || `${company.name} target account overview and B2B sales intelligence.`,
       "url": window.location.href,
-      "logo": company.logoUrl || `https://logo.clearbit.com/${company.name.toLowerCase().replace(/\s/g, "")}.com`,
+      "logo": company.logoUrl || companyLogoUrl({ name: company.name, domain: company.domain || guessDomainFromName(company.name) }) || "",
     };
 
     if (count > 0) {
@@ -294,76 +295,17 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-6 relative">
-              <div
-                className={`bg-slate-900 text-white px-8 py-4 rounded-[32px] text-center shadow-xl shadow-slate-200 border-t-4 border-t-indigo-500 relative ${hasReviews ? "cursor-help" : "opacity-40 cursor-not-allowed grayscale"}`}
-                onMouseEnter={() =>
-                  hasReviews && setIsAggregateScoreHovered(true)
-                }
-                onMouseLeave={() =>
-                  hasReviews && setIsAggregateScoreHovered(false)
-                }
-              >
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-1">
-                  Buyer Score
-                </div>
-                <div className="text-3xl font-black">
-                  {hasReviews ? `${statsSummary.healthIndex}%` : "--"}
-                </div>
-
-                {isAggregateScoreHovered && hasReviews && (
-                  <div className="absolute top-full right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 mt-5 w-80 bg-slate-900 text-white p-7 rounded-[32px] shadow-[0_32_96px_-16px_rgba(0,0,0,0.6)] z-[110] animate-in fade-in slide-in-from-top-4 border border-white/10 text-left pointer-events-none">
-                    <h4 className="text-[12px] font-black uppercase tracking-widest text-indigo-400 mb-4 border-b border-white/5 pb-3">
-                      Strategic Intelligence Matrix
-                    </h4>
-                    <p className="text-[10px] text-slate-400 leading-relaxed mb-6 font-medium">
-                      Aggregate identification of account velocity and risk
-                      across {companyReviews.length} verified cycles:
-                    </p>
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
-                          Responsiveness
-                        </span>
-                        <span className="text-indigo-400 font-black text-xs">
-                          {statsSummary.resp}/5.0
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
-                          Negotiation ease
-                        </span>
-                        <span className="text-amber-400 font-black text-xs">
-                          {statsSummary.neg}/5.0
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
-                          Buyer Intent
-                        </span>
-                        <span className="text-rose-400 font-black text-xs">
-                          {statsSummary.intent}/5.0
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
-                          Scope Maturity
-                        </span>
-                        <span className="text-emerald-400 font-black text-xs">
-                          {statsSummary.scope}/5.0
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 pt-5 border-t border-white/5">
-                      <div className="text-[9px] font-black text-indigo-300 uppercase leading-relaxed italic tracking-wide">
-                        Scores above 80% indicate strategic accounts with high
-                        procurement-readiness.
-                      </div>
-                    </div>
-                    <div className="absolute bottom-full right-8 md:right-auto md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-slate-900 rotate-45 -mb-2"></div>
+              <div className="flex items-center gap-4">
+                <ScoreRing score={hasReviews ? statsSummary.healthIndex : 0} size={72} showLabel />
+                <div className="text-left">
+                  <div className="text-2xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Buyer health
                   </div>
-                )}
+                  <div className="text-sm text-slate-500 max-w-[200px] mt-1">
+                    Aggregate account velocity and risk across {companyReviews.length} report
+                    {companyReviews.length !== 1 ? "s" : ""}.
+                  </div>
+                </div>
               </div>
 
               <button
@@ -568,36 +510,26 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
           </div>
 
           {sortedReviews.length > 0 ? (
-            <div
-              className={`relative p-2 rounded-[40px] transition-all duration-500 ${!isPro ? "bg-slate-100/80 border-2 border-dashed border-slate-200 overflow-hidden max-h-[600px]" : ""}`}
-            >
-              {!isPro && (
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6">
-                  <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
-                  <div className="bg-white/95 backdrop-blur-lg p-8 md:p-12 rounded-[40px] border border-slate-200 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] text-center max-w-sm border-t-4 border-t-indigo-500 relative z-40 transform hover:scale-[1.02] transition-transform">
-                    <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-indigo-100/50">
-                      <Icon name="fa-fingerprint" size={24} />
-                    </div>
-                    <h3 className="text-xl font-black text-slate-900 mb-3">
-                      Detailed Deal Mechanics
-                    </h3>
-                    <p className="text-slate-500 text-[14px] font-medium leading-relaxed mb-10">
-                      Detailed communication logs, buying team dynamics, and
-                      contract friction are reserved for Pro members.
-                    </p>
-                    <Link
-                      to="/pricing"
-                      className="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all block"
-                    >
-                      Unlock Intelligence
-                    </Link>
-                  </div>
+            !isPro ? (
+              /* Free users: gate only — no review content rendered at all */
+              <div className="de-card p-10 md:p-14 text-center max-w-lg mx-auto border-t-4 border-t-accent bg-white">
+                <div className="w-16 h-16 bg-accent-50 text-accent rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl border border-accent-100">
+                  <Icon name="fa-fingerprint" size={26} />
                 </div>
-              )}
-
-              <div
-                className={`space-y-6 transition-all duration-700 ${!isPro ? "filter blur-2xl opacity-40 pointer-events-none select-none scale-[0.98]" : ""}`}
-              >
+                <h3 className="font-display text-xl font-semibold text-slate-900 mb-3">
+                  Detailed deal mechanics
+                </h3>
+                <p className="text-slate-500 text-sm leading-relaxed mb-4">
+                  Communication logs, buying-team dynamics, and contract friction across{" "}
+                  {sortedReviews.length} verified report{sortedReviews.length !== 1 ? "s" : ""}{" "}
+                  are reserved for Pro members.
+                </p>
+                <Link to="/pricing" className="de-btn-accent inline-block">
+                  Unlock intelligence
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-6">
                 {sortedReviews.map((r) => (
                   <div
                     key={r.id}
@@ -695,7 +627,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
                   </div>
                 ))}
               </div>
-            </div>
+            )
           ) : (
             <div className="bg-white p-12 md:p-16 rounded-[48px] border-2 border-dashed border-slate-200 text-center space-y-8 flex flex-col items-center justify-center min-h-[400px]">
               <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center shadow-inner mb-2 border border-indigo-100/50">

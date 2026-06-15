@@ -8,6 +8,7 @@ import CompanyLogo from "../components/CompanyLogo";
 import { useAuth } from "../src/hooks/useAuth";
 import Icon from "../src/components/Icon";
 import { Loader2 } from "lucide-react";
+import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
 const getTimeAgo = (dateStr: string): string => {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -87,7 +88,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
           industry: review.industry,
           count: 0,
           lastReviewDate: review.createdAt,
-          logoUrl: `https://logo.clearbit.com/${review.companyName.toLowerCase().replace(/\s/g, "").replace(/\./g, "")}.com`,
+          logoUrl: companyLogoUrl({ name: review.companyName, domain: guessDomainFromName(review.companyName) }),
         };
       }
       stats[id].count++;
@@ -397,12 +398,8 @@ const MyIntel: React.FC<MyIntelProps> = ({
           {userReviews.length > 0 ? (
             <div className="space-y-4">
               {userReviews.map((review) => {
-                const domain =
-                  review.companyName
-                    .toLowerCase()
-                    .replace(/\s/g, "")
-                    .replace(/\./g, "") + ".com";
-                const logoUrl = `https://logo.clearbit.com/${domain}`;
+                const domainGuess = guessDomainFromName(review.companyName);
+                const logoUrl = companyLogoUrl({ name: review.companyName, domain: domainGuess });
                 const avgScore = Math.round(
                   ((review.communicationRating +
                     review.negotiationLevel +

@@ -9,10 +9,12 @@ import {
 import CompanyLogo from "../components/CompanyLogo";
 import Icon from "../src/components/Icon";
 import { Loader2 } from "lucide-react";
+import { useToast } from "../src/components/Toast";
+import { companyLogoUrl } from "../src/utils/companyLogo";
 
 interface CreateReviewProps {
   user: any;
-  onAddReview: (review: Review) => void;
+  onAddReview: (review: Review) => Promise<boolean>;
   onSignInClick?: () => void;
 }
 
@@ -64,6 +66,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
   onAddReview,
   onSignInClick,
 }) => {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const locationState = useLocation().state;
   const errorRef = useRef<HTMLDivElement>(null);
@@ -111,7 +114,8 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       industry: manualIndustry,
       country: manualCountry,
       description: "",
-      logoUrl: `https://logo.clearbit.com/${domain}`,
+      domain: domain,
+      logoUrl: companyLogoUrl({ name: manualName.trim(), domain }),
     });
   };
 
@@ -210,9 +214,19 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       content,
       createdAt: new Date().toISOString(),
     };
-    onAddReview(newReview);
-    setIsSubmitting(false);
-    navigate("/");
+    onAddReview(newReview).then((success) => {
+      setIsSubmitting(false);
+      if (success) {
+        toast.success("Review submitted for moderation.");
+        navigate("/");
+      } else {
+        toast.error("Failed to save review. Please try again.");
+      }
+    }).catch((err) => {
+      console.error(err);
+      setIsSubmitting(false);
+      toast.error("Failed to save review. Please try again.");
+    });
   };
 
   if (!user) {

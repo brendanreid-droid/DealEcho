@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   signInWithPopup,
@@ -8,18 +8,25 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth, googleProvider } from "./src/firebase/config";
-import Home from "./pages/Home";
-import Search from "./pages/Search";
-import CreateReview from "./pages/CreateReview";
-import CompanyProfile from "./pages/CompanyProfile";
-import UserReviews from "./pages/UserReviews";
-import GlobalTrends from "./pages/GlobalTrends";
-import MyIntel from "./pages/MyIntel";
-import Pricing from "./pages/Pricing";
-import Admin from "./pages/Admin";
-import Unsubscribe from "./pages/Unsubscribe";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
+
+const Home = lazy(() => import("./pages/Home"));
+const Search = lazy(() => import("./pages/Search"));
+const CreateReview = lazy(() => import("./pages/CreateReview"));
+const CompanyProfile = lazy(() => import("./pages/CompanyProfile"));
+const UserReviews = lazy(() => import("./pages/UserReviews"));
+const GlobalTrends = lazy(() => import("./pages/GlobalTrends"));
+const MyIntel = lazy(() => import("./pages/MyIntel"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+
+const RouteFallback: React.FC = () => (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-accent animate-spin" />
+  </div>
+);
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Navigation, Footer } from "./src/components/Shell";
@@ -130,115 +137,117 @@ const App: React.FC = () => {
         />
 
         <main className="flex-grow">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Home
-                  user={user}
-                  isPaid={isPaid}
-                  onSignInClick={triggerSignIn}
-                  reviewSummaries={reviewSummaries}
-                  isLoading={summariesLoading}
-                  trackedIds={trackedCompanies}
-                  onToggleTrack={toggleTrackCompany}
-                />
-              }
-            />
-            <Route
-              path="/search"
-              element={<Search reviewSummaries={reviewSummaries} isLoading={summariesLoading} />}
-            />
-            <Route
-              path="/review/new"
-              element={
-                <ProtectedRoute requireAuth>
-                  <CreateReview
-                    user={user}
-                    onSignInClick={triggerSignIn}
-                    onAddReview={handleAddReview}
-                  />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/user/:userId"
-              element={<UserReviews reviews={reviews} />}
-            />
-            <Route
-              path="/trends"
-              element={
-                <ProtectedRoute requireAuth>
-                  <GlobalTrends
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <Home
                     user={user}
                     isPaid={isPaid}
                     onSignInClick={triggerSignIn}
-                    reviews={reviews}
-                  />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/pricing"
-              element={<Pricing user={user} isPaid={isPaid} />}
-            />
-            <Route
-              path="/unsubscribe"
-              element={<Unsubscribe />}
-            />
-            <Route
-              path="/terms"
-              element={<Terms />}
-            />
-            <Route
-              path="/privacy"
-              element={<Privacy />}
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/my-intel"
-              element={
-                <ProtectedRoute requireAuth>
-                  <MyIntel
-                    user={user}
-                    isPaid={isPaid}
-                    onSignInClick={triggerSignIn}
-                    reviews={reviews}
+                    reviewSummaries={reviewSummaries}
+                    isLoading={summariesLoading}
                     trackedIds={trackedCompanies}
                     onToggleTrack={toggleTrackCompany}
-                    notifications={notifications}
-                    onClearNotification={(id) =>
-                      setNotifications((prev) => {
-                        const n = { ...prev };
-                        delete n[id];
-                        return n;
-                      })
-                    }
                   />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/company/:companyId"
-              element={
-                <CompanyProfile
-                  user={user}
-                  isPaid={isPaid}
-                  onSignInClick={triggerSignIn}
-                  reviews={reviews}
-                  onToggleTrack={toggleTrackCompany}
-                  allTrackedIds={trackedCompanies}
-                />
-              }
-            />
-          </Routes>
+                }
+              />
+              <Route
+                path="/search"
+                element={<Search reviewSummaries={reviewSummaries} isLoading={summariesLoading} />}
+              />
+              <Route
+                path="/review/new"
+                element={
+                  <ProtectedRoute requireAuth>
+                    <CreateReview
+                      user={user}
+                      onSignInClick={triggerSignIn}
+                      onAddReview={handleAddReview}
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/user/:userId"
+                element={<UserReviews reviews={reviews} />}
+              />
+              <Route
+                path="/trends"
+                element={
+                  <ProtectedRoute requireAuth>
+                    <GlobalTrends
+                      user={user}
+                      isPaid={isPaid}
+                      onSignInClick={triggerSignIn}
+                      reviews={reviews}
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pricing"
+                element={<Pricing user={user} isPaid={isPaid} />}
+              />
+              <Route
+                path="/unsubscribe"
+                element={<Unsubscribe />}
+              />
+              <Route
+                path="/terms"
+                element={<Terms />}
+              />
+              <Route
+                path="/privacy"
+                element={<Privacy />}
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <Admin />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-intel"
+                element={
+                  <ProtectedRoute requireAuth>
+                    <MyIntel
+                      user={user}
+                      isPaid={isPaid}
+                      onSignInClick={triggerSignIn}
+                      reviews={reviews}
+                      trackedIds={trackedCompanies}
+                      onToggleTrack={toggleTrackCompany}
+                      notifications={notifications}
+                      onClearNotification={(id) =>
+                        setNotifications((prev) => {
+                          const n = { ...prev };
+                          delete n[id];
+                          return n;
+                        })
+                      }
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/company/:companyId"
+                element={
+                  <CompanyProfile
+                    user={user}
+                    isPaid={isPaid}
+                    onSignInClick={triggerSignIn}
+                    reviews={reviews}
+                    onToggleTrack={toggleTrackCompany}
+                    allTrackedIds={trackedCompanies}
+                  />
+                }
+              />
+            </Routes>
+          </Suspense>
         </main>
 
         <AuthModal

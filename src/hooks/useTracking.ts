@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { db } from '../firebase/config';
+import { useToast } from '../components/Toast';
 
 export const useTracking = (userId: string | undefined, isPro: boolean) => {
   const [trackedCompanies, setTrackedCompanies] = useState<string[]>([]);
+  const { toast } = useToast();
 
   // Load user-specific tracking data from Firestore (single source of truth) with localStorage fallback
   useEffect(() => {
@@ -66,7 +68,7 @@ export const useTracking = (userId: string | undefined, isPro: boolean) => {
         updated = prev.filter((cid) => cid !== id);
       } else {
         if (!isPro && prev.length >= 3) {
-          alert('Pioneer plan is limited to 3 tracked accounts. Upgrade to Sales Pro for unlimited tracking!');
+          toast.error('Pioneer plan is limited to 3 tracked accounts. Upgrade to Sales Pro for unlimited tracking!');
           return prev;
         }
         updated = [...prev, id];

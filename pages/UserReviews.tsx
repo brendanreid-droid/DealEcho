@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
 import Icon from "../src/components/Icon";
+import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
 interface UserReviewsProps {
   reviews: Review[];
@@ -43,7 +44,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                 <div className="flex items-center space-x-5">
                   <CompanyLogo
                     name={r.companyName}
-                    logoUrl={`https://logo.clearbit.com/${r.companyName.toLowerCase().replace(/\s/g, "").replace(/\./g, "")}.com`}
+                    logoUrl={companyLogoUrl({ name: r.companyName, domain: guessDomainFromName(r.companyName) })}
                     size="lg"
                   />
                   <div>

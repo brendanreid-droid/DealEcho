@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Company, AIModerationResult, Review } from "../types";
+import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
 /** Returns true if a real Gemini API key is configured */
 export const isGeminiAvailable = (): boolean => {
@@ -45,7 +46,7 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Search for companies matching: "${query}". Return a JSON array of objects with: name, industry, country, and a brief description. Use real data from your knowledge or search.`,
+      contents: `Search for companies matching: "${query}". Return a JSON array of objects with: name, industry, country, domain (e.g. atlassian.com, when known, otherwise empty string), and a brief description. Use real data from your knowledge or search.`,
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
@@ -57,6 +58,7 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
               name: { type: Type.STRING },
               industry: { type: Type.STRING },
               country: { type: Type.STRING },
+              domain: { type: Type.STRING },
               description: { type: Type.STRING },
             },
             required: ["name", "industry", "country"],
@@ -69,7 +71,7 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
     const formattedResults = results.map((r: any, index: number) => ({
       ...r,
       id: `ai-${index}-${Date.now()}`,
-      logoUrl: `https://logo.clearbit.com/${r.name.toLowerCase().replace(/\s/g, "").replace(/\./g, "")}.com`,
+      logoUrl: companyLogoUrl({ name: r.name, domain: r.domain || guessDomainFromName(r.name) }),
     }));
 
     setSessionCache(cacheKey, formattedResults);

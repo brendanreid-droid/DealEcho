@@ -80,44 +80,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
     locationState?.prefilledCompany || null,
   );
 
-  // Manual company entry fallback (when Gemini AI is unavailable)
-  const [showManualEntry, setShowManualEntry] = useState(!isGeminiAvailable());
-  const [manualName, setManualName] = useState("");
-  const [manualIndustry, setManualIndustry] = useState("Technology");
-  const [manualCountry, setManualCountry] = useState("United States");
-  const MANUAL_INDUSTRIES = [
-    "Technology",
-    "Finance",
-    "Healthcare",
-    "Manufacturing",
-    "Retail",
-    "Energy",
-    "Telecommunications",
-    "Media & Entertainment",
-    "Professional Services",
-    "Education",
-    "Government",
-    "Real Estate",
-    "Transportation",
-    "Agriculture",
-    "Other",
-  ];
 
-  const handleManualCompanySelect = () => {
-    if (!manualName.trim()) return;
-    const domain =
-      manualName.trim().toLowerCase().replace(/\s/g, "").replace(/\./g, "") +
-      ".com";
-    setSelectedCompany({
-      id: `manual-${Date.now()}`,
-      name: manualName.trim(),
-      industry: manualIndustry,
-      country: manualCountry,
-      description: "",
-      domain: domain,
-      logoUrl: companyLogoUrl({ name: manualName.trim(), domain }),
-    });
-  };
 
   const [tcvBracket, setTcvBracket] = useState(TCV_BRACKETS[0]);
   const [cycleDuration, setCycleDuration] = useState(DURATION_BRACKETS[0]);
@@ -376,112 +339,19 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   </div>
                 )}
 
-                {/* Manual Company Entry Fallback */}
-                {!showManualEntry &&
-                  !isSearching &&
+                {/* Verified Company Lookup Only Notice */}
+                {!isSearching &&
                   searchResults.length === 0 &&
                   searchQuery.length > 2 && (
-                    <div className="text-center py-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowManualEntry(true)}
-                        className="text-indigo-600 text-sm font-bold hover:underline flex items-center mx-auto"
-                      >
-                        <Icon name="fa-plus-circle" className="mr-2" size={16} />
-                        Can't find it? Enter company details manually
-                      </button>
+                    <div className="text-center py-8 bg-slate-50 rounded-[24px] border-2 border-dashed border-slate-100 p-6">
+                      <p className="text-slate-600 font-bold text-sm">
+                        No validated companies found matching “{searchQuery}”
+                      </p>
+                      <p className="text-slate-400 text-xs mt-2 max-w-sm mx-auto leading-relaxed font-medium">
+                        To maintain data integrity and prevent duplicates, all reviews must be submitted against verified company entities resolved via our Google search.
+                      </p>
                     </div>
                   )}
-
-                {showManualEntry && (
-                  <div className="bg-white border-2 border-indigo-100 rounded-[32px] overflow-hidden shadow-lg p-8 space-y-6">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">
-                          Manual Entry
-                        </h4>
-                        <p className="text-[10px] text-slate-400 font-medium mt-1">
-                          Enter the company details below
-                        </p>
-                      </div>
-                      {isGeminiAvailable() && (
-                        <button
-                          type="button"
-                          onClick={() => setShowManualEntry(false)}
-                          className="text-slate-400 hover:text-slate-600 text-xs font-bold flex items-center"
-                        >
-                          <Icon name="fa-times" className="mr-1" size={12} />Back to AI Search
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="md:col-span-3">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
-                          Company Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={manualName}
-                          onChange={(e) => setManualName(e.target.value)}
-                          placeholder="e.g., Snowflake Inc."
-                          className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:bg-white focus:border-indigo-200 outline-none transition text-slate-700 font-medium"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
-                          Industry
-                        </label>
-                        <select
-                          value={manualIndustry}
-                          onChange={(e) => setManualIndustry(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-indigo-200"
-                        >
-                          {MANUAL_INDUSTRIES.map((i) => (
-                            <option key={i} value={i}>
-                              {i}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
-                          Country
-                        </label>
-                        <input
-                          type="text"
-                          value={manualCountry}
-                          onChange={(e) => setManualCountry(e.target.value)}
-                          placeholder="e.g., United States"
-                          className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 focus:bg-white focus:border-indigo-200 outline-none transition text-slate-700 font-medium"
-                        />
-                      </div>
-                      <div className="flex items-end">
-                        <button
-                          type="button"
-                          onClick={handleManualCompanySelect}
-                          disabled={!manualName.trim()}
-                          className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all disabled:bg-slate-200 disabled:text-slate-400 shadow-lg flex items-center justify-center"
-                        >
-                          <Icon name="fa-check" className="mr-2" size={12} />Confirm Company
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Show manual entry hint when Gemini is unavailable and manual form isn't already showing */}
-                {!isGeminiAvailable() && !showManualEntry && (
-                  <div className="text-center py-6">
-                    <button
-                      type="button"
-                      onClick={() => setShowManualEntry(true)}
-                      className="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg flex items-center mx-auto"
-                    >
-                      <Icon name="fa-building" className="mr-2" size={16} />
-                      Enter Company Manually
-                    </button>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="flex items-center justify-between p-10 bg-indigo-50/20 border-2 border-indigo-100 rounded-[40px] group transition-all hover:bg-indigo-50/40 shadow-sm">

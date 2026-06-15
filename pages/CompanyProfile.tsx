@@ -4,6 +4,7 @@ import { Company, Review } from "../types";
 import { getAICompanyPersona, CompanyPersona } from "../services/geminiService";
 import CompanyLogo from "../components/CompanyLogo";
 import { useSEO } from "../src/hooks/useSEO";
+import Icon from "../src/components/Icon";
 
 interface CompanyProfileProps {
   user: any;
@@ -375,15 +376,15 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
                       : "bg-indigo-600 text-white hover:bg-indigo-700"
                 }`}
               >
-                {!user && <i className="fas fa-lock mr-2 text-[10px]"></i>}
+                {!user && <Icon name="fa-lock" className="mr-2" size={10} />}
                 {isTracking ? "Tracking Account" : "Track Account"}
               </button>
 
               <button
                 onClick={handleLeaveReview}
-                className="px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center bg-white text-slate-900 border border-slate-200 hover:bg-slate-50"
+                className="px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 gap-1.5"
               >
-                <i className="fas fa-pen-nib mr-2 text-[10px] text-indigo-500"></i>
+                <Icon name="fa-pen" size={10} className="text-indigo-500" />
                 Leave Review
               </button>
             </div>
@@ -476,7 +477,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-10 bg-[#101426]/95 backdrop-blur-xl z-20">
                 <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl">
-                  <i className="fas fa-lock text-white text-xl"></i>
+                  <Icon name="fa-lock" className="text-white text-xl" size={20} />
                 </div>
                 <h4 className="font-bold text-lg mb-3">AI Account Persona</h4>
                 <p className="text-[11px] text-slate-400 mb-8 leading-relaxed px-4">
@@ -529,7 +530,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
                       <option value="deal-low">Deal Size (Low → High)</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <i className="fas fa-chevron-down text-[8px] text-slate-400"></i>
+                      <Icon name="fa-chevron-down" size={10} className="text-slate-400" />
                     </div>
                   </div>
                 </div>
@@ -574,8 +575,8 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-6">
                   <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                   <div className="bg-white/95 backdrop-blur-lg p-8 md:p-12 rounded-[40px] border border-slate-200 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] text-center max-w-sm border-t-4 border-t-indigo-500 relative z-40 transform hover:scale-[1.02] transition-transform">
-                    <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl shadow-inner border border-indigo-100/50">
-                      <i className="fas fa-fingerprint"></i>
+                    <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-indigo-100/50">
+                      <Icon name="fa-fingerprint" size={24} />
                     </div>
                     <h3 className="text-xl font-black text-slate-900 mb-3">
                       Detailed Deal Mechanics
@@ -605,7 +606,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-4">
                         <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                          <i className="fas fa-user-shield text-sm"></i>
+                          <Icon name="fa-user-shield" size={14} />
                         </div>
                         <div>
                           <div className="text-sm font-black text-slate-800 tracking-tight">
@@ -697,8 +698,8 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
             </div>
           ) : (
             <div className="bg-white p-12 md:p-16 rounded-[48px] border-2 border-dashed border-slate-200 text-center space-y-8 flex flex-col items-center justify-center min-h-[400px]">
-              <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center text-3xl shadow-inner mb-2 border border-indigo-100/50">
-                <i className="fas fa-filter"></i>
+              <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center shadow-inner mb-2 border border-indigo-100/50">
+                <Icon name="fa-filter" size={30} />
               </div>
               <div className="space-y-3">
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -725,8 +726,8 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       {showReviewRuleModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white rounded-[48px] p-10 md:p-16 max-w-xl w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300 text-center space-y-10">
-            <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[32px] flex items-center justify-center mx-auto text-4xl shadow-inner border border-rose-100/50">
-              <i className="fas fa-history"></i>
+            <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[32px] flex items-center justify-center mx-auto shadow-inner border border-rose-100/50">
+              <Icon name="fa-history" size={36} />
             </div>
             
             <div className="space-y-4">
@@ -805,10 +806,12 @@ const TacticalStars: React.FC<{
         onMouseLeave={() => setShowTooltip(false)}
       >
         {[1, 2, 3, 4, 5].map((star) => (
-          <i
+          <Icon
             key={star}
-            className={`fas fa-star text-sm transition-all duration-300 ${star <= value ? color : "text-slate-100"}`}
-          ></i>
+            name="fa-star"
+            size={14}
+            className={`transition-all duration-300 ${star <= value ? color : "text-slate-100"}`}
+          />
         ))}
         <span className="text-[11px] font-black text-slate-900 ml-2">
           {value}/5
@@ -826,15 +829,15 @@ const TacticalStars: React.FC<{
                 key={idx}
                 className={`flex items-center space-x-3 ${idx + 1 === value ? "opacity-100" : "opacity-40"}`}
               >
-                <div className="flex items-center space-x-0.5 min-w-[35px]">
-                  <span className="text-[9px] font-black">{idx + 1}</span>
-                  <i className="fas fa-star text-[7px]"></i>
+                <div className="flex items-center space-x-0.5 min-w-[35px] text-[7px] text-slate-400">
+                  <span className="text-[9px] font-black text-white">{idx + 1}</span>
+                  <Icon name="fa-star" size={8} />
                 </div>
-                <div className="text-[10px] font-medium leading-tight">
+                <div className="text-[10px] font-medium leading-tight text-slate-300">
                   {def}
                 </div>
                 {idx + 1 === value && (
-                  <i className="fas fa-check-circle text-indigo-500 text-[10px]"></i>
+                  <Icon name="fa-check-circle" className="text-indigo-500" size={10} />
                 )}
               </div>
             ))}

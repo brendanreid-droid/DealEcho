@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../src/firebase/config";
 import { useAuth } from "../src/hooks/useAuth";
 import { useSEO } from "../src/hooks/useSEO";
+import Icon from "../src/components/Icon";
 
 interface PricingProps {
   user: any;
@@ -14,8 +15,10 @@ interface PricingProps {
 const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
   useSEO({
     title: "DealEcho Pricing - Unlock Advanced B2B Buyer Intelligence & Playbooks",
-    description: "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, AI MEDDPICC strategic blueprints, and stakeholder buying team personas.",
-    keywords: "Sales Pro pricing, sales intelligence subscription, MEDDPICC trial, B2B deal close rate, DealEcho",
+    description:
+      "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, AI MEDDPICC strategic blueprints, and stakeholder buying team personas.",
+    keywords:
+      "Sales Pro pricing, sales intelligence subscription, MEDDPICC trial, B2B deal close rate, DealEcho",
   });
 
   const [isAnnual, setIsAnnual] = useState(false);
@@ -34,7 +37,6 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
   const { refreshClaims } = useAuth();
   const functions = getFunctions(undefined, "australia-southeast1");
 
-  // Fetch dynamic pricing from Firestore
   useEffect(() => {
     const fetchPricing = async () => {
       try {
@@ -46,13 +48,12 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
           if (data.currency) setPriceCurrency(data.currency.toUpperCase());
         }
       } catch {
-        // Use defaults if fetch fails
+        /* defaults */
       }
     };
     fetchPricing();
   }, []);
 
-  // Fetch user trial eligibility
   useEffect(() => {
     if (!user) {
       setHasUsedTrial(false);
@@ -61,9 +62,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     const fetchEligibility = async () => {
       try {
         const snap = await getDoc(doc(db, "users", user.id));
-        if (snap.exists()) {
-          setHasUsedTrial(!!snap.data()?.hasUsedTrial);
-        }
+        if (snap.exists()) setHasUsedTrial(!!snap.data()?.hasUsedTrial);
       } catch (err) {
         console.error("Error fetching trial eligibility:", err);
       }
@@ -71,26 +70,16 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     fetchEligibility();
   }, [user]);
 
-  // ── Handle redirect back from Stripe ──────────────────────────────────────
   useEffect(() => {
     const params = new URLSearchParams(search);
     if (params.get("checkout") === "success") {
-      setMessage({
-        text: "Activating your Sales Pro membership…",
-        type: "info",
-      });
-      // Clean up URL immediately
+      setMessage({ text: "Activating your Sales Pro membership…", type: "info" });
       navigate("/pricing", { replace: true });
-
-      // The Stripe webhook may take a few seconds to fire and update Firestore/claims.
-      // Poll refreshClaims with retries so the UI picks up the new role.
       let attempts = 0;
       const maxAttempts = 10;
       const poll = async () => {
         attempts++;
         await refreshClaims();
-        // After refreshClaims, the useAuth hook will have the latest role.
-        // We can't read isPaid directly here (stale closure), so we re-check via auth token.
         const { getIdTokenResult } = await import("firebase/auth");
         const { auth: appAuth } = await import("../src/firebase/config");
         if (appAuth.currentUser) {
@@ -101,22 +90,19 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
             tokenResult.claims.role === "free_full"
           ) {
             setMessage({
-              text: "Upgrade successful! Welcome to Sales Pro. 🎉",
+              text: "Upgrade successful! Welcome to Sales Pro.",
               type: "success",
             });
             return;
           }
         }
-        if (attempts < maxAttempts) {
-          setTimeout(poll, 3000); // retry every 3 seconds
-        } else {
+        if (attempts < maxAttempts) setTimeout(poll, 3000);
+        else
           setMessage({
             text: "Payment received! Your membership will activate shortly. Please refresh if needed.",
             type: "success",
           });
-        }
       };
-      // Start polling after a short initial delay to give webhook time
       setTimeout(poll, 2000);
     } else if (params.get("checkout") === "cancelled") {
       setMessage({
@@ -129,26 +115,17 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
 
   const handleSubscribe = async () => {
     if (!user) {
-      setMessage({
-        text: "Please sign in to upgrade your account.",
-        type: "info",
-      });
+      setMessage({ text: "Please sign in to upgrade your account.", type: "info" });
       return;
     }
-
     setIsProcessing(true);
     try {
       const createSession = httpsCallable<
         { plan: "monthly" | "annual" },
         { sessionUrl: string }
       >(functions, "createCheckoutSession");
-      const result = await createSession({
-        plan: isAnnual ? "annual" : "monthly",
-      });
-
-      if (result.data.sessionUrl) {
-        window.location.href = result.data.sessionUrl;
-      }
+      const result = await createSession({ plan: isAnnual ? "annual" : "monthly" });
+      if (result.data.sessionUrl) window.location.href = result.data.sessionUrl;
     } catch (err: any) {
       console.error("Subscription error:", err);
       setMessage({
@@ -159,176 +136,150 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     }
   };
 
+  const proFeatures = [
+    "Unlimited tracked accounts",
+    "AI account persona intelligence",
+    "Deep-dive MEDDPICC blueprints",
+    "Departmental playbooks",
+    "Live notification alerts",
+  ];
+  const freeFeatures = [
+    "Search companies",
+    "Basic review feeds",
+    "Submit intelligence",
+    "3 tracked accounts",
+  ];
+
   return (
     <div className="py-20 px-6 max-w-7xl mx-auto">
-      {/* Toast-style notice */}
       {message && (
         <div
-          className={`fixed top-24 right-6 z-50 px-6 py-4 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-3 animate-fade-in ${
+          className={`fixed top-20 right-6 z-50 px-5 py-4 rounded-card shadow-lift font-semibold text-sm flex items-center gap-3 ${
             message.type === "success"
-              ? "bg-emerald-600 text-white"
+              ? "bg-signal-healthy text-white"
               : message.type === "error"
-                ? "bg-rose-600 text-white"
-                : "bg-slate-900 text-white"
+                ? "bg-signal-risk text-white"
+                : "bg-navy text-white"
           }`}
         >
-          <i
-            className={`fas ${message.type === "success" ? "fa-check-circle" : "fa-info-circle"}`}
-          ></i>
+          <Icon name={message.type === "success" ? "fa-check-circle" : "fa-info-circle"} size={16} />
           {message.text}
-          <button
-            onClick={() => setMessage(null)}
-            className="ml-2 hover:opacity-60 transition-opacity"
-          >
-            <i className="fas fa-times"></i>
+          <button onClick={() => setMessage(null)} className="ml-2 hover:opacity-60" aria-label="Dismiss">
+            <Icon name="fa-times" size={16} />
           </button>
         </div>
       )}
 
       <div className="text-center mb-16 space-y-4">
         {!isPaid && !hasUsedTrial && (
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest mb-4 shadow-lg shadow-emerald-600/20 animate-pulse">
-            <i className="fas fa-gift text-sm"></i> Limited Offer: First Month Free
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-signal-healthy text-white text-2xs font-bold uppercase tracking-wider mb-4 shadow-lg shadow-emerald-600/20">
+            <Icon name="fa-gift" size={14} /> Limited offer: first month free
           </div>
         )}
-        <h1 className="text-4xl md:text-6xl font-black text-[#1e293b] tracking-tight">
-          Invest in your <span className="text-[#4f46e5]">Closing Rate</span>.
+        <h1 className="font-display text-4xl md:text-6xl font-bold text-navy tracking-tight">
+          Invest in your <span className="text-accent">closing rate</span>.
         </h1>
-        <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto font-medium">
-          Unlock deep-dive AI personas, MEDDPICC blueprints, and unlimited
-          account tracking.
+        <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
+          Unlock deep-dive AI personas, MEDDPICC blueprints, and unlimited account tracking.
         </p>
 
-        <div className="flex items-center justify-center space-x-4 pt-8">
-          <span
-            className={`text-sm font-bold ${!isAnnual ? "text-slate-900" : "text-slate-400"}`}
-          >
+        <div className="flex items-center justify-center gap-4 pt-8">
+          <span className={`text-sm font-semibold ${!isAnnual ? "text-slate-900" : "text-slate-400"}`}>
             Monthly
           </span>
           <button
             onClick={() => setIsAnnual(!isAnnual)}
-            className="w-14 h-8 bg-indigo-100 rounded-full p-1 transition-all flex items-center"
+            className="w-14 h-8 bg-accent-100 rounded-full p-1 flex items-center"
+            aria-label="Toggle annual billing"
           >
             <div
-              className={`w-6 h-6 bg-indigo-600 rounded-full transition-all transform ${isAnnual ? "translate-x-6" : "translate-x-0"}`}
-            ></div>
+              className={`w-6 h-6 bg-accent rounded-full transition-transform ${isAnnual ? "translate-x-6" : "translate-x-0"}`}
+            />
           </button>
-          <span
-            className={`text-sm font-bold ${isAnnual ? "text-slate-900" : "text-slate-400"}`}
-          >
-            Annual{" "}
-            <span className="text-emerald-500 text-[10px] ml-1">Save 20%</span>
+          <span className={`text-sm font-semibold flex items-center gap-1.5 ${isAnnual ? "text-slate-900" : "text-slate-400"}`}>
+            Annual
+            <span className="text-signal-healthy text-2xs bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
+              Save 20%
+            </span>
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        {/* Free Plan */}
-        <div className="bg-white border-2 border-slate-50 p-10 rounded-[40px] flex flex-col h-full hover:border-slate-100 transition-all">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        {/* Free */}
+        <div className="de-card p-10 flex flex-col h-full">
           <div className="mb-8">
-            <h3 className="text-xl font-black text-slate-900 mb-2">Pioneer</h3>
-            <div className="text-4xl font-black text-slate-900">A$0</div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">
-              Free Forever
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Pioneer</h3>
+            <div className="font-display text-4xl font-bold text-slate-900">A$0</div>
+            <p className="text-slate-400 text-2xs font-semibold uppercase tracking-wider mt-2">
+              Free forever
             </p>
           </div>
-
-          <ul className="space-y-4 mb-10 flex-grow">
-            {[
-              "Search Companies",
-              "Basic Review Feeds",
-              "Submit Intelligence",
-              "3 Tracked Accounts",
-            ].map((item) => (
-              <li
-                key={item}
-                className="flex items-center text-slate-600 text-sm font-medium"
-              >
-                <i className="fas fa-check text-emerald-500 mr-3"></i>
+          <ul className="space-y-3.5 mb-10 flex-grow">
+            {freeFeatures.map((item) => (
+              <li key={item} className="flex items-center text-slate-600 text-sm">
+                <Icon name="fa-check" size={16} className="text-signal-healthy mr-3" />
                 {item}
               </li>
             ))}
           </ul>
-
-          <button className="w-full py-4 rounded-2xl border-2 border-slate-100 text-slate-400 font-bold text-sm cursor-not-allowed">
-            Current Plan
+          <button className="w-full py-4 rounded-control border-2 border-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed">
+            Current plan
           </button>
         </div>
 
-        {/* Pro Plan */}
-        <div className="bg-[#101426] p-10 rounded-[40px] flex flex-col h-full text-white relative overflow-hidden shadow-2xl shadow-indigo-100">
-          <div className="absolute top-0 right-0 bg-indigo-600 text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-bl-2xl">
+        {/* Pro */}
+        <div className="bg-navy p-10 rounded-card flex flex-col h-full text-white relative overflow-hidden shadow-lift">
+          <div className="absolute top-0 right-0 bg-accent text-2xs font-bold uppercase tracking-wider px-5 py-2 rounded-bl-card">
             Recommended
           </div>
-
           <div className="mb-8">
-            <h3 className="text-xl font-black mb-2">Sales Pro Intel</h3>
+            <h3 className="text-xl font-bold mb-2">Sales Pro Intel</h3>
             <div className="flex items-baseline">
-              <span className="text-4xl font-black">
+              <span className="font-display text-4xl font-bold">
                 {priceCurrency}${isAnnual ? annualAmount : monthlyAmount}
               </span>
-              <span className="text-slate-400 text-sm ml-2">
-                / {isAnnual ? "year" : "month"}
-              </span>
+              <span className="text-slate-400 text-sm ml-2">/ {isAnnual ? "year" : "month"}</span>
             </div>
-            <p className="text-indigo-400 text-xs font-bold uppercase tracking-widest mt-2">
+            <p className="text-accent-soft text-2xs font-semibold uppercase tracking-wider mt-2">
               {isAnnual
-                ? `Billed Annually ($${(annualAmount / 12).toFixed(0)}/mo) (${priceCurrency})`
-                : `Billed Monthly (${priceCurrency})`}
+                ? `Billed annually ($${(annualAmount / 12).toFixed(0)}/mo) (${priceCurrency})`
+                : `Billed monthly (${priceCurrency})`}
             </p>
             {!isPaid && !hasUsedTrial && (
-              <div className="mt-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2 flex items-center gap-2 text-emerald-400 text-xs font-bold w-fit">
-                <i className="fas fa-gift text-sm animate-bounce"></i>
-                First Month $0 — 30-Day Free Trial
+              <div className="mt-3 bg-emerald-500/10 border border-emerald-500/20 rounded-control px-4 py-2 flex items-center gap-2 text-signal-healthy-bright text-xs font-semibold w-fit">
+                <Icon name="fa-gift" size={14} /> First month $0 — 30-day free trial
               </div>
             )}
           </div>
-
-          <ul className="space-y-4 mb-10 flex-grow">
-            {[
-              "Unlimited Tracked Accounts",
-              "AI Account Persona Intelligence",
-              "Deep-dive MEDDPICC Blueprints",
-              "Departmental Playbooks",
-              "Live Notification Alerts",
-            ].map((item) => (
-              <li
-                key={item}
-                className="flex items-center text-slate-300 text-sm font-medium"
-              >
-                <i className="fas fa-star text-indigo-400 mr-3"></i>
+          <ul className="space-y-3.5 mb-10 flex-grow">
+            {proFeatures.map((item) => (
+              <li key={item} className="flex items-center text-slate-300 text-sm">
+                <Icon name="fa-star" size={15} className="text-accent-soft mr-3" />
                 {item}
               </li>
             ))}
           </ul>
-
           {isPaid ? (
-            <button className="w-full py-4 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-black text-sm uppercase tracking-widest">
-              Active Subscription
+            <button className="w-full py-4 rounded-control bg-accent-500/20 border border-accent-500/30 text-accent-soft font-bold text-sm uppercase tracking-wider">
+              Active subscription
             </button>
           ) : (
             <div className="space-y-3">
               <button
                 onClick={handleSubscribe}
                 disabled={isProcessing}
-                className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg ${
+                className={`w-full py-4 rounded-control font-bold text-sm uppercase tracking-wider transition-all shadow-lg ${
                   !hasUsedTrial
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-900/20"
-                    : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-900/20"
+                    ? "bg-signal-healthy hover:bg-emerald-700 text-white"
+                    : "bg-accent hover:bg-accent-700 text-white"
                 }`}
               >
-                {isProcessing ? (
-                  <i className="fas fa-spinner fa-spin"></i>
-                ) : !hasUsedTrial ? (
-                  "Start 30-Day Free Trial"
-                ) : (
-                  "Upgrade to Pro"
-                )}
+                {isProcessing ? "Processing…" : !hasUsedTrial ? "Start 30-day free trial" : "Upgrade to Pro"}
               </button>
-              
               {!hasUsedTrial && (
-                <p className="text-[11px] text-slate-400 text-center font-medium leading-normal">
-                  <i className="fas fa-lock mr-1.5 text-slate-500"></i>
+                <p className="text-2xs text-slate-400 text-center leading-normal flex items-center justify-center gap-1.5">
+                  <Icon name="fa-lock" size={11} className="text-slate-500" />
                   $0 today. Billed after 30 days. Cancel anytime.
                 </p>
               )}
@@ -337,16 +288,16 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
         </div>
       </div>
 
-      <div className="mt-20 bg-slate-50 p-12 rounded-[48px] text-center border border-slate-100">
-        <h4 className="text-xl font-bold text-slate-900 mb-4">
-          The Enterprise Choice
+      <div className="mt-20 de-card p-12 text-center">
+        <h4 className="font-display text-xl font-semibold text-slate-900 mb-4">
+          The enterprise choice
         </h4>
         <p className="text-slate-500 max-w-xl mx-auto text-sm leading-relaxed mb-8">
-          Need a license for your whole sales team? Get centralized billing,
-          admin controls, and private data silos.
+          Need a license for your whole sales team? Get centralized billing, admin
+          controls, and private data silos.
         </p>
-        <button className="text-indigo-600 font-black text-[11px] uppercase tracking-[0.2em] border-b-2 border-indigo-100 hover:border-indigo-600 transition-all">
-          Contact Sales for Enterprise
+        <button className="text-accent font-bold text-2xs uppercase tracking-[0.2em] border-b-2 border-accent-100 hover:border-accent transition-all pb-0.5">
+          Contact sales for enterprise
         </button>
       </div>
     </div>

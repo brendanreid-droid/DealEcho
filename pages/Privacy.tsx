@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Icon from "../src/components/Icon";
 
 const Privacy: React.FC = () => {
   return (
@@ -15,7 +16,7 @@ const Privacy: React.FC = () => {
             to="/"
             className="flex items-center text-indigo-400 hover:text-indigo-300 text-sm font-bold uppercase tracking-widest transition-colors space-x-2"
           >
-            <i className="fas fa-arrow-left"></i>
+            <Icon name="fa-arrow-left" size={14} />
             <span>Back to Home</span>
           </Link>
           <div className="text-right">

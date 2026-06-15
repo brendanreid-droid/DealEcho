@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth } from "../src/firebase/config";
+import Icon from "../src/components/Icon";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -66,15 +67,16 @@ const FieldInput: React.FC<FieldInputProps> = ({
             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             tabIndex={-1}
           >
-            <i
-              className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"} text-sm`}
-            ></i>
+            <Icon
+              name={showPassword ? "fa-eye-slash" : "fa-eye"}
+              size={14}
+            />
           </button>
         )}
       </div>
       {error && (
-        <p className="text-rose-500 text-[11px] font-semibold mt-1 px-1">
-          <i className="fas fa-exclamation-circle mr-1"></i>
+        <p className="text-rose-500 text-[11px] font-semibold mt-1 px-1 flex items-center">
+          <Icon name="fa-exclamation-circle" className="mr-1" size={11} />
           {error}
         </p>
       )}
@@ -361,9 +363,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
             {/* Success Alert Banner */}
             {isResetSuccess && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex items-start gap-1.5">
+                <Icon name="fa-check-circle" className="text-emerald-700 mt-0.5" size={14} />
                 <p className="text-emerald-700 text-[12px] font-semibold leading-snug">
-                  <i className="fas fa-check-circle mr-1.5"></i>
                   Reset link sent successfully! Check your email inbox.
                 </p>
               </div>
@@ -371,9 +373,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
             {/* Firebase-level error + switch hint */}
             {firebaseError && (
-              <div className="bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3">
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 flex items-start gap-1.5">
+                <Icon name="fa-exclamation-circle" className="text-rose-600 mt-0.5" size={14} />
                 <p className="text-rose-600 text-[12px] font-semibold leading-snug">
-                  <i className="fas fa-exclamation-circle mr-1.5"></i>
                   {firebaseError}
                 </p>
                 {showSwitchHint && (
@@ -480,7 +482,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     />
                   </svg>
                 ) : (
-                  <i className="fas fa-arrow-right opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0"></i>
+                  <Icon name="fa-arrow-right" className="opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" size={14} />
                 )}
               </button>
             </>
@@ -502,9 +504,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors z-20"
+          className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors z-20"
         >
-          <i className="fas fa-times text-xl"></i>
+          <Icon name="fa-times" size={20} />
         </button>
         </div>
       </div>

@@ -7,6 +7,8 @@ import {
   isGeminiAvailable,
 } from "../services/geminiService";
 import CompanyLogo from "../components/CompanyLogo";
+import Icon from "../src/components/Icon";
+import { Loader2 } from "lucide-react";
 
 interface CreateReviewProps {
   user: any;
@@ -218,8 +220,8 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       <div className="bg-[#101426] min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 blur-[120px] rounded-full"></div>
         <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[48px] p-10 md:p-16 text-center space-y-10 relative z-10 shadow-2xl">
-          <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto text-3xl shadow-2xl border-b-4 border-indigo-700">
-            <i className="fas fa-pen-nib"></i>
+          <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl border-b-4 border-indigo-700">
+            <Icon name="fa-pen-nib" size={30} />
           </div>
           <div className="space-y-4">
             <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight uppercase tracking-widest">
@@ -234,7 +236,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             onClick={onSignInClick}
             className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-900/40 hover:bg-indigo-500 transition-all flex items-center justify-center space-x-3"
           >
-            <i className="fas fa-lock text-xs opacity-50"></i>
+            <Icon name="fa-lock" className="opacity-50" size={12} />
             <span>Sign In to Contribute</span>
           </button>
         </div>
@@ -249,8 +251,8 @@ const CreateReview: React.FC<CreateReviewProps> = ({
           <div className="absolute top-0 right-0 w-1/3 h-full bg-indigo-500/10 blur-[120px] rounded-full -mr-20 -mt-20"></div>
           <div className="relative z-10">
             <div className="flex items-center space-x-3 mb-4">
-              <span className="bg-indigo-600/30 text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-indigo-500/20 backdrop-blur-md">
-                <i className="fas fa-user-check mr-2 text-[8px]"></i>
+              <span className="bg-indigo-600/30 text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-indigo-500/20 backdrop-blur-md flex items-center w-fit">
+                <Icon name="fa-user-check" className="mr-2" size={10} />
                 {user.isPro
                   ? "Sales Pro Verified"
                   : "Verified Community Member"}
@@ -268,8 +270,8 @@ const CreateReview: React.FC<CreateReviewProps> = ({
         <div ref={errorRef}>
           {error && (
             <div className="mx-6 md:mx-12 mt-6 p-6 bg-rose-50 border border-rose-100 rounded-[28px] text-rose-600 text-sm font-bold flex items-center shadow-sm">
-              <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center mr-5 shrink-0">
-                <i className="fas fa-exclamation-triangle text-lg"></i>
+              <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center mr-5 shrink-0 text-rose-600">
+                <Icon name="fa-exclamation-triangle" size={18} />
               </div>
               <span>{error}</span>
             </div>
@@ -295,7 +297,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
               <div className="space-y-4">
                 <div className="relative">
                   <div className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300">
-                    <i className="fas fa-search text-xl"></i>
+                    <Icon name="fa-search" size={20} />
                   </div>
                   <input
                     type="text"
@@ -306,7 +308,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   />
                   {isSearching && (
                     <div className="absolute right-8 top-1/2 -translate-y-1/2">
-                      <i className="fas fa-spinner fa-spin text-indigo-500"></i>
+                      <Loader2 className="animate-spin text-indigo-500" size={20} />
                     </div>
                   )}
                 </div>
@@ -319,7 +321,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                         Select Verified Entity
                       </span>
                       <span className="text-[9px] font-black text-indigo-500 uppercase flex items-center">
-                        <i className="fas fa-magic mr-1.5"></i> Google Search
+                        <Icon name="fa-magic" className="mr-1.5" size={12} /> Google Search
                         Grounding Active
                       </span>
                     </div>
@@ -345,7 +347,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                               {company.industry} &bull; {company.country}
                             </div>
                           </div>
-                          <i className="fas fa-plus text-slate-200 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all"></i>
+                          <Icon name="fa-plus" className="text-slate-200 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all" size={16} />
                         </button>
                       ))}
                     </div>
@@ -369,9 +371,9 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                       <button
                         type="button"
                         onClick={() => setShowManualEntry(true)}
-                        className="text-indigo-600 text-sm font-bold hover:underline"
+                        className="text-indigo-600 text-sm font-bold hover:underline flex items-center mx-auto"
                       >
-                        <i className="fas fa-plus-circle mr-2"></i>
+                        <Icon name="fa-plus-circle" className="mr-2" size={16} />
                         Can't find it? Enter company details manually
                       </button>
                     </div>
@@ -392,9 +394,9 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                         <button
                           type="button"
                           onClick={() => setShowManualEntry(false)}
-                          className="text-slate-400 hover:text-slate-600 text-xs font-bold"
+                          className="text-slate-400 hover:text-slate-600 text-xs font-bold flex items-center"
                         >
-                          <i className="fas fa-times mr-1"></i>Back to AI Search
+                          <Icon name="fa-times" className="mr-1" size={12} />Back to AI Search
                         </button>
                       )}
                     </div>
@@ -444,9 +446,9 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                           type="button"
                           onClick={handleManualCompanySelect}
                           disabled={!manualName.trim()}
-                          className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all disabled:bg-slate-200 disabled:text-slate-400 shadow-lg"
+                          className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all disabled:bg-slate-200 disabled:text-slate-400 shadow-lg flex items-center justify-center"
                         >
-                          <i className="fas fa-check mr-2"></i>Confirm Company
+                          <Icon name="fa-check" className="mr-2" size={12} />Confirm Company
                         </button>
                       </div>
                     </div>
@@ -459,9 +461,9 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowManualEntry(true)}
-                      className="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg"
+                      className="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg flex items-center mx-auto"
                     >
-                      <i className="fas fa-building mr-2"></i>
+                      <Icon name="fa-building" className="mr-2" size={16} />
                       Enter Company Manually
                     </button>
                   </div>
@@ -498,7 +500,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   }}
                   className="w-12 h-12 rounded-2xl bg-white text-slate-300 hover:text-rose-500 transition-all shadow-sm border border-slate-100 flex items-center justify-center group/btn"
                 >
-                  <i className="fas fa-times group-hover/btn:rotate-90 transition-transform"></i>
+                  <Icon name="fa-times" className="group-hover/btn:rotate-90 transition-transform" size={16} />
                 </button>
               </div>
             )}
@@ -633,9 +635,9 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                       <button
                         type="button"
                         onClick={() => removeDept(dept)}
-                        className="w-4 h-4 rounded-full bg-indigo-700 flex items-center justify-center hover:bg-rose-500 transition-colors"
+                        className="w-4 h-4 rounded-full bg-indigo-700 flex items-center justify-center hover:bg-rose-500 transition-colors text-white"
                       >
-                        <i className="fas fa-times text-[8px]"></i>
+                        <Icon name="fa-times" size={8} />
                       </button>
                     </div>
                   ))}
@@ -660,7 +662,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   label="Responsiveness"
                   value={commRating}
                   onChange={setCommRating}
-                  icon="fas fa-comments"
+                  icon="fa-comments"
                   starTooltips={[
                     "Ghosting",
                     "Poor",
@@ -673,7 +675,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   label="Negotiation Ease"
                   value={negotiation}
                   onChange={setNegotiation}
-                  icon="fas fa-handshake"
+                  icon="fa-handshake"
                   starTooltips={[
                     "Brutal",
                     "Difficult",
@@ -686,7 +688,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   label="Buyer Intent"
                   value={timeWaster}
                   onChange={setTimeWaster}
-                  icon="fas fa-bullseye"
+                  icon="fa-bullseye"
                   starTooltips={[
                     "Tire Kicker",
                     "Exploratory",
@@ -699,7 +701,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   label="Scope Maturity"
                   value={clarityScope}
                   onChange={setClarityScope}
-                  icon="fas fa-map"
+                  icon="fa-map"
                   starTooltips={[
                     "Volatile",
                     "Vague",
@@ -770,7 +772,7 @@ const ScorecardCard: React.FC<{
       <div
         className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-4 transition-colors ${current > 0 ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-400"}`}
       >
-        <i className={icon}></i>
+        <Icon name={icon} size={24} />
       </div>
       <h4 className="font-black text-slate-900 text-[12px] uppercase tracking-[0.15em] mb-4">
         {label}
@@ -783,9 +785,9 @@ const ScorecardCard: React.FC<{
             onClick={() => onChange(s)}
             onMouseEnter={() => setHoveredStar(s)}
             onMouseLeave={() => setHoveredStar(null)}
-            className={`text-2xl transition-all ${s <= (hoveredStar || value) ? "text-indigo-600" : "text-slate-200"}`}
+            className={`text-2xl transition-all flex items-center justify-center ${s <= (hoveredStar || value) ? "text-indigo-600" : "text-slate-200"}`}
           >
-            <i className="fas fa-star"></i>
+            <Icon name="fa-star" size={24} />
           </button>
         ))}
       </div>

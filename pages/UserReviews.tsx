@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
+import Icon from "../src/components/Icon";
 
 interface UserReviewsProps {
   reviews: Review[];
@@ -17,7 +18,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
       <div className="flex items-center justify-between border-b border-slate-100 pb-8">
         <div>
           <h1 className="text-4xl font-extrabold text-slate-900 flex items-center">
-            <i className="fas fa-user-shield text-indigo-600 mr-4"></i>
+            <Icon name="fa-user-shield" className="text-indigo-600 mr-4" size={32} />
             Verified User Intel
           </h1>
           <p className="text-slate-400 font-bold text-xs mt-3 uppercase tracking-[0.2em]">
@@ -166,7 +167,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
           ))
         ) : (
           <div className="text-center py-24 bg-slate-50 rounded-[48px] border-2 border-dashed border-slate-200">
-            <i className="fas fa-ghost text-slate-200 text-6xl mb-6"></i>
+            <Icon name="fa-ghost" className="text-slate-200 mb-6 mx-auto block" size={60} />
             <p className="text-slate-400 font-bold text-lg">
               No intelligence reported by this contributor.
             </p>

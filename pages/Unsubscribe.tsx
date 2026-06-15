@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useAuth } from "../src/hooks/useAuth";
+import Icon from "../src/components/Icon";
+import { Loader2 } from "lucide-react";
 
 const Unsubscribe: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -73,8 +75,8 @@ const Unsubscribe: React.FC = () => {
 
       <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[48px] p-8 md:p-12 text-center space-y-8 relative z-10 shadow-2xl">
         {/* Animated Brand Emblem */}
-        <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto text-3xl shadow-2xl border-b-4 border-indigo-700 hover:scale-105 transition-transform duration-300">
-          <i className="fas fa-envelope-open-text"></i>
+        <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl border-b-4 border-indigo-700 hover:scale-105 transition-transform duration-300">
+          <Icon name="fa-envelope-open-text" size={30} />
         </div>
 
         <div className="space-y-3">
@@ -89,14 +91,14 @@ const Unsubscribe: React.FC = () => {
 
         {isSuccess && (
           <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 animate-pulse">
-            <i className="fas fa-check-circle"></i>
+            <Icon name="fa-check-circle" size={14} />
             <span>Preferences updated successfully!</span>
           </div>
         )}
 
         {errorMessage && (
           <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2">
-            <i className="fas fa-exclamation-triangle"></i>
+            <Icon name="fa-exclamation-triangle" size={14} />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -151,7 +153,7 @@ const Unsubscribe: React.FC = () => {
           >
             {isLoading ? (
               <>
-                <i className="fas fa-spinner fa-spin text-sm"></i>
+                <Loader2 className="animate-spin text-sm" size={16} />
                 <span>Saving Preferences…</span>
               </>
             ) : (

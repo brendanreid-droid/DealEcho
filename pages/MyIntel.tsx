@@ -6,6 +6,8 @@ import { db } from "../src/firebase/config";
 import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
 import { useAuth } from "../src/hooks/useAuth";
+import Icon from "../src/components/Icon";
+import { Loader2 } from "lucide-react";
 
 const getTimeAgo = (dateStr: string): string => {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -112,8 +114,8 @@ const MyIntel: React.FC<MyIntelProps> = ({
       <div className="bg-[#101426] min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 blur-[120px] rounded-full"></div>
         <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[48px] p-10 md:p-16 text-center space-y-10 relative z-10 shadow-2xl">
-          <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto text-3xl shadow-2xl border-b-4 border-indigo-700">
-            <i className="fas fa-fingerprint"></i>
+          <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl border-b-4 border-indigo-700">
+            <Icon name="fa-fingerprint" size={30} />
           </div>
           <div className="space-y-4">
             <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight uppercase tracking-widest">
@@ -128,7 +130,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
             onClick={onSignInClick}
             className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-900/40 hover:bg-indigo-500 transition-all flex items-center justify-center space-x-3"
           >
-            <i className="fas fa-lock text-xs opacity-50"></i>
+            <Icon name="fa-lock" className="opacity-50" size={12} />
             <span>Sign In to Access</span>
           </button>
         </div>
@@ -179,7 +181,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
               to="/pricing"
               className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-900/30 flex items-center space-x-2"
             >
-              <i className="fas fa-crown text-[9px]"></i>
+              <Icon name="fa-crown" size={10} />
               <span>Upgrade to Sales Pro</span>
             </Link>
           )}
@@ -187,16 +189,16 @@ const MyIntel: React.FC<MyIntelProps> = ({
             <button
               onClick={handleCancelSubscription}
               disabled={cancelling}
-              className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50"
+              className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50 justify-center"
             >
               {cancelling ? (
                 <>
-                  <i className="fas fa-spinner fa-spin text-[9px]"></i>
+                  <Loader2 className="animate-spin text-rose-400" size={10} />
                   <span>Cancelling…</span>
                 </>
               ) : (
                 <>
-                  <i className="fas fa-times-circle text-[9px]"></i>
+                  <Icon name="fa-times-circle" size={10} />
                   <span>Cancel Subscription</span>
                 </>
               )}
@@ -209,7 +211,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
         <div className="lg:col-span-1 space-y-8">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold flex items-center">
-              <i className="fas fa-bookmark text-indigo-500 mr-3"></i>
+              <Icon name="fa-bookmark" className="text-indigo-500 mr-3" size={18} />
               Tracked Accounts
             </h3>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -248,9 +250,9 @@ const MyIntel: React.FC<MyIntelProps> = ({
                     </Link>
                     <button
                       onClick={() => onToggleTrack(c.id)}
-                      className="text-slate-200 hover:text-rose-500"
+                      className="text-slate-200 hover:text-rose-500 flex items-center justify-center"
                     >
-                      <i className="fas fa-times-circle"></i>
+                      <Icon name="fa-times-circle" size={16} />
                     </button>
                   </div>
                   <div className="pt-4 border-t border-slate-50 flex justify-between">
@@ -265,7 +267,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
               ))
             ) : (
               <div className="bg-white p-12 rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
-                <i className="fas fa-search text-slate-200 text-4xl"></i>
+                <Icon name="fa-search" className="text-slate-200 mx-auto block" size={40} />
                 <p className="text-slate-400 text-xs font-bold uppercase">
                   No accounts tracked
                 </p>
@@ -281,7 +283,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
             {!isPaid && trackedIds.length >= 3 && (
               <div className="p-6 bg-indigo-50 rounded-[28px] border border-indigo-100 space-y-4">
                 <div className="flex items-center space-x-3 text-indigo-600">
-                  <i className="fas fa-crown text-sm"></i>
+                  <Icon name="fa-crown" size={14} />
                   <span className="text-[10px] font-black uppercase tracking-widest">
                     Limit Reached
                   </span>
@@ -303,7 +305,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
           {/* Email Notification Settings Card */}
           <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
             <h3 className="text-lg font-bold flex items-center text-slate-900">
-              <i className="fas fa-envelope-open-text text-indigo-500 mr-3"></i>
+              <Icon name="fa-envelope-open-text" className="text-indigo-500 mr-3" size={18} />
               Email Notifications
             </h3>
             
@@ -384,7 +386,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
         <div className="lg:col-span-2 space-y-8">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold flex items-center">
-              <i className="fas fa-history text-indigo-500 mr-3"></i>
+              <Icon name="fa-history" className="text-indigo-500 mr-3" size={18} />
               Workspace History
             </h3>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -478,12 +480,12 @@ const MyIntel: React.FC<MyIntelProps> = ({
 
                     <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                       <div className="flex items-center space-x-4">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                          <i className="fas fa-dollar-sign mr-1 text-[8px]"></i>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
+                          <Icon name="fa-dollar-sign" className="mr-1" size={10} />
                           {review.tcvBracket}
                         </span>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                          <i className="fas fa-clock mr-1 text-[8px]"></i>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
+                          <Icon name="fa-clock" className="mr-1" size={10} />
                           {review.cycleDuration}
                         </span>
                       </div>
@@ -498,7 +500,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
           ) : (
             <div className="bg-white rounded-[48px] p-12 border border-slate-100 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
               <div className="w-16 h-16 bg-slate-50 rounded-2xl shadow-inner flex items-center justify-center text-slate-200 text-3xl">
-                <i className="fas fa-pen-nib"></i>
+                <Icon name="fa-pen-nib" size={30} />
               </div>
               <div>
                 <h4 className="text-2xl font-black text-slate-900 mb-2">
@@ -511,9 +513,9 @@ const MyIntel: React.FC<MyIntelProps> = ({
               </div>
               <Link
                 to="/review/new"
-                className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg"
+                className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg flex items-center gap-1.5"
               >
-                <i className="fas fa-pen-nib mr-2 text-[8px]"></i>Write Review
+                <Icon name="fa-pen-nib" size={10} />Write Review
               </Link>
             </div>
           )}

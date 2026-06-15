@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import Icon from "../src/components/Icon";
+import { Loader2 } from "lucide-react";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth } from "../src/firebase/config";
 import { useAuth } from "../src/hooks/useAuth";
@@ -609,8 +611,10 @@ const Admin: React.FC = () => {
                 : "bg-rose-900/90 border border-rose-500/30 text-rose-200"
             }`}
           >
-            <i
-              className={`fas ${t.type === "success" ? "fa-check-circle" : "fa-exclamation-circle"} mr-2`}
+            <Icon
+              name={t.type === "success" ? "fa-check-circle" : "fa-exclamation-circle"}
+              className="mr-2 inline-block"
+              size={14}
             />
             {t.message}
           </div>
@@ -622,7 +626,7 @@ const Admin: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <i className="fas fa-shield-alt text-white text-sm" />
+              <Icon name="fa-shield-alt" className="text-white text-sm" size={14} />
             </div>
             <div>
               <h1 className="text-lg font-black tracking-tight">Admin Panel</h1>
@@ -632,7 +636,7 @@ const Admin: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-400">
-            <i className="fas fa-user-shield text-indigo-400" />
+            <Icon name="fa-user-shield" className="text-indigo-400" size={14} />
             <span className="font-semibold">{auth.currentUser?.email}</span>
           </div>
         </div>
@@ -672,7 +676,7 @@ const Admin: React.FC = () => {
               className="bg-white/5 border border-white/10 rounded-3xl p-5"
             >
               <div className={`text-2xl mb-1 ${s.color}`}>
-                <i className={`fas ${s.icon}`} />
+                <Icon name={s.icon} size={24} />
               </div>
               <div className="text-3xl font-black">{s.value}</div>
               <div className="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-1">
@@ -694,8 +698,8 @@ const Admin: React.FC = () => {
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              <i
-                className={`fas ${
+              <Icon
+                name={
                   t === "users"
                     ? "fa-users"
                     : t === "content"
@@ -705,7 +709,9 @@ const Admin: React.FC = () => {
                         : t === "pricing"
                           ? "fa-tags"
                           : "fa-paper-plane"
-                } mr-2`}
+                }
+                className="mr-2 inline-block"
+                size={14}
               />
               {t === "users"
                 ? `Users (${stats.total})`
@@ -730,7 +736,7 @@ const Admin: React.FC = () => {
           <div>
             <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="relative w-full max-w-sm">
-                <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm" />
+                <Icon name="fa-search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                 <input
                   type="text"
                   placeholder="Search by email or name…"
@@ -743,7 +749,7 @@ const Admin: React.FC = () => {
                 onClick={() => setIsCreateModalOpen(true)}
                 className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/10"
               >
-                <i className="fas fa-user-plus text-xs" />
+                <Icon name="fa-user-plus" size={12} />
                 Create User
               </button>
             </div>
@@ -791,7 +797,7 @@ const Admin: React.FC = () => {
                                 : "bg-indigo-600/30 text-indigo-400"
                             }`}>
                               {u.suspended ? (
-                                <i className="fas fa-lock text-xs" />
+                                <Icon name="fa-lock" size={12} />
                               ) : (
                                 (u.displayName || u.email)?.[0]?.toUpperCase() ?? "?"
                               )}
@@ -891,10 +897,10 @@ const Admin: React.FC = () => {
                                 setContentUserFilter(u.uid);
                                 setTab("content");
                               }}
-                              className="px-3 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold hover:bg-indigo-600/40 transition-colors"
+                              className="px-3 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold hover:bg-indigo-600/40 transition-colors flex items-center gap-1"
                               title="View user posts"
                             >
-                              <i className="fas fa-eye mr-1" />
+                              <Icon name="fa-eye" size={12} />
                               Content
                             </button>
                             <button
@@ -906,14 +912,14 @@ const Admin: React.FC = () => {
                               }`}
                               title={u.suspended ? "Reactivate User" : "Suspend User"}
                             >
-                              <i className={`fas ${u.suspended ? "fa-unlock" : "fa-ban"} text-xs`} />
+                              <Icon name={u.suspended ? "fa-unlock" : "fa-ban"} size={12} />
                             </button>
                             <button
                               onClick={() => handleDeleteUser(u.uid)}
                               className="w-8 h-8 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400 hover:bg-rose-600/40 transition-colors flex items-center justify-center"
                               title="Delete User"
                             >
-                              <i className="fas fa-trash-alt text-xs" />
+                              <Icon name="fa-trash-alt" size={12} />
                             </button>
                           </div>
                         </td>
@@ -923,7 +929,7 @@ const Admin: React.FC = () => {
                 </table>
                 {filteredUsers.length === 0 && (
                   <div className="text-center py-16 text-slate-500">
-                    <i className="fas fa-search text-3xl mb-3 block" />
+                    <Icon name="fa-search" className="mx-auto mb-3 block" size={30} />
                     No users match your search
                   </div>
                 )}
@@ -937,7 +943,7 @@ const Admin: React.FC = () => {
           <div>
             <div className="mb-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
               <div className="relative w-full max-w-sm">
-                <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm" />
+                <Icon name="fa-search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                 <input
                   type="text"
                   placeholder="Search reviews or UID…"
@@ -949,15 +955,15 @@ const Admin: React.FC = () => {
 
               {contentUserFilter && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl">
-                  <span className="text-xs font-bold text-indigo-400">
-                    <i className="fas fa-filter mr-2" />
+                  <span className="text-xs font-bold text-indigo-400 flex items-center">
+                    <Icon name="fa-filter" className="mr-2" size={12} />
                     Filtering by User ID: {contentUserFilter.slice(0, 8)}…
                   </span>
                   <button
                     onClick={() => setContentUserFilter(null)}
-                    className="text-indigo-400 hover:text-white transition-colors"
+                    className="text-indigo-400 hover:text-white transition-colors flex items-center"
                   >
-                    <i className="fas fa-times-circle" />
+                    <Icon name="fa-times-circle" size={14} />
                   </button>
                 </div>
               )}
@@ -1052,14 +1058,14 @@ const Admin: React.FC = () => {
                               className="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/40 transition-colors flex items-center justify-center"
                               title="Edit"
                             >
-                              <i className="fas fa-pen text-xs" />
+                              <Icon name="fa-pen" size={12} />
                             </button>
                             <button
                               onClick={() => handleDeleteReview(r.id)}
                               className="w-8 h-8 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400 hover:bg-rose-600/40 transition-colors flex items-center justify-center"
                               title="Delete"
                             >
-                              <i className="fas fa-trash text-xs" />
+                              <Icon name="fa-trash" size={12} />
                             </button>
                           </div>
                         </td>
@@ -1069,7 +1075,7 @@ const Admin: React.FC = () => {
                 </table>
                 {filteredReviews.length === 0 && (
                   <div className="text-center py-16 text-slate-500">
-                    <i className="fas fa-search text-3xl mb-3 block" />
+                    <Icon name="fa-search" className="mx-auto mb-3 block" size={30} />
                     {contentUserFilter
                       ? "This user has no posts"
                       : "No reviews match your search"}
@@ -1086,7 +1092,7 @@ const Admin: React.FC = () => {
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-9 h-9 bg-rose-600/30 rounded-xl flex items-center justify-center">
-                  <i className="fas fa-shield-alt text-rose-400 text-sm" />
+                  <Icon name="fa-shield-alt" className="text-rose-400 text-sm" size={14} />
                 </div>
                 <div>
                   <h2 className="text-lg font-black">Flagged Reviews</h2>
@@ -1104,7 +1110,7 @@ const Admin: React.FC = () => {
             ) : flaggedReviews.length === 0 ? (
               <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center">
                 <div className="w-16 h-16 bg-emerald-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <i className="fas fa-check-circle text-emerald-400 text-2xl" />
+                  <Icon name="fa-check-circle" className="text-emerald-400 text-2xl" size={24} />
                 </div>
                 <h3 className="text-lg font-black text-white mb-2">All Clear</h3>
                 <p className="text-slate-500 text-sm">No flagged reviews requiring attention.</p>
@@ -1134,17 +1140,17 @@ const Admin: React.FC = () => {
                           )}
                         </div>
                         <div className="flex items-center gap-4 text-[10px] text-slate-500 font-semibold">
-                          <span>
-                            <i className="fas fa-user mr-1" />
+                          <span className="flex items-center">
+                            <Icon name="fa-user" className="mr-1" size={10} />
                             {r.userId?.slice(0, 8)}…
                           </span>
-                          <span>
-                            <i className="fas fa-calendar mr-1" />
+                          <span className="flex items-center">
+                            <Icon name="fa-calendar" className="mr-1" size={10} />
                             {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "—"}
                           </span>
                           {r.moderatedAt && (
-                            <span>
-                              <i className="fas fa-clock mr-1" />
+                            <span className="flex items-center">
+                              <Icon name="fa-clock" className="mr-1" size={10} />
                               Moderated: {new Date(r.moderatedAt).toLocaleString()}
                             </span>
                           )}
@@ -1153,18 +1159,18 @@ const Admin: React.FC = () => {
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           onClick={() => handleApproveReview(r.id)}
-                          className="px-4 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-600/40 transition-colors"
+                          className="px-4 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-600/40 transition-colors flex items-center gap-1.5"
                           title="Approve and publish this review"
                         >
-                          <i className="fas fa-check mr-1.5" />
+                          <Icon name="fa-check" size={12} />
                           Approve
                         </button>
                         <button
                           onClick={() => handleDeleteReview(r.id)}
-                          className="px-4 py-2 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400 text-xs font-bold hover:bg-rose-600/40 transition-colors"
+                          className="px-4 py-2 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400 text-xs font-bold hover:bg-rose-600/40 transition-colors flex items-center gap-1.5"
                           title="Delete this review permanently"
                         >
-                          <i className="fas fa-trash mr-1.5" />
+                          <Icon name="fa-trash" size={12} />
                           Delete
                         </button>
                       </div>
@@ -1172,8 +1178,8 @@ const Admin: React.FC = () => {
 
                     {/* Flagged reason */}
                     <div className="bg-rose-950/30 border border-rose-500/10 rounded-2xl p-4">
-                      <div className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2">
-                        <i className="fas fa-exclamation-triangle mr-1.5" />
+                      <div className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2 flex items-center">
+                        <Icon name="fa-exclamation-triangle" className="mr-1.5" size={12} />
                         Moderation Reason
                       </div>
                       <p className="text-rose-300/80 text-sm font-medium">
@@ -1221,8 +1227,8 @@ const Admin: React.FC = () => {
                 {/* Current Pricing Info */}
                 {currentPricing && (
                   <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">
-                      <i className="fas fa-info-circle text-indigo-400 mr-2" />
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center">
+                      <Icon name="fa-info-circle" className="text-indigo-400 mr-2" size={14} />
                       Current Active Prices
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -1266,8 +1272,8 @@ const Admin: React.FC = () => {
 
                 {/* Update Form */}
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">
-                    <i className="fas fa-edit text-indigo-400 mr-2" />
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                    <Icon name="fa-edit" className="text-indigo-400 mr-2" size={14} />
                     Update Subscription Prices
                   </h3>
 
@@ -1358,18 +1364,18 @@ const Admin: React.FC = () => {
                     >
                       {pricingSaving ? (
                         <>
-                          <i className="fas fa-spinner fa-spin mr-2" /> Creating
+                          <Loader2 className="animate-spin mr-2 inline-block" size={14} /> Creating
                           Stripe Prices...
                         </>
                       ) : (
                         <>
-                          <i className="fas fa-save mr-2" /> Update Prices
+                          <Icon name="fa-save" className="mr-2 inline-block" size={14} /> Update Prices
                         </>
                       )}
                     </button>
 
-                    <p className="text-[10px] text-slate-500 leading-relaxed">
-                      <i className="fas fa-info-circle mr-1" />
+                    <p className="text-[10px] text-slate-500 leading-relaxed flex items-start">
+                      <Icon name="fa-info-circle" className="mr-1 mt-0.5" size={10} />
                       This creates new Stripe Price objects and updates the
                       checkout flow. Existing subscribers keep their current
                       price. Only new subscribers will see the updated price.
@@ -1388,13 +1394,13 @@ const Admin: React.FC = () => {
             <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
               <button
                 onClick={() => setNewsletterSubTab("compose")}
-                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all ${
+                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all flex items-center gap-1.5 ${
                   newsletterSubTab === "compose"
                     ? "bg-indigo-600 text-white shadow-lg"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                <i className="fas fa-edit mr-2" />
+                <Icon name="fa-edit" size={12} />
                 Compose Campaign
               </button>
               <button
@@ -1402,13 +1408,13 @@ const Admin: React.FC = () => {
                   setNewsletterSubTab("history");
                   loadCampaigns();
                 }}
-                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all ${
+                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all flex items-center gap-1.5 ${
                   newsletterSubTab === "history"
                     ? "bg-indigo-600 text-white shadow-lg"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                <i className="fas fa-history mr-2" />
+                <Icon name="fa-history" size={12} />
                 Sent Campaigns
               </button>
             </div>
@@ -1421,7 +1427,7 @@ const Admin: React.FC = () => {
               
               <div>
                 <h3 className="text-base font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
-                  <i className="fas fa-edit text-indigo-400" />
+                  <Icon name="fa-edit" className="text-indigo-400" size={14} />
                   Newsletter Composer
                 </h3>
                 <p className="text-slate-500 text-xs font-semibold leading-relaxed">
@@ -1514,11 +1520,11 @@ const Admin: React.FC = () => {
               >
                 {newsletterSending ? (
                   <>
-                    <i className="fas fa-spinner fa-spin mr-1" /> Broadcasting Newsletter...
+                    <Loader2 className="animate-spin mr-1 inline-block" size={14} /> Broadcasting Newsletter...
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-paper-plane mr-1" />
+                    <Icon name="fa-paper-plane" className="mr-1 inline-block" size={14} />
                     Broadcast to All Subscribed Users
                   </>
                 )}
@@ -1529,7 +1535,7 @@ const Admin: React.FC = () => {
             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4 sticky top-24">
               <div>
                 <h3 className="text-base font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
-                  <i className="fas fa-eye text-sky-400" />
+                  <Icon name="fa-eye" className="text-sky-400" size={14} />
                   Live Client Preview
                 </h3>
                 <p className="text-slate-500 text-xs font-semibold leading-relaxed">
@@ -1618,7 +1624,7 @@ const Admin: React.FC = () => {
             ) : newsletters.length === 0 ? (
               <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center text-white">
                 <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <i className="fas fa-paper-plane text-indigo-400 text-2xl" />
+                  <Icon name="fa-paper-plane" className="text-indigo-400 text-2xl" size={24} />
                 </div>
                 <h3 className="text-lg font-black text-white mb-2">No Campaigns Yet</h3>
                 <p className="text-slate-500 text-sm">You haven't broadcasted any newsletters to active users yet.</p>
@@ -1667,9 +1673,9 @@ const Admin: React.FC = () => {
                           <td className="px-5 py-4">
                             <button
                               onClick={() => setSelectedHistoryNewsletter(n)}
-                              className="px-3 py-1.5 bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-black rounded-xl hover:bg-indigo-600/40 transition-colors"
+                              className="px-3 py-1.5 bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-black rounded-xl hover:bg-indigo-600/40 transition-colors flex items-center gap-1"
                             >
-                              <i className="fas fa-eye mr-1" />
+                              <Icon name="fa-eye" size={12} />
                               Inspect Copy
                             </button>
                           </td>
@@ -1715,7 +1721,7 @@ const Admin: React.FC = () => {
                 className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-colors disabled:opacity-60"
               >
                 {editSaving ? (
-                  <i className="fas fa-spinner fa-spin" />
+                  <Loader2 className="animate-spin mx-auto" size={14} />
                 ) : (
                   "Save Changes"
                 )}
@@ -1740,7 +1746,7 @@ const Admin: React.FC = () => {
             {isCreateSuccess ? (
               <div className="text-center py-6 relative z-10 flex flex-col items-center">
                 <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/10 animate-pulse">
-                  <i className="fas fa-check text-2xl" />
+                  <Icon name="fa-check" size={24} />
                 </div>
                 <h3 className="text-xl font-black mb-2 text-white">Invitation Dispatched!</h3>
                 <p className="text-slate-400 text-sm mb-8 leading-relaxed max-w-sm text-center">
@@ -1823,12 +1829,12 @@ const Admin: React.FC = () => {
                     >
                       {isCreatingUser ? (
                         <>
-                          <i className="fas fa-spinner fa-spin" />
+                          <Loader2 className="animate-spin mr-1 inline-block" size={14} />
                           Creating Account...
                         </>
                       ) : (
                         <>
-                          <i className="fas fa-paper-plane" />
+                          <Icon name="fa-paper-plane" size={14} />
                           Create & Send Invite
                         </>
                       )}
@@ -1863,9 +1869,9 @@ const Admin: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedHistoryNewsletter(null)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors flex items-center"
               >
-                <i className="fas fa-times-circle text-xl" />
+                <Icon name="fa-times-circle" size={20} />
               </button>
             </div>
 

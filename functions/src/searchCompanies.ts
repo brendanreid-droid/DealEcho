@@ -22,7 +22,7 @@ export const searchCompanyEntities = onCall(
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: `Search for companies matching: "${query}". Return a JSON array of objects with: name, industry, country, domain (e.g. atlassian.com, when known, otherwise empty string), and a brief description. Use real data from your knowledge or search.`,
         config: {
           tools: [{ googleSearch: {} }],
@@ -83,7 +83,7 @@ export const getAICompanyPersona = onCall(
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash", // We can use gemini-2.0-flash which is standard and has high speed/intelligence
+        model: "gemini-2.5-flash", // We can use gemini-2.5-flash which is standard and has high speed/intelligence
         contents: `Based on these B2B sales reviews for "${companyName}", generate a structured "Buyer Persona Summary".
         
         Requirements:

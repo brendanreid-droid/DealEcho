@@ -1,13 +1,9 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { Company, AIModerationResult, Review } from "../types";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
-/** Returns true if a real Gemini API key is configured */
-export const isGeminiAvailable = (): boolean => {
-  const key = process.env.API_KEY;
-  return !!key && key.length > 20 && !key.toLowerCase().includes("placeholder");
-};
+/** @deprecated Moderation runs server-side in Cloud Functions. Always returns false. */
+export const isGeminiAvailable = (): boolean => false;
 
 // Helper functions for sessionStorage caching with fallback
 const getSessionCache = <T>(key: string): T | null => {
@@ -61,47 +57,14 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
   }
 };
 
+/**
+ * @deprecated Client-side moderation removed — the Cloud Function onReviewWritten
+ * is the authoritative moderation layer. Reviews are held as 'pending' until approved.
+ */
 export const moderateReview = async (
-  content: string,
+  _content: string,
 ): Promise<AIModerationResult> => {
-  if (!isGeminiAvailable()) {
-    console.warn("[GeminiService] No valid API key — skipping AI moderation.");
-    return { isSafe: true };
-  }
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Analyse this B2B sales review for sensitive information. 
-      Flag any:
-      - Personal names of individuals (PII)
-      - Specific confidential pricing details that are commercially sensitive
-      - Trade secrets mentioned
-      
-      Review Content: "${content}"`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            isSafe: { type: Type.BOOLEAN },
-            reason: { type: Type.STRING },
-            flaggedSegments: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-            },
-          },
-          required: ["isSafe"],
-        },
-      },
-    });
-
-    return JSON.parse(response.text || '{"isSafe": true}');
-  } catch (error) {
-    console.error("Moderation error:", error);
-    return { isSafe: true };
-  }
+  return { isSafe: true };
 };
 
 export interface TeamPlaybook {

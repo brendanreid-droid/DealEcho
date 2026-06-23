@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Company, Review } from "../types";
-import {
-  searchCompanies,
-  moderateReview,
-  isGeminiAvailable,
-} from "../services/geminiService";
+import { searchCompanies } from "../services/geminiService";
 import CompanyLogo from "../components/CompanyLogo";
 import Icon from "../src/components/Icon";
 import { Loader2 } from "lucide-react";
@@ -141,20 +137,6 @@ const CreateReview: React.FC<CreateReviewProps> = ({
     }
     setIsSubmitting(true);
     setError(null);
-    // Client-side moderation is best-effort UX only (instant feedback when a
-    // key is configured). The authoritative check runs server-side in a Cloud
-    // Function trigger: reviews are written with moderationStatus 'pending'
-    // and only become publicly visible once approved.
-    if (isGeminiAvailable()) {
-      const moderation = await moderateReview(content);
-      if (!moderation.isSafe) {
-        setError(
-          `Flagged: ${moderation.reason}. Please ensure no personal names are included.`,
-        );
-        setIsSubmitting(false);
-        return;
-      }
-    }
     const newReview: Review = {
       id: Math.random().toString(36).substr(2, 9),
       companyId: selectedCompany.id,

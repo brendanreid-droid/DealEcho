@@ -226,7 +226,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     const latest = avg(0);
     const prev = avg(1);
     if (!prev) return 0;
-    return Math.round(((latest - prev) / 20) * 100);
+    return Math.round(((latest - prev) / 5) * 100);
   }, [signal]);
 
   if (!company)

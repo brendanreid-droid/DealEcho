@@ -7,9 +7,10 @@ import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
 import ScoreRing from "../src/components/ScoreRing";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
+import { MappedUser } from "../src/hooks/useAuth";
 
 interface CompanyProfileProps {
-  user: any;
+  user: MappedUser | null;
   isPaid: boolean;
   onSignInClick: () => void;
   reviews: Review[];

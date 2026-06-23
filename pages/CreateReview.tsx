@@ -8,9 +8,10 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "../src/components/Toast";
 import { companyLogoUrl } from "../src/utils/companyLogo";
 import { DEPARTMENTS, TCV_BRACKETS, DURATION_BRACKETS } from "../src/constants/dealData";
+import { MappedUser } from "../src/hooks/useAuth";
 
 interface CreateReviewProps {
-  user: any;
+  user: MappedUser | null;
   onAddReview: (review: Review) => Promise<boolean>;
   onSignInClick?: () => void;
 }

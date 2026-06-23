@@ -3,12 +3,12 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { useLocation, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../src/firebase/config";
-import { useAuth } from "../src/hooks/useAuth";
+import { useAuth, MappedUser } from "../src/hooks/useAuth";
 import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
 
 interface PricingProps {
-  user: any;
+  user: MappedUser | null;
   isPaid: boolean;
 }
 

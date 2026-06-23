@@ -5,7 +5,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { db } from "../src/firebase/config";
 import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
-import { useAuth } from "../src/hooks/useAuth";
+import { useAuth, MappedUser } from "../src/hooks/useAuth";
 import Icon from "../src/components/Icon";
 import { Loader2 } from "lucide-react";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
@@ -23,7 +23,7 @@ const getTimeAgo = (dateStr: string): string => {
 };
 
 interface MyIntelProps {
-  user: any;
+  user: MappedUser | null;
   isPaid: boolean;
   reviews: Review[];
   trackedIds: string[];

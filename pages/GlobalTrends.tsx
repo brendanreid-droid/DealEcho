@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { Review } from '../types';
 import Icon from "../src/components/Icon";
 import { DEPARTMENTS, TCV_BRACKETS as TCV_ORDER, DURATION_BRACKETS as DURATION_ORDER } from "../src/constants/dealData";
+import { MappedUser } from "../src/hooks/useAuth";
 
 interface GlobalTrendsProps {
-  user: any;
+  user: MappedUser | null;
   isPaid: boolean;
   reviews: Review[];
   onSignInClick?: () => void;

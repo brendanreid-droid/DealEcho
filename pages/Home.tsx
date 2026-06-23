@@ -6,9 +6,10 @@ import CompanyCard, { CompanyCardData } from "../src/components/CompanyCard";
 import IntelTicker from "../src/components/IntelTicker";
 import { CardGridSkeleton } from "../src/components/Skeleton";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
+import { MappedUser } from "../src/hooks/useAuth";
 
 interface HomeProps {
-  user: any;
+  user: MappedUser | null;
   isPaid: boolean;
   onSignInClick: () => void;
   reviewSummaries: ReviewSummary[];

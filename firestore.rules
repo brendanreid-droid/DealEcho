@@ -39,11 +39,21 @@ service cloud.firestore {
     }
 
     // ── Users ──────────────────────────────────────────────────────────────────
-    // Users can read/write their own profile.
-    // Admins can read all profiles for management.
+    // Users can read their own profile; admins can read all.
+    // Users can ONLY update safe preference fields — billing/role fields are
+    // written exclusively by Cloud Functions via the Admin SDK (bypasses rules).
     match /users/{userId} {
       allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
-      allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+
+      // Full write for admins (Admin SDK bypasses rules anyway, but this covers
+      // any future admin panel writes that use the client SDK).
+      allow write: if isAdmin();
+
+      // Users can update only their own safe fields.
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['trackedCompanies', 'notificationPreferences', 'updatedAt']);
     }
 
     // ── Companies ─────────────────────────────────────────────────────────────

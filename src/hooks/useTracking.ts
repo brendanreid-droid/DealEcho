@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 import { db } from '../firebase/config';
 import { useToast } from '../components/Toast';
 
@@ -51,7 +50,7 @@ export const useTracking = (userId: string | undefined, isPro: boolean) => {
     try {
       // Sync to Firestore user profile document so backend triggers can see it
       const userDocRef = doc(db, 'users', userId);
-      await setDoc(userDocRef, { email: getAuth().currentUser?.email ?? "", name: getAuth().currentUser?.displayName ?? "", trackedCompanies: newTracked }, { merge: true });
+      await setDoc(userDocRef, { trackedCompanies: newTracked, updatedAt: new Date().toISOString() }, { merge: true });
     } catch (err) {
       console.error('Failed to sync tracking list to Firestore:', err);
     }

@@ -370,12 +370,34 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 /**
- * Temporary diagnostic endpoint to view webhook logs.
+ * Diagnostic endpoint — returns recent webhook debug logs.
+ * Requires a valid Firebase ID token with role === 'admin'.
  */
 export const getWebhookDebugLogs = onRequest(
   { cors: true },
   async (req, res) => {
     res.removeHeader("x-powered-by");
+
+    // Verify Bearer token
+    const authHeader = req.headers.authorization ?? "";
+    const idToken = authHeader.replace("Bearer ", "").trim();
+    if (!idToken) {
+      res.status(401).send("Unauthorized: missing token");
+      return;
+    }
+
+    try {
+      const decoded = await auth.verifyIdToken(idToken);
+      if ((decoded as any).role !== "admin") {
+        res.status(403).send("Forbidden: admin only");
+        return;
+      }
+    } catch (err) {
+      console.error("Token verification failed:", err);
+      res.status(401).send("Unauthorized: invalid token");
+      return;
+    }
+
     try {
       const snap = await db
         .collection("webhooks_debug")
@@ -385,7 +407,8 @@ export const getWebhookDebugLogs = onRequest(
       const logs = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       res.json(logs);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      console.error("Failed to fetch webhook debug logs:", err);
+      res.status(500).send("Internal Server Error");
     }
   },
 );

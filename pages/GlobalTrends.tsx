@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Review } from '../types';
 import Icon from "../src/components/Icon";
+import { DEPARTMENTS, TCV_BRACKETS as TCV_ORDER, DURATION_BRACKETS as DURATION_ORDER } from "../src/constants/dealData";
 
 interface GlobalTrendsProps {
   user: any;
@@ -9,17 +10,6 @@ interface GlobalTrendsProps {
   reviews: Review[];
   onSignInClick?: () => void;
 }
-
-const DEPARTMENTS = [
-  "IT / Engineering", "Security / InfoSec", "Data Privacy / DPO", "Procurement", "Finance / Treasury",
-  "Legal / Compliance", "Executive Leadership (C-Suite)", "Marketing", "Sales / Business Development",
-  "Operations / Enablement", "HR / People Ops", "Product Management", "Customer Success / Support",
-  "Supply Chain / Logistics", "Facilities / Real Estate", "R&D / Innovation", "Strategy / Corporate Dev",
-  "Quality Assurance / QA", "Regulatory / Gov Affairs", "External Consultants / Advisors", "Board of Directors"
-];
-
-const TCV_ORDER = ["< $10k", "$10k - $25k", "$25k - $50k", "$50k - $100k", "$100k - $250k", "$250k - $500k", "$500k - $750k", "$750k - $1M", "$1M+"];
-const DURATION_ORDER = ["< 1 Month", "1-3 Months", "3-6 Months", "6-12 Months", "12+ Months"];
 
 const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSignInClick }) => {
   const [filterIndustry, setFilterIndustry] = useState('all');

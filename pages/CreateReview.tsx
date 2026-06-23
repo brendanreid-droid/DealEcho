@@ -7,55 +7,13 @@ import Icon from "../src/components/Icon";
 import { Loader2 } from "lucide-react";
 import { useToast } from "../src/components/Toast";
 import { companyLogoUrl } from "../src/utils/companyLogo";
+import { DEPARTMENTS, TCV_BRACKETS, DURATION_BRACKETS } from "../src/constants/dealData";
 
 interface CreateReviewProps {
   user: any;
   onAddReview: (review: Review) => Promise<boolean>;
   onSignInClick?: () => void;
 }
-
-const DEPARTMENTS = [
-  "IT / Engineering",
-  "Security / InfoSec",
-  "Data Privacy / DPO",
-  "Procurement",
-  "Finance / Treasury",
-  "Legal / Compliance",
-  "Executive Leadership (C-Suite)",
-  "Marketing",
-  "Sales / Business Development",
-  "Operations / Enablement",
-  "HR / People Ops",
-  "Product Management",
-  "Customer Success / Support",
-  "Supply Chain / Logistics",
-  "Facilities / Real Estate",
-  "R&D / Innovation",
-  "Strategy / Corporate Dev",
-  "Quality Assurance / QA",
-  "Regulatory / Gov Affairs",
-  "External Consultants / Advisors",
-  "Board of Directors",
-].sort();
-
-const TCV_BRACKETS = [
-  "< $10k",
-  "$10k - $25k",
-  "$25k - $50k",
-  "$50k - $100k",
-  "$100k - $250k",
-  "$250k - $500k",
-  "$500k - $750k",
-  "$750k - $1M",
-  "$1M+",
-];
-const DURATION_BRACKETS = [
-  "< 1 Month",
-  "1-3 Months",
-  "3-6 Months",
-  "6-12 Months",
-  "12+ Months",
-];
 
 const CreateReview: React.FC<CreateReviewProps> = ({
   user,
@@ -78,8 +36,8 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
 
 
-  const [tcvBracket, setTcvBracket] = useState(TCV_BRACKETS[0]);
-  const [cycleDuration, setCycleDuration] = useState(DURATION_BRACKETS[0]);
+  const [tcvBracket, setTcvBracket] = useState<string>(TCV_BRACKETS[0]);
+  const [cycleDuration, setCycleDuration] = useState<string>(DURATION_BRACKETS[0]);
   const [status, setStatus] = useState<"Won" | "Lost" | "Ongoing">("Won");
   const [isTender, setIsTender] = useState(false);
   const [buyingTeam, setBuyingTeam] = useState<string[]>([]);

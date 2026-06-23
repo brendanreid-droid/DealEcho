@@ -279,6 +279,27 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
         reportCount={companyReviews.length}
       />
 
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handleTrackToggle}
+          className={`px-5 py-2.5 rounded-control text-2xs font-semibold uppercase tracking-widest transition-colors ${
+            !user
+              ? "bg-slate-200 text-slate-500 hover:bg-slate-300"
+              : isTracking
+                ? "bg-signal-healthy text-white"
+                : "bg-accent text-white hover:bg-accent-700"
+          }`}
+        >
+          {isTracking ? "Tracking account" : "Track account"}
+        </button>
+        <button
+          onClick={handleLeaveReview}
+          className="px-5 py-2.5 rounded-control text-2xs font-semibold uppercase tracking-widest bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 transition-colors"
+        >
+          Leave review
+        </button>
+      </div>
+
       <section aria-labelledby="flags-heading" className="space-y-2">
         <h2 id="flags-heading" className="text-sm font-semibold text-slate-500">Red flags</h2>
         <FlagList flags={signal?.flags ?? []} isPro={isPro} />
@@ -322,6 +343,20 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
                 {team}
               </button>
             ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="evidence-sort" className="text-2xs font-semibold text-slate-400 uppercase tracking-wider">Sort by</label>
+            <select
+              id="evidence-sort"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="bg-white border border-slate-200 text-slate-700 text-2xs font-semibold rounded-control px-3 py-2"
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="deal-high">Deal size (high to low)</option>
+              <option value="deal-low">Deal size (low to high)</option>
+            </select>
           </div>
           <EvidenceList reviews={sortedReviews} />
         </section>

@@ -12,11 +12,11 @@ beforeEach(() => {
 });
 
 const summary: ReviewSummary = {
-  id: "s1", companyId: "comp-1", companyName: "Snowflake", industry: "Data",
+  reviewId: "s1", companyId: "comp-1", companyName: "Snowflake", industry: "Data",
   location: "US", country: "US", status: "Won", createdAt: "2026-03-01T00:00:00.000Z",
   excerpt: "Technical-led, procurement-heavy.", communicationRating: 4,
   negotiationLevel: 3, timeWasterLevel: 5, clarityOfScope: 4,
-} as ReviewSummary;
+};
 
 describe("Home", () => {
   it("renders the hero headline and primary CTA, and lists a company", () => {

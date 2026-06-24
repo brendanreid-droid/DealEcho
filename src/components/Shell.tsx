@@ -47,14 +47,18 @@ export const Navigation: React.FC<{
           </Link>
 
           <nav className="hidden lg:flex items-center gap-7">
-            {navLinks.map((link) => (
+            {(user
+              ? navLinks
+              : [
+                  { name: "Product", path: "/search", icon: "fa-search" },
+                  { name: "Pricing", path: "/pricing", icon: "fa-tags" },
+                ]
+            ).map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
                 className={`relative text-sm font-medium transition-colors ${
-                  isActive(link.path)
-                    ? "text-accent"
-                    : "text-slate-500 hover:text-slate-900"
+                  isActive(link.path) ? "text-accent" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 {link.name}
@@ -100,9 +104,14 @@ export const Navigation: React.FC<{
               </button>
             </div>
           ) : (
-            <button onClick={onSignInClick} className="de-btn-primary text-sm">
-              Sign in
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={onSignInClick} className="text-sm font-medium text-slate-500 hover:text-slate-900 hidden sm:block">
+                Sign in
+              </button>
+              <Link to="/pricing" className="de-btn-accent text-sm">
+                Get Pro →
+              </Link>
+            </div>
           )}
 
           <button

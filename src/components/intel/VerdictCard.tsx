@@ -19,7 +19,7 @@ const VerdictCard: React.FC<VerdictCardProps> = ({
       <ScoreRing score={health} size={72} showLabel />
       <div>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{name}</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">{name}</h1>
           {healthDelta !== 0 && (
             <span
               className={`text-2xs font-semibold rounded-control px-2 py-1 ${

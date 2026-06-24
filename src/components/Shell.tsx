@@ -47,19 +47,23 @@ export const Navigation: React.FC<{
           </Link>
 
           <nav className="hidden lg:flex items-center gap-7">
-            {navLinks.map((link) => (
+            {(user
+              ? navLinks
+              : [
+                  { name: "Product", path: "/search", icon: "fa-search" },
+                  { name: "Pricing", path: "/pricing", icon: "fa-tags" },
+                ]
+            ).map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
                 className={`relative text-sm font-medium transition-colors ${
-                  isActive(link.path)
-                    ? "text-accent"
-                    : "text-slate-500 hover:text-slate-900"
+                  isActive(link.path) ? "text-accent" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 {link.name}
                 {link.path === "/my-intel" && notificationCount > 0 && (
-                  <span className="absolute -top-1.5 -right-3 bg-signal-risk text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                  <span className="absolute -top-2 -right-3.5 bg-signal-risk text-white text-2xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white">
                     {notificationCount}
                   </span>
                 )}
@@ -100,9 +104,14 @@ export const Navigation: React.FC<{
               </button>
             </div>
           ) : (
-            <button onClick={onSignInClick} className="de-btn-primary text-sm">
-              Sign in
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={onSignInClick} className="text-sm font-medium text-slate-500 hover:text-slate-900 hidden sm:block">
+                Sign in
+              </button>
+              <Link to="/pricing" className="de-btn-accent text-sm">
+                Get Pro →
+              </Link>
+            </div>
           )}
 
           <button

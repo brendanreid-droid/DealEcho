@@ -40,9 +40,8 @@ export default {
         },
       },
       fontFamily: {
-        // Display: Space Grotesk (hero headline + big numbers only)
-        display: ["'Space Grotesk'", "system-ui", "sans-serif"],
-        // Body: Inter (everything else)
+        // Inter is the single display + body face
+        display: ["Inter", "system-ui", "sans-serif"],
         sans: ["Inter", "system-ui", "sans-serif"],
         // Data: JetBrains Mono (scores, metric figures)
         mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],

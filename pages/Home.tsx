@@ -8,7 +8,6 @@ import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 import { MappedUser } from "../src/hooks/useAuth";
 import Button from "../src/components/ui/Button";
 import SectionHeading from "../src/components/ui/SectionHeading";
-import StatStrip from "../src/components/ui/StatStrip";
 import CtaBand from "../src/components/ui/CtaBand";
 import { Eye, Flag, Zap } from "lucide-react";
 
@@ -30,7 +29,7 @@ const BENEFITS = [
 
 const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
   useSEO({
-    title: "DealEcho - Crowdsourced B2B Sales Intelligence & Account Insights",
+    title: "dealecho - Sales Intelligence",
     description:
       "Know the buyer before the first call. Verified B2B buyer intelligence, red-flag analysis, and buying-team personas for elite tech accounts.",
     keywords: "B2B sales intelligence, MEDDPICC, buying teams, account planning, DealEcho",
@@ -74,8 +73,6 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
       });
   }, [reviewSummaries]);
 
-  const accountsCovered = companies.length;
-
   return (
     <div className="bg-slate-50 min-h-screen">
       {/* Hero */}
@@ -83,7 +80,7 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 font-mono text-2xs uppercase tracking-[0.16em] text-signal-healthy-bright mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-signal-healthy-bright animate-pulse-soft" />
-            Live · {reviewSummaries.length.toLocaleString()} verified deal reports
+            Live deal intelligence
           </div>
           <h1 className="font-extrabold text-4xl md:text-6xl leading-[1.04] tracking-tight mb-5">
             Know the buyer before
@@ -93,18 +90,9 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
             Crowdsourced intelligence from real enterprise sales cycles. See how target accounts actually buy — before you spend a quarter finding out.
           </p>
           <div className="flex flex-wrap gap-3 justify-center mb-10">
-            <Button variant="primary" to="/pricing">Start 7-day Pro trial</Button>
+            <Button variant="primary" to="/pricing">Start 30-day Pro trial</Button>
             <Button variant="outline" to="/search" className="!text-white !border-white/25 hover:!border-white/50">Search an account</Button>
           </div>
-          <StatStrip
-            dark
-            stats={[
-              { n: reviewSummaries.length, l: "Verified reports" },
-              { n: accountsCovered, l: "Accounts covered" },
-              { n: 38, l: "Industries" },
-              { n: 92, l: "Seller-verified", suffix: "%" },
-            ]}
-          />
         </div>
       </section>
 
@@ -146,7 +134,7 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
       <CtaBand
         headline="Stop walking into deals blind."
         subtext="Full red-flag analysis, buyer personas, and deal mechanics on every account. Cancel anytime."
-        ctaLabel="Start your 7-day trial"
+        ctaLabel="Start your 30-day trial"
         to="/pricing"
       />
     </div>

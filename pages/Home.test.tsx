@@ -26,7 +26,7 @@ describe("Home", () => {
       </MemoryRouter>,
     );
     expect(screen.getByText(/Know the buyer/)).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /Start 7-day Pro trial/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /Start 30-day Pro trial/ }).length).toBeGreaterThan(0);
     expect(screen.getByText("Snowflake")).toBeInTheDocument();
   });
 });

@@ -14,6 +14,7 @@ import TrendStrip from "../src/components/intel/TrendStrip";
 import Playbook from "../src/components/intel/Playbook";
 import EvidenceList from "../src/components/intel/EvidenceList";
 import { getAccountSignal, AccountSignal } from "../services/accountSignal";
+import Button from "../src/components/ui/Button";
 
 interface CompanyProfileProps {
   user: MappedUser | null;
@@ -280,24 +281,10 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       />
 
       <div className="flex flex-wrap gap-3">
-        <button
-          onClick={handleTrackToggle}
-          className={`px-5 py-2.5 rounded-control text-2xs font-semibold uppercase tracking-widest transition-colors ${
-            !user
-              ? "bg-slate-200 text-slate-500 hover:bg-slate-300"
-              : isTracking
-                ? "bg-signal-healthy text-white"
-                : "bg-accent text-white hover:bg-accent-700"
-          }`}
-        >
+        <Button variant="primary" onClick={handleTrackToggle}>
           {isTracking ? "Tracking account" : "Track account"}
-        </button>
-        <button
-          onClick={handleLeaveReview}
-          className="px-5 py-2.5 rounded-control text-2xs font-semibold uppercase tracking-widest bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 transition-colors"
-        >
-          Leave review
-        </button>
+        </Button>
+        <Button variant="outline" onClick={handleLeaveReview}>Leave review</Button>
       </div>
 
       <section aria-labelledby="flags-heading" className="space-y-2">

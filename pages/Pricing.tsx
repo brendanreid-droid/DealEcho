@@ -6,6 +6,7 @@ import { db } from "../src/firebase/config";
 import { useAuth, MappedUser } from "../src/hooks/useAuth";
 import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
+import CtaBand from "../src/components/ui/CtaBand";
 
 interface PricingProps {
   user: MappedUser | null;
@@ -300,6 +301,12 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
           Contact sales for enterprise
         </button>
       </div>
+      <CtaBand
+        headline="Ready to stop guessing?"
+        subtext="Start your 7-day Pro trial. Cancel anytime."
+        ctaLabel="Start free trial"
+        to="/pricing"
+      />
     </div>
   );
 };

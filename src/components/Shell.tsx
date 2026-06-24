@@ -63,7 +63,7 @@ export const Navigation: React.FC<{
               >
                 {link.name}
                 {link.path === "/my-intel" && notificationCount > 0 && (
-                  <span className="absolute -top-1.5 -right-3 bg-signal-risk text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                  <span className="absolute -top-2 -right-3.5 bg-signal-risk text-white text-2xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white">
                     {notificationCount}
                   </span>
                 )}

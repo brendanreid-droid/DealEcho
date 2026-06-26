@@ -22,7 +22,7 @@ describe("Navigation", () => {
         <Navigation user={{ name: "Sam", avatar: "" } as any} isAdmin={false} isPaid={true} onSignInClick={noop} onLogout={noop} notificationCount={0} />
       </MemoryRouter>,
     );
-    expect(screen.getByText("My intel")).toBeInTheDocument();
+    expect(screen.getByText("My Intel")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Get Pro/ })).not.toBeInTheDocument();
   });
 });

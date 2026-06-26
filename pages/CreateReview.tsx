@@ -497,7 +497,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   ]}
                 />
                 <ScorecardCard
-                  label="Negotiation Ease"
+                  label="Negotiation"
                   value={negotiation}
                   onChange={setNegotiation}
                   icon="fa-handshake"

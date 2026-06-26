@@ -25,7 +25,7 @@ describe("Home", () => {
         <Home user={null} isPaid={false} onSignInClick={() => {}} reviewSummaries={[summary]} trackedIds={[]} onToggleTrack={() => {}} />
       </MemoryRouter>,
     );
-    expect(screen.getByText(/Know the buyer/)).toBeInTheDocument();
+    expect(screen.getByText(/An intelligence layer/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /Start 30-day Pro trial/ }).length).toBeGreaterThan(0);
     expect(screen.getByText("Snowflake")).toBeInTheDocument();
   });

@@ -23,8 +23,8 @@ export const Navigation: React.FC<{
   // NOTE: Search now points to /search (was "/"), fixing the active-state bug.
   const navLinks = [
     { name: "Search", path: "/search", icon: "fa-search" },
-    { name: "Write review", path: "/review/new", icon: "fa-pen-nib" },
-    { name: "My intel", path: "/my-intel", icon: "fa-user-circle" },
+    { name: "Write Review", path: "/review/new", icon: "fa-pen-nib" },
+    { name: "My Intel", path: "/my-intel", icon: "fa-user-circle" },
     { name: "Analytics", path: "/trends", icon: "fa-chart-line" },
     { name: "Pricing", path: "/pricing", icon: "fa-tags" },
   ];
@@ -43,7 +43,7 @@ export const Navigation: React.FC<{
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center font-display font-bold text-[19px] tracking-tight gap-2">
             <span className="w-2 h-2 rounded-full bg-signal-healthy shadow-[0_0_8px_rgba(16,185,129,.6)] animate-pulse-soft" />
-            dealecho
+            deal<span className="text-accent">echo</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-7">
@@ -183,7 +183,7 @@ export const Footer: React.FC = () => (
             dealecho
           </div>
           <p className="text-slate-400 text-xs leading-relaxed">
-            Crowdsourced B2B buyer intelligence from real enterprise sales cycles.
+            B2B buyer intelligence from real enterprise sales cycles.
           </p>
         </div>
 
@@ -220,7 +220,7 @@ export const Footer: React.FC = () => (
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-6 border-t border-slate-100 text-xs text-slate-400">
-        <span>© {new Date().getFullYear()} DealEcho.io. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} dealecho.io. All rights reserved.</span>
         <span className="flex items-center gap-2">
           <Icon name="fa-shield-alt" size={13} className="text-slate-400" />
           Reviews are moderated &amp; anonymised

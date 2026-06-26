@@ -294,7 +294,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
           The enterprise choice
         </h4>
         <p className="text-slate-500 max-w-xl mx-auto text-sm leading-relaxed mb-8">
-          Need a license for your whole sales team? Get centralized billing, admin
+          Need a license for your whole sales team? Get centralised billing, admin
           controls, and private data silos.
         </p>
         <button className="text-accent font-bold text-2xs uppercase tracking-[0.2em] border-b-2 border-accent-100 hover:border-accent transition-all pb-0.5">

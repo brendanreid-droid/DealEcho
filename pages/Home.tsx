@@ -83,11 +83,11 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
             Live deal intelligence
           </div>
           <h1 className="font-extrabold text-4xl md:text-6xl leading-[1.04] tracking-tight mb-5">
-            Know the buyer before
-            <br className="hidden sm:block" /> the <span className="text-accent-soft">first call.</span>
+            An intelligence layer
+            <br className="hidden sm:block" /> to your <span className="text-accent-soft">sales cycle</span>
           </h1>
           <p className="text-lg text-slate-300 max-w-xl mx-auto mb-9 leading-relaxed">
-            Crowdsourced intelligence from real enterprise sales cycles. See how target accounts actually buy — before you spend a quarter finding out.
+            Purveyor of intelligence from enterprise sales cycles. See how target accounts actually buy, before you spend a quarter finding out.
           </p>
           <div className="flex flex-wrap gap-3 justify-center mb-10">
             <Button variant="primary" to="/pricing">Start 30-day Pro trial</Button>

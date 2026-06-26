@@ -34,7 +34,7 @@ export const Navigation: React.FC<{
 
   const isActive = (path: string) =>
     path === "/search"
-      ? location.pathname === "/" || location.pathname.startsWith("/search")
+      ? location.pathname.startsWith("/search")
       : location.pathname === path;
 
   return (
@@ -43,7 +43,7 @@ export const Navigation: React.FC<{
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center font-display font-bold text-[19px] tracking-tight gap-2">
             <span className="w-2 h-2 rounded-full bg-signal-healthy shadow-[0_0_8px_rgba(16,185,129,.6)] animate-pulse-soft" />
-            deal<span className="text-accent">echo</span>
+            <span>deal<span className="text-accent">echo</span></span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-7">

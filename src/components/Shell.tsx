@@ -180,7 +180,7 @@ export const Footer: React.FC = () => (
         <div className="col-span-2 md:col-span-1">
           <div className="font-display font-bold text-[17px] tracking-tight flex items-center gap-2 mb-2">
             <span className="w-2 h-2 rounded-full bg-signal-healthy" />
-            dealecho
+            <span>deal<span className="text-accent">echo</span></span>
           </div>
           <p className="text-slate-400 text-xs leading-relaxed">
             B2B buyer intelligence from real enterprise sales cycles.

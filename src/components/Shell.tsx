@@ -50,7 +50,7 @@ export const Navigation: React.FC<{
             {(user
               ? navLinks
               : [
-                  { name: "Product", path: "/search", icon: "fa-search" },
+                  { name: "Search", path: "/", icon: "fa-search" },
                   { name: "Pricing", path: "/pricing", icon: "fa-tags" },
                 ]
             ).map((link) => (

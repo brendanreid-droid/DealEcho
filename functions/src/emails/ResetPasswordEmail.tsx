@@ -13,7 +13,7 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ name, em
 
   return (
     <DealEchoEmailLayout 
-      previewTextText="Reset your DealEcho.io password. Choose a new secure password."
+      previewTextText="Reset your dealecho.io password. Choose a new secure password."
       userEmail={email}
     >
       <Heading style={h1}>Reset your password</Heading>
@@ -23,7 +23,7 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ name, em
       </Text>
 
       <Text style={paragraph}>
-        We received a request to reset the password for your **DealEcho.io** account. 
+        We received a request to reset the password for your **dealecho.io** account.
         If you made this request, please click the button below to choose a new secure password:
       </Text>
 
@@ -46,7 +46,7 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ name, em
 
       <Text style={signoff}>
         Good selling,<br />
-        <strong>The DealEcho Team</strong>
+        <strong>The dealecho Team</strong>
       </Text>
     </DealEchoEmailLayout>
   );

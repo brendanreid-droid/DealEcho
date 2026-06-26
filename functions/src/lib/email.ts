@@ -13,7 +13,7 @@ export async function sendReactEmail({
   to,
   subject,
   component,
-  from = "DealEcho <no-reply@dealecho.io>",
+  from = "dealecho <no-reply@dealecho.io>",
 }: SendEmailParams) {
   try {
     const resendApiKey = process.env.RESEND_API_KEY;

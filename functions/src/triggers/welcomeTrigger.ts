@@ -43,7 +43,7 @@ export const sendWelcomeEmail = functions
     try {
       await sendReactEmail({
         to: email,
-        subject: "Welcome to DealEcho.io - Let's optimize your sales intelligence",
+        subject: "Welcome to dealecho.io - Let's optimize your sales intelligence",
         component: welcomeComponent,
       });
     } catch (err) {

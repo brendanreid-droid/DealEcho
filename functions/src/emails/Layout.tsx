@@ -46,10 +46,10 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
           <Section style={footerSection}>
             <Hr style={divider} />
             <Text style={footerText}>
-              &copy; {new Date().getFullYear()} DealEcho.io. All rights reserved.
+              &copy; {new Date().getFullYear()} dealecho.io. All rights reserved.
             </Text>
             <Text style={footerSubtext}>
-              You received this email because you are a registered member of DealEcho.io.
+              You received this email because you are a registered member of dealecho.io.
               {userEmail && ` Sent to ${userEmail}.`}
             </Text>
             <Text style={footerLinks}>

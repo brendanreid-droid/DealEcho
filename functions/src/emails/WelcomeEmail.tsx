@@ -12,17 +12,17 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ name, email }) => {
   
   return (
     <DealEchoEmailLayout 
-      previewTextText="Welcome to DealEcho! Access crowdsourced enterprise deal mechanics."
+      previewTextText="Welcome to dealecho! Access enterprise deal mechanics."
       userEmail={email}
     >
       <Heading style={h1}>Welcome, {firstName}!</Heading>
       
       <Text style={paragraph}>
-        We are thrilled to welcome you to **DealEcho.io**—the premier crowdsourced intelligence layer for enterprise B2B sales cycles.
+        We are thrilled to welcome you to **dealecho.io**, the premier intelligence layer for enterprise B2B sales cycles.
       </Text>
 
       <Text style={paragraph}>
-        By joining our verified network of B2B sales professionals, you now have access to crowdsourced account insights, buying team behaviors, and real-time deal mechanics to optimize your close rate.
+        By joining our verified network of B2B sales professionals, you now have access to account insights, buying team behaviors, and real-time deal mechanics to optimize your close rate.
       </Text>
 
       <Section style={valuePropsContainer}>
@@ -45,7 +45,7 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ name, email }) => {
 
       <Text style={signoff}>
         Good selling,<br />
-        <strong>The DealEcho Team</strong>
+        <strong>The dealecho Team</strong>
       </Text>
     </DealEchoEmailLayout>
   );

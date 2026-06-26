@@ -15,20 +15,20 @@ export const InviteEmail: React.FC<InviteEmailProps> = ({ name, email, role, set
   const roleLabels: Record<string, string> = {
     free: "Free (Pioneer Plan)",
     paid: "Sales Pro Member (Paid)",
-    admin: "DealEcho Administrator",
+    admin: "dealecho Administrator",
     free_full: "Free Full (Complimentary Full Access)",
   };
   const roleLabel = roleLabels[role] || role;
 
   return (
     <DealEchoEmailLayout 
-      previewTextText="You have been invited to join DealEcho.io. Activate your account now."
+      previewTextText="You have been invited to join dealecho.io. Activate your account now."
       userEmail={email}
     >
-      <Heading style={h1}>Welcome to DealEcho, {firstName}!</Heading>
+      <Heading style={h1}>Welcome to dealecho, {firstName}!</Heading>
       
       <Text style={paragraph}>
-        An administrator has manually created an account for you on **DealEcho.io**—the premier crowdsourced intelligence layer for enterprise B2B sales cycles.
+        An administrator has manually created an account for you on **dealecho.io**, the premier intelligence layer for enterprise B2B sales cycles.
       </Text>
 
       <Text style={paragraph}>
@@ -59,7 +59,7 @@ export const InviteEmail: React.FC<InviteEmailProps> = ({ name, email, role, set
 
       <Text style={signoff}>
         Good selling,<br />
-        <strong>The DealEcho Team</strong>
+        <strong>The dealecho Team</strong>
       </Text>
     </DealEchoEmailLayout>
   );

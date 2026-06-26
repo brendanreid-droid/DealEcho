@@ -100,7 +100,7 @@ export const onReviewCreated = onDocumentCreated(
         });
         return sendReactEmail({
           to: email,
-          subject: `🔔 DealEcho Alert: New Review for ${companyName}`,
+          subject: `🔔 dealecho Alert: New Review for ${companyName}`,
           component,
         });
       });

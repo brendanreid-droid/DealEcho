@@ -47,7 +47,7 @@ export const NewsletterEmail: React.FC<NewsletterEmailProps> = ({
 
       <Text style={signoff}>
         Good selling,<br />
-        <strong>The DealEcho Team</strong>
+        <strong>The dealecho Team</strong>
       </Text>
 
       {/* Transparent 1x1 GIF tracking pixel */}

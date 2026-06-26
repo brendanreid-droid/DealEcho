@@ -22,8 +22,8 @@ interface HomeProps {
 }
 
 const BENEFITS = [
-  { Icon: Eye, title: "See how they buy", body: "Responsiveness, negotiation style, and decision process — before your first call." },
-  { Icon: Flag, title: "Spot red flags early", body: "Ghosting, brutal procurement, champion risk — surfaced from real seller reports." },
+  { Icon: Eye, title: "See how they buy", body: "Responsiveness, negotiation style, and decision process, before your first call." },
+  { Icon: Flag, title: "Spot red flags early", body: "Ghosting, brutal procurement, champion risk, surfaced from real seller reports." },
   { Icon: Zap, title: "Win faster", body: "Walk in with the playbook instead of spending a quarter discovering it." },
 ];
 

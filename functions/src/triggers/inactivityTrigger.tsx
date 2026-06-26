@@ -12,10 +12,10 @@ const ReengagementEmail: React.FC<{ name: string; email: string }> = ({ name, em
       We miss you, {name.split(" ")[0]}!
     </Heading>
     <Text style={{ color: "#334155", fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0" }}>
-      It's been a while since your last log in on **DealEcho.io**. Since you left, our sales intelligence network has added fresh verified buy-side ratings, pricing structures, and stakeholder patterns on key enterprise accounts.
+      It's been a while since your last log in on **dealecho.io**. Since you left, our sales intelligence network has added fresh verified buy-side ratings, pricing structures, and stakeholder patterns on key enterprise accounts.
     </Text>
     <Text style={{ color: "#334155", fontSize: "14px", lineHeight: "1.6", margin: "0 0 24px 0" }}>
-      Stay ahead of your pipeline. Access the latest crowdsourced buyer intelligence and adjust your closing strategies.
+      Stay ahead of your pipeline. Access the latest buyer intelligence and adjust your closing strategies.
     </Text>
     <Section style={{ textAlign: "center", margin: "32px 0" }}>
       <Button href="https://dealecho.io" style={{ backgroundColor: "#4f46e5", color: "#ffffff", padding: "16px 32px", borderRadius: "14px", fontWeight: "800", textDecoration: "none", display: "inline-block" }}>
@@ -84,7 +84,7 @@ export const checkInactiveUsers = onSchedule(
         // Send email via Resend React helper
         return sendReactEmail({
           to: email,
-          subject: "Stay ahead of your pipeline with DealEcho.io",
+          subject: "Stay ahead of your pipeline with dealecho.io",
           component,
         });
       });

@@ -22,7 +22,7 @@ export const Navigation: React.FC<{
 
   // NOTE: Search now points to /search (was "/"), fixing the active-state bug.
   const navLinks = [
-    { name: "Search", path: "/search", icon: "fa-search" },
+    { name: "Search", path: "/", icon: "fa-search" },
     { name: "Write Review", path: "/review/new", icon: "fa-pen-nib" },
     { name: "My Intel", path: "/my-intel", icon: "fa-user-circle" },
     { name: "Analytics", path: "/trends", icon: "fa-chart-line" },

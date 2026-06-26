@@ -89,10 +89,39 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
           <p className="text-lg text-slate-300 max-w-xl mx-auto mb-9 leading-relaxed">
             Purveyor of intelligence from enterprise sales cycles. See how target accounts actually buy, before you spend a quarter finding out.
           </p>
-          <div className="flex flex-wrap gap-3 justify-center mb-10">
+          <div className="flex justify-center mb-7">
             <Button variant="primary" to="/pricing">Start 30-day Pro trial</Button>
-            <Button variant="outline" to="/search" className="!text-white !border-white/25 hover:!border-white/50">Search an account</Button>
           </div>
+          <form onSubmit={handleSearch} className="max-w-xl mx-auto">
+            <div className="relative">
+              <svg
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search any company"
+                aria-label="Company search"
+                className="w-full rounded-card bg-white text-slate-900 placeholder-slate-400 pl-12 pr-28 py-4 text-base shadow-hero focus:outline-none focus:ring-4 focus:ring-accent/40"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 top-2 bottom-2 bg-accent text-white px-6 rounded-control font-bold text-sm hover:bg-accent-700 transition-colors"
+              >
+                Search
+              </button>
+            </div>
+          </form>
         </div>
       </section>
 

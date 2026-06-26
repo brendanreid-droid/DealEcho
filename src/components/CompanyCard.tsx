@@ -30,6 +30,15 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company, isPro }) => {
   return (
     <Link
       to={`/company/${company.id}`}
+      state={{
+        company: {
+          id: company.id,
+          name: company.name,
+          industry: company.industry,
+          country: company.location,
+          logoUrl: company.logoUrl,
+        },
+      }}
       className="de-card-interactive p-6 block group"
     >
       {/* Header: logo + name + score ring */}

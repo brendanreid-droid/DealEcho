@@ -274,10 +274,10 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       <VerdictCard
         name={company.name}
         meta={`${company.industry} \u00b7 ${company.country}`}
-        health={hasReviews ? statsSummary.healthIndex : 0}
+        health={hasReviews ? statsSummary.healthIndex : (company.healthIndex ?? 0)}
         healthDelta={healthDelta}
         headline={signal?.headline ?? company.description ?? ""}
-        reportCount={companyReviews.length}
+        reportCount={hasReviews ? companyReviews.length : (company.reports ?? 0)}
       />
 
       <div className="flex flex-wrap gap-3">

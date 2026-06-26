@@ -8,6 +8,8 @@ export interface Company {
   description?: string;
   logoUrl?: string;
   rating?: number;
+  healthIndex?: number;
+  reports?: number;
 }
 
 export interface Review {

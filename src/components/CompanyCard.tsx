@@ -37,6 +37,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company, isPro }) => {
           industry: company.industry,
           country: company.location,
           logoUrl: company.logoUrl,
+          healthIndex: company.healthIndex,
+          reports: company.reports,
         },
       }}
       className="de-card-interactive p-6 block group"

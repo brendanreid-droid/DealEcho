@@ -82,13 +82,22 @@ export const inviteTeamMember = onCall({ cors: true, secrets: ['RESEND_API_KEY']
   const inviterName = inviterRecord.displayName || inviterRecord.email?.split('@')[0] || 'Your team manager';
   const acceptUrl = `${FRONTEND_URL}/invite/accept?token=${inviteToken}`;
 
-  await sendReactEmail({
-    to: email,
-    subject: `${inviterName} invited you to DealEcho Enterprise`,
-    component: React.createElement(TeamInviteEmail, { inviterName, teamRole, acceptUrl, recipientEmail: email }),
-  });
+  // Member doc is already written above; don't fail the whole invite if email send errors.
+  let emailSent = true;
+  let emailError = '';
+  try {
+    await sendReactEmail({
+      to: email,
+      subject: `${inviterName} invited you to DealEcho Enterprise`,
+      component: React.createElement(TeamInviteEmail, { inviterName, teamRole, acceptUrl, recipientEmail: email }),
+    });
+  } catch (e: any) {
+    emailSent = false;
+    emailError = e?.message || String(e);
+    console.error('inviteTeamMember email send failed:', e);
+  }
 
-  return { success: true };
+  return { success: true, emailSent, emailError };
 });
 
 // ── acceptTeamInvite ─────────────────────────────────────────────────────────

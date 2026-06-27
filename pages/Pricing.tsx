@@ -35,7 +35,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
 
   const { search } = useLocation();
   const navigate = useNavigate();
-  const { refreshClaims } = useAuth();
+  const { refreshClaims, tier } = useAuth();
   const functions = getFunctions(undefined, "australia-southeast1");
 
   useEffect(() => {
@@ -137,6 +137,29 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     }
   };
 
+  const handleEnterpriseSubscribe = async () => {
+    if (!user) {
+      setMessage({ text: "Please sign in to upgrade your account.", type: "info" });
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      const createEnterpriseCheckout = httpsCallable<
+        Record<string, never>,
+        { sessionUrl: string }
+      >(functions, "createEnterpriseCheckout");
+      const result = await createEnterpriseCheckout({});
+      if (result.data.sessionUrl) window.location.href = result.data.sessionUrl;
+    } catch (err: any) {
+      console.error("Enterprise checkout error:", err);
+      setMessage({
+        text: err.message || "Failed to start checkout. Please try again.",
+        type: "error",
+      });
+      setIsProcessing(false);
+    }
+  };
+
   const proFeatures = [
     "Unlimited tracked accounts",
     "AI account persona intelligence",
@@ -149,6 +172,13 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     "Basic review feeds",
     "Submit intelligence",
     "3 tracked accounts",
+  ];
+  const enterpriseFeatures = [
+    "All Pro features",
+    "Team management dashboard",
+    "Manager & user roles",
+    "Add seats any time",
+    "Immediate seat proration",
   ];
 
   return (
@@ -206,7 +236,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
         {/* Free */}
         <div className="de-card p-10 flex flex-col h-full">
           <div className="mb-8">
@@ -287,19 +317,41 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
             </div>
           )}
         </div>
-      </div>
 
-      <div className="mt-20 de-card p-12 text-center">
-        <h4 className="font-display text-xl font-semibold text-slate-900 mb-4">
-          The enterprise choice
-        </h4>
-        <p className="text-slate-500 max-w-xl mx-auto text-sm leading-relaxed mb-8">
-          Need a license for your whole sales team? Get centralised billing, admin
-          controls, and private data silos.
-        </p>
-        <button className="text-accent font-bold text-2xs uppercase tracking-[0.2em] border-b-2 border-accent-100 hover:border-accent transition-all pb-0.5">
-          Contact sales for enterprise
-        </button>
+        {/* Enterprise */}
+        <div className="de-card p-10 flex flex-col h-full">
+          <div className="mb-8">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Enterprise</h3>
+            <div className="flex items-baseline">
+              <span className="font-display text-4xl font-bold text-slate-900">$65</span>
+              <span className="text-slate-400 text-sm ml-2">/mo</span>
+            </div>
+            <p className="text-slate-400 text-2xs font-semibold uppercase tracking-wider mt-2">
+              5 seats included · $13/mo per additional user
+            </p>
+          </div>
+          <ul className="space-y-3.5 mb-10 flex-grow">
+            {enterpriseFeatures.map((item) => (
+              <li key={item} className="flex items-center text-slate-600 text-sm">
+                <Icon name="fa-check" size={16} className="text-signal-healthy mr-3" />
+                {item}
+              </li>
+            ))}
+          </ul>
+          {tier === 'enterprise' ? (
+            <button className="w-full py-4 rounded-control border-2 border-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed">
+              Active plan
+            </button>
+          ) : (
+            <button
+              onClick={handleEnterpriseSubscribe}
+              disabled={isProcessing || isPaid}
+              className="w-full py-4 rounded-control bg-accent hover:bg-accent-700 text-white font-bold text-sm uppercase tracking-wider transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? "Processing…" : "Get Enterprise"}
+            </button>
+          )}
+        </div>
       </div>
       <CtaBand
         headline="Ready to stop guessing?"

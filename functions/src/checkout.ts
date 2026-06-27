@@ -162,3 +162,66 @@ export const cancelSubscription = onCall(
     return { success: true };
   },
 );
+
+/**
+ * Creates a Stripe Checkout Session for the Enterprise tier.
+ * $13/seat/month, minimum 5 seats, no trial.
+ */
+export const createEnterpriseCheckout = onCall({ cors: true }, async (request) => {
+  const stripe = getStripe();
+
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'You must be signed in to subscribe.');
+  }
+
+  const uid = request.auth.uid;
+  const email = request.auth.token.email ?? '';
+  const callerRole = (request.auth.token as any).role;
+
+  if (callerRole === 'paid' || callerRole === 'admin') {
+    throw new HttpsError(
+      'already-exists',
+      'You already have an active subscription. Manage it from your account settings.',
+    );
+  }
+
+  const userRef = db.collection('users').doc(uid);
+  const userSnap = await userRef.get();
+  const userData = userSnap.data();
+  let stripeCustomerId: string | undefined = userData?.stripeCustomerId;
+
+  if (!stripeCustomerId) {
+    const customer = await stripe.customers.create({
+      email,
+      metadata: { firebaseUID: uid },
+    });
+    stripeCustomerId = customer.id;
+    await userRef.set({ stripeCustomerId }, { merge: true });
+  }
+
+  const pricingSnap = await db.collection('config').doc('pricing').get();
+  const pricingData = pricingSnap.data();
+  const priceId: string =
+    pricingData?.enterprisePriceId ?? process.env.STRIPE_ENTERPRISE_PRICE_ID!;
+
+  if (!priceId) {
+    throw new HttpsError('internal', 'Enterprise price not configured.');
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'subscription',
+    customer: stripeCustomerId,
+    payment_method_types: ['card'],
+    line_items: [{ price: priceId, quantity: 5 }],
+    success_url: `${frontendUrl}/settings/team?checkout=success`,
+    cancel_url: `${frontendUrl}/pricing?checkout=cancelled`,
+    metadata: { firebaseUID: uid, plan: 'enterprise' },
+    subscription_data: {
+      metadata: { firebaseUID: uid, plan: 'enterprise' },
+    },
+  });
+
+  return { sessionUrl: session.url };
+});

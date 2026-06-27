@@ -36,7 +36,7 @@ jobs:
         working-directory: functions
 
       - name: Deploy functions
-        run: firebase deploy --only functions
+        run: firebase deploy --only functions:adminCreateUser --force
  
 
 

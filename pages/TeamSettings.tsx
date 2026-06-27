@@ -32,16 +32,35 @@ const TeamSettings: React.FC = () => {
   const fns = getFunctions();
 
   useEffect(() => {
-    if (!teamId) return;
-
-    const unsubTeam = onSnapshot(doc(db, 'teams', teamId), (snap) => {
-      if (snap.exists()) setTeam(snap.data() as Team);
-    });
-
-    const unsubMembers = onSnapshot(collection(db, 'teams', teamId, 'members'), (snap) => {
-      setMembers(snap.docs.map((d) => ({ uid: d.id, ...d.data() } as TeamMember)));
+    if (!teamId) {
       setLoading(false);
-    });
+      setError('No team found on your account. Try logging out and back in; if it persists your team record may not have been created.');
+      return;
+    }
+
+    const unsubTeam = onSnapshot(
+      doc(db, 'teams', teamId),
+      (snap) => {
+        if (snap.exists()) setTeam(snap.data() as Team);
+        setLoading(false);
+      },
+      (err) => {
+        setError(`Could not load team: ${err.message}`);
+        setLoading(false);
+      },
+    );
+
+    const unsubMembers = onSnapshot(
+      collection(db, 'teams', teamId, 'members'),
+      (snap) => {
+        setMembers(snap.docs.map((d) => ({ uid: d.id, ...d.data() } as TeamMember)));
+        setLoading(false);
+      },
+      (err) => {
+        setError(`Could not load members: ${err.message}`);
+        setLoading(false);
+      },
+    );
 
     return () => { unsubTeam(); unsubMembers(); };
   }, [teamId]);

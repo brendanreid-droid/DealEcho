@@ -38,6 +38,8 @@ const TeamSettings: React.FC = () => {
       return;
     }
 
+    setError('');
+
     const unsubTeam = onSnapshot(
       doc(db, 'teams', teamId),
       (snap) => {

@@ -9,7 +9,7 @@ import * as React from "react";
 import { InviteEmail } from "./emails/InviteEmail";
 import { NewsletterEmail } from "./emails/NewsletterEmail";
 
-type UserRole = "free" | "paid" | "admin" | "free_full";
+type UserRole = "free" | "paid" | "admin" | "free_full" | "enterprise";
 
 /** Guard: ensures caller has admin custom claim */
 function requireAdmin(request: CallableRequest<any>) {
@@ -309,10 +309,10 @@ export const adminCreateUser = onCall(
       );
     }
 
-    if (!["free", "paid", "admin", "free_full"].includes(role)) {
+    if (!["free", "paid", "admin", "free_full", "enterprise"].includes(role)) {
       throw new HttpsError(
         "invalid-argument",
-        "Role must be free, paid, admin, or free_full."
+        "Role must be free, paid, admin, free_full, or enterprise."
       );
     }
 
@@ -334,18 +334,27 @@ export const adminCreateUser = onCall(
 
       // 2. Set custom claims
       const tier =
-        role === "paid" ? "paid_monthly" : role === "admin" ? "admin" : role === "free_full" ? "free_full" : "free";
-      await auth.setCustomUserClaims(uid, { role, tier });
+        role === "paid" ? "paid_monthly" :
+        role === "admin" ? "admin" :
+        role === "free_full" ? "free_full" :
+        role === "enterprise" ? "enterprise" :
+        "free";
+      // For enterprise, role claim is "paid"; enterprise is expressed via tier
+      const firestoreRole = role === "enterprise" ? "paid" : role;
+      await auth.setCustomUserClaims(uid, { role: firestoreRole, tier });
 
       // 3. Create Firestore user document
       const subscriptionStatus =
-        role === "paid" ? "active" : role === "admin" ? null : role === "free_full" ? "free_full" : null;
+        role === "paid" || role === "enterprise" ? "active" :
+        role === "admin" ? null :
+        role === "free_full" ? "free_full" :
+        null;
 
       const userData = {
         uid,
         email,
         displayName,
-        role,
+        role: firestoreRole,
         tier,
         subscriptionStatus,
         createdAt: new Date().toISOString(),
@@ -358,6 +367,39 @@ export const adminCreateUser = onCall(
       };
 
       await db.collection("users").doc(uid).set(userData);
+
+      // 3b. If enterprise, create team and override claims with teamId/teamRole
+      if (role === "enterprise") {
+        const teamRef = db.collection("teams").doc();
+        const teamId = teamRef.id;
+        const now = new Date().toISOString();
+        await teamRef.set({
+          ownerId: uid,
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          seats: 5,
+          createdAt: now,
+        });
+        await teamRef.collection("members").doc(uid).set({
+          uid,
+          email,
+          teamRole: "manager",
+          status: "active",
+          invitedAt: now,
+          joinedAt: now,
+        });
+        await db.collection("users").doc(uid).set(
+          { teamId, teamRole: "manager" },
+          { merge: true },
+        );
+        // Override claims with enterprise + team fields
+        await auth.setCustomUserClaims(uid, {
+          role: "paid",
+          tier: "enterprise",
+          teamId,
+          teamRole: "manager",
+        });
+      }
 
       // 4. Generate password reset link
       const actionCodeSettings = {

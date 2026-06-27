@@ -7,7 +7,7 @@ import { useAuth } from "../src/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type UserRole = "free" | "paid" | "admin" | "free_full";
+type UserRole = "free" | "paid" | "admin" | "free_full" | "enterprise";
 
 interface AdminUser {
   uid: string;
@@ -45,6 +45,7 @@ const ROLE_STYLES: Record<UserRole, string> = {
   paid: "bg-emerald-100 text-emerald-700 border border-emerald-200",
   free_full: "bg-sky-100 text-sky-700 border border-sky-200",
   free: "bg-slate-100 text-slate-500 border border-slate-200",
+  enterprise: "bg-violet-100 text-violet-700 border border-violet-200",
 };
 
 const RoleBadge: React.FC<{ role: UserRole }> = ({ role }) => (
@@ -1817,6 +1818,9 @@ const Admin: React.FC = () => {
                       </option>
                       <option value="admin" className="bg-[#0f172a] text-white">
                         Administrator
+                      </option>
+                      <option value="enterprise" className="bg-[#0f172a] text-white">
+                        Enterprise (Team Manager)
                       </option>
                     </select>
                   </div>

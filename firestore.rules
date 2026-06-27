@@ -17,6 +17,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.role == 'admin';
     }
 
+    function isEnterpriseManager(teamId) {
+      return isSignedIn()
+        && request.auth.token.teamId == teamId
+        && request.auth.token.teamRole == 'manager';
+    }
+
+    function isTeamMember(teamId) {
+      return isSignedIn()
+        && request.auth.token.teamId == teamId;
+    }
+
     // ── Review Summaries ────────────────────────────────────────────────────────
     // Public read. Only Cloud Function (Admin SDK) can write.
     match /review_summaries/{summaryId} {
@@ -84,6 +95,18 @@ service cloud.firestore {
       
       match /opens/{uid} {
         allow read, write: if isAdmin();
+      }
+    }
+
+    // ── Teams ─────────────────────────────────────────────────────────────────
+    // Only team members can read. Cloud Functions (Admin SDK) only for writes.
+    match /teams/{teamId} {
+      allow read: if isTeamMember(teamId);
+      allow write: if false;
+
+      match /members/{memberId} {
+        allow read: if isTeamMember(teamId);
+        allow write: if false;
       }
     }
 

@@ -4,7 +4,18 @@ import { getStripe } from "./lib/stripe";
 import { db, auth } from "./lib/firebaseAdmin";
 
 type UserRole = "free" | "paid" | "admin";
-type UserTier = "free" | "paid_monthly" | "paid_annual";
+type UserTier = "free" | "paid_monthly" | "paid_annual" | "enterprise";
+
+async function isEnterprisePlan(
+  subscription: Stripe.Subscription,
+): Promise<boolean> {
+  const pricingSnap = await db.collection("config").doc("pricing").get();
+  const enterprisePriceId =
+    pricingSnap.data()?.enterprisePriceId ??
+    process.env.STRIPE_ENTERPRISE_PRICE_ID;
+  const priceId = subscription.items.data[0]?.price?.id;
+  return !!enterprisePriceId && priceId === enterprisePriceId;
+}
 
 /**
  * Maps Stripe subscription status + interval to our role/tier model.
@@ -12,14 +23,59 @@ type UserTier = "free" | "paid_monthly" | "paid_annual";
 function resolveRoleTier(
   status: Stripe.Subscription.Status,
   interval: string,
+  enterprise = false,
 ): { role: UserRole; tier: UserTier } {
   if (status === "active" || status === "trialing") {
+    if (enterprise) return { role: "paid", tier: "enterprise" };
     return {
       role: "paid",
       tier: interval === "year" ? "paid_annual" : "paid_monthly",
     };
   }
   return { role: "free", tier: "free" };
+}
+
+async function createTeamForOwner(
+  uid: string,
+  subscription: Stripe.Subscription,
+): Promise<void> {
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
+
+  const teamRef = db.collection("teams").doc();
+  const teamId = teamRef.id;
+  const now = new Date().toISOString();
+
+  await teamRef.set({
+    ownerId: uid,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId: subscription.id,
+    seats: subscription.items.data[0]?.quantity ?? 5,
+    createdAt: now,
+  });
+
+  await teamRef.collection("members").doc(uid).set({
+    uid,
+    email: (await auth.getUser(uid)).email ?? "",
+    teamRole: "manager",
+    status: "active",
+    invitedAt: now,
+    joinedAt: now,
+  });
+
+  await db.collection("users").doc(uid).set(
+    { teamId, teamRole: "manager" },
+    { merge: true },
+  );
+
+  await auth.setCustomUserClaims(uid, {
+    role: "paid",
+    tier: "enterprise",
+    teamId,
+    teamRole: "manager",
+  });
 }
 
 /**
@@ -186,7 +242,13 @@ export const stripeWebhook = onRequest(
             const subscription = await stripe.subscriptions.retrieve(
               session.subscription as string,
             );
-            await handleSubscriptionChange(subscription, debugRef);
+            const enterprise = await isEnterprisePlan(subscription);
+            if (enterprise) {
+              const uid = await resolveFirebaseUID(subscription, debugRef);
+              if (uid) await createTeamForOwner(uid, subscription);
+            } else {
+              await handleSubscriptionChange(subscription, debugRef);
+            }
           } else {
             console.warn("No subscription found in checkout session");
             await debugRef.update({ warning: "no_subscription_in_session" });
@@ -239,6 +301,27 @@ async function handleSubscriptionChange(
   debugRef?: any,
 ) {
   console.log("Handling subscription change:", subscription.id);
+
+  const enterprise = await isEnterprisePlan(subscription);
+  const price = subscription.items.data[0]?.price;
+  const interval = price?.recurring?.interval ?? "month";
+  const { role, tier } = resolveRoleTier(subscription.status, interval, enterprise);
+
+  if (enterprise && role === "paid") {
+    // Sync seat count on existing team
+    const uid = await resolveFirebaseUID(subscription, debugRef);
+    if (uid) {
+      const userSnap = await db.collection("users").doc(uid).get();
+      const teamId = userSnap.data()?.teamId;
+      if (teamId) {
+        await db.collection("teams").doc(teamId).update({
+          seats: subscription.items.data[0]?.quantity ?? 5,
+        });
+      }
+    }
+    return;
+  }
+
   const uid = await resolveFirebaseUID(subscription, debugRef);
   if (!uid) {
     console.error(
@@ -255,10 +338,6 @@ async function handleSubscriptionChange(
       });
     return;
   }
-
-  const price = subscription.items.data[0]?.price;
-  const interval = price?.recurring?.interval ?? "month";
-  const { role, tier } = resolveRoleTier(subscription.status, interval);
 
   console.log(`Resolved Role/Tier: ${role}/${tier} for UID: ${uid}`);
   if (debugRef)
@@ -325,10 +404,61 @@ async function handleSubscriptionChange(
     await debugRef.update({ result: "firestore_and_claims_updated" });
 }
 
+async function handleEnterpriseSubscriptionDeleted(
+  subscription: Stripe.Subscription,
+): Promise<void> {
+  const teamsSnap = await db
+    .collection("teams")
+    .where("stripeSubscriptionId", "==", subscription.id)
+    .limit(1)
+    .get();
+
+  if (teamsSnap.empty) {
+    console.warn(
+      "No team found for cancelled enterprise subscription:",
+      subscription.id,
+    );
+    return;
+  }
+
+  const teamDoc = teamsSnap.docs[0];
+  const membersSnap = await teamDoc.ref.collection("members").get();
+
+  const batch = db.batch();
+  const claimUpdates: Promise<void>[] = [];
+
+  for (const memberDoc of membersSnap.docs) {
+    const { uid } = memberDoc.data();
+    batch.update(db.collection("users").doc(uid), {
+      teamId: null,
+      teamRole: null,
+      role: "free",
+      tier: "free",
+      subscriptionStatus: "cancelled",
+      currentPeriodEnd: null,
+      updatedAt: new Date().toISOString(),
+    });
+    claimUpdates.push(
+      auth.setCustomUserClaims(uid, { role: "free", tier: "free" }),
+    );
+  }
+
+  batch.update(teamDoc.ref, { cancelledAt: new Date().toISOString() });
+
+  await batch.commit();
+  await Promise.all(claimUpdates);
+}
+
 async function handleSubscriptionDeleted(
   subscription: Stripe.Subscription,
   debugRef?: any,
 ) {
+  const enterprise = await isEnterprisePlan(subscription);
+  if (enterprise) {
+    await handleEnterpriseSubscriptionDeleted(subscription);
+    return;
+  }
+
   const uid = await resolveFirebaseUID(subscription, debugRef);
   if (!uid) return;
 

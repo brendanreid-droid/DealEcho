@@ -16,7 +16,7 @@ const AcceptInvite: React.FC = () => {
     if (isLoading || !token || !user || status !== 'idle') return;
 
     setStatus('loading');
-    const functions = getFunctions();
+    const functions = getFunctions(undefined, 'australia-southeast1');
     const accept = httpsCallable(functions, 'acceptTeamInvite');
 
     accept({ token })

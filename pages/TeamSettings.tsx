@@ -29,7 +29,7 @@ const TeamSettings: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const fns = getFunctions();
+  const fns = getFunctions(undefined, 'australia-southeast1');
 
   useEffect(() => {
     if (!teamId) {

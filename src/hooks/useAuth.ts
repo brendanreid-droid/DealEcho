@@ -4,7 +4,8 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 
 export type UserRole = 'free' | 'paid' | 'admin' | 'free_full';
-export type UserTier = 'free' | 'paid_monthly' | 'paid_annual' | 'free_full';
+export type UserTier = 'free' | 'paid_monthly' | 'paid_annual' | 'free_full' | 'enterprise';
+export type TeamRole = 'manager' | 'user';
 
 export interface MappedUser {
   id: string;
@@ -23,6 +24,10 @@ export interface AuthState {
   tier: UserTier;
   isAdmin: boolean;
   isPaid: boolean;
+  isEnterprise: boolean;
+  teamId: string | null;
+  teamRole: TeamRole | null;
+  isTeamManager: boolean;
   isLoading: boolean;
   /** Call after Stripe checkout completes to pick up new claims */
   refreshClaims: () => Promise<void>;
@@ -32,6 +37,8 @@ export const useAuth = (): AuthState => {
   const [user, setUser] = useState<MappedUser | null>(null);
   const [role, setRole] = useState<UserRole>('free');
   const [tier, setTier] = useState<UserTier>('free');
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const [teamRole, setTeamRole] = useState<TeamRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const mapUser = useCallback((fbUser: User): MappedUser => ({
@@ -46,9 +53,13 @@ export const useAuth = (): AuthState => {
       const tokenResult = await getIdTokenResult(fbUser, forceRefresh);
       setRole((tokenResult.claims.role as UserRole) ?? 'free');
       setTier((tokenResult.claims.tier as UserTier) ?? 'free');
+      setTeamId((tokenResult.claims.teamId as string) ?? null);
+      setTeamRole((tokenResult.claims.teamRole as TeamRole) ?? null);
     } catch {
       setRole('free');
       setTier('free');
+      setTeamId(null);
+      setTeamRole(null);
     }
   }, []);
 
@@ -84,6 +95,8 @@ export const useAuth = (): AuthState => {
         setUser(null);
         setRole('free');
         setTier('free');
+        setTeamId(null);
+        setTeamRole(null);
       }
       setIsLoading(false);
     });
@@ -107,6 +120,10 @@ export const useAuth = (): AuthState => {
     tier,
     isAdmin: role === 'admin',
     isPaid: role === 'paid' || role === 'admin' || role === 'free_full',
+    isEnterprise: tier === 'enterprise',
+    teamId,
+    teamRole,
+    isTeamManager: teamRole === 'manager',
     isLoading,
     refreshClaims,
   };

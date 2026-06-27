@@ -88,10 +88,19 @@ const TeamSettings: React.FC = () => {
     );
   }
 
-  if (loading || !team) {
+  if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-accent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+        <p className="text-red-500 text-sm mb-2">{error || 'Team record not found.'}</p>
+        <p className="text-slate-400 text-xs">teamId: {teamId || 'none'}</p>
       </div>
     );
   }

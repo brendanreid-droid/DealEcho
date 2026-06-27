@@ -13,10 +13,11 @@ export const Navigation: React.FC<{
   user: any;
   isAdmin: boolean;
   isPaid: boolean;
+  isEnterprise?: boolean;
   onSignInClick: () => void;
   onLogout: () => void;
   notificationCount: number;
-}> = ({ user, isAdmin, isPaid, onSignInClick, onLogout, notificationCount }) => {
+}> = ({ user, isAdmin, isPaid, isEnterprise, onSignInClick, onLogout, notificationCount }) => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -28,6 +29,9 @@ export const Navigation: React.FC<{
     { name: "Analytics", path: "/trends", icon: "fa-chart-line" },
     { name: "Pricing", path: "/pricing", icon: "fa-tags" },
   ];
+  if (isEnterprise) {
+    navLinks.push({ name: "Team", path: "/settings/team", icon: "fa-users" });
+  }
   if (isAdmin) {
     navLinks.push({ name: "Admin", path: "/admin", icon: "fa-shield-alt" });
   }

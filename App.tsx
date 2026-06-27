@@ -50,7 +50,7 @@ const ScrollToTop = () => {
 // MappedUser is now provided directly by useAuth hook
 
 const App: React.FC = () => {
-  const { user, isAdmin, isPaid } = useAuth();
+  const { user, isAdmin, isPaid, isEnterprise } = useAuth();
   const {
     reviews,
     isLoading: reviewsLoading,
@@ -130,6 +130,7 @@ const App: React.FC = () => {
           user={user}
           isAdmin={isAdmin}
           isPaid={isPaid}
+          isEnterprise={isEnterprise}
           onSignInClick={triggerSignIn}
           onLogout={onLogout}
           notificationCount={Object.values(notifications).reduce(

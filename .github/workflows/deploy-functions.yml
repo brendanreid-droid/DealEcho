@@ -36,7 +36,7 @@ jobs:
         working-directory: functions
 
       - name: Deploy functions
-        run: firebase deploy --only functions --force
+        run: firebase deploy --only functions:inviteTeamMember,functions:resendTeamInvite --force
  
 
 

@@ -6,7 +6,7 @@ import { sendReactEmail } from './lib/email';
 import { TeamInviteEmail } from './emails/TeamInviteEmail';
 import * as React from 'react';
 
-const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL ?? 'https://dealecho.io';
 const MIN_SEATS = 5;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ async function getTeamOrThrow(teamId: string) {
 
 // ── inviteTeamMember ─────────────────────────────────────────────────────────
 
-export const inviteTeamMember = onCall({ cors: true }, async (request) => {
+export const inviteTeamMember = onCall({ cors: true, secrets: ['RESEND_API_KEY'] }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required.');
 
   const uid = request.auth.uid;
@@ -57,9 +57,12 @@ export const inviteTeamMember = onCall({ cors: true }, async (request) => {
   const existing = membersSnap.docs.find((d) => d.data().email === email);
   if (existing) throw new HttpsError('already-exists', 'This email is already a team member or has a pending invite.');
 
-  // Check not on another team
-  const otherTeamSnap = await db.collection('users').where('teamId', '!=', null).get();
-  const conflict = otherTeamSnap.docs.find((d) => d.data().email === email && d.data().teamId !== teamId);
+  // Check not on another team (query by email directly; '!= null' is not a valid Firestore filter)
+  const usersByEmail = await db.collection('users').where('email', '==', email).get();
+  const conflict = usersByEmail.docs.find((d) => {
+    const t = d.data().teamId;
+    return t && t !== teamId;
+  });
   if (conflict) throw new HttpsError('already-exists', 'This user is already a member of another team.');
 
   const inviteToken = randomBytes(32).toString('hex');
@@ -287,7 +290,7 @@ export const updateTeamSeats = onCall({ cors: true }, async (request) => {
 
 // ── resendTeamInvite ─────────────────────────────────────────────────────────
 
-export const resendTeamInvite = onCall({ cors: true }, async (request) => {
+export const resendTeamInvite = onCall({ cors: true, secrets: ['RESEND_API_KEY'] }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required.');
 
   const callerUid = request.auth.uid;

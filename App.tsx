@@ -21,6 +21,8 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
+const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 
 const RouteFallback: React.FC = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -230,6 +232,15 @@ const App: React.FC = () => {
                         })
                       }
                     />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/invite/accept" element={<AcceptInvite />} />
+              <Route
+                path="/settings/team"
+                element={
+                  <ProtectedRoute requireAuth>
+                    <TeamSettings />
                   </ProtectedRoute>
                 }
               />

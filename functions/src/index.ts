@@ -44,4 +44,15 @@ export { trackNewsletterOpen } from "./triggers/trackNewsletterOpen";
 // Custom Auth Handlers
 export { sendCustomPasswordResetEmail } from "./authCustom";
 
+// Enterprise Team Management
+export {
+  inviteTeamMember,
+  acceptTeamInvite,
+  updateTeamMemberRole,
+  removeTeamMember,
+  updateTeamSeats,
+  resendTeamInvite,
+  cancelPendingInvite,
+} from './enterprise';
+
 

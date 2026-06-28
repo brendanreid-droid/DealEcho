@@ -21,12 +21,39 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-export function ReviewsView({ result }: { result: LookupResult }) {
+export function ReviewsView({
+  result,
+  companyHint,
+}: {
+  result: LookupResult;
+  companyHint?: string;
+}) {
   if (!result.matched) {
+    const reviewUrl =
+      `${CARD_URL}/review/new` + (companyHint ? `?company=${encodeURIComponent(companyHint)}` : "");
     return (
-      <p style={{ fontSize: 14, color: "#6b7280" }}>
-        No reviews yet for this company on DealEcho.
-      </p>
+      <div style={{ fontSize: 14, color: "#374151" }}>
+        <p style={{ marginTop: 0, color: "#6b7280" }}>
+          No reviews yet for this company on Dealecho.
+        </p>
+        <a
+          href={reviewUrl}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            display: "block",
+            textAlign: "center",
+            padding: "10px 12px",
+            background: INDIGO,
+            color: "#fff",
+            fontWeight: 600,
+            borderRadius: 8,
+            textDecoration: "none",
+          }}
+        >
+          Be the first to leave a review →
+        </a>
+      </div>
     );
   }
 

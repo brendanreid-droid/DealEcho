@@ -47,7 +47,7 @@ export function App() {
         setStatus("idle");
       })
       .catch((err) => {
-        console.error("DealEcho lookup failed", err);
+        console.error("Dealecho lookup failed", err);
         setStatus("error");
       });
   }, [user, context]);
@@ -59,7 +59,7 @@ export function App() {
   if (!user) {
     return (
       <div style={wrap}>
-        <h1 style={{ fontSize: 16, margin: "0 0 12px" }}>DealEcho</h1>
+        <h1 style={{ fontSize: 16, margin: "0 0 12px" }}>Dealecho</h1>
         <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 12px" }}>
           Sign in to see company intelligence.
         </p>
@@ -71,14 +71,25 @@ export function App() {
   return (
     <div style={wrap}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h1 style={{ fontSize: 16, margin: 0 }}>DealEcho</h1>
-        <button onClick={() => signOut()} style={{ fontSize: 12, cursor: "pointer" }}>Sign out</button>
+        <h1 style={{ fontSize: 16, margin: 0 }}>Dealecho</h1>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <button
+            onClick={() => chrome.runtime.sendMessage({ type: "dealecho:refresh" })}
+            title="Refresh from the current tab"
+            style={{ fontSize: 12, cursor: "pointer" }}
+          >
+            ↻ Refresh
+          </button>
+          <button onClick={() => signOut()} style={{ fontSize: 12, cursor: "pointer" }}>Sign out</button>
+        </div>
       </div>
 
-      {!context && <p style={{ fontSize: 14 }}>Click the DealEcho icon on a company page to begin.</p>}
+      {!context && <p style={{ fontSize: 14 }}>Click the Dealecho icon on a company page to begin.</p>}
       {context && status === "loading" && <p style={{ fontSize: 14 }}>Looking up {context.selection || context.hostname}…</p>}
       {context && status === "error" && <p style={{ fontSize: 14, color: "#b91c1c" }}>Lookup failed. Try again.</p>}
-      {context && status === "idle" && result && <ReviewsView result={result} />}
+      {context && status === "idle" && result && (
+        <ReviewsView result={result} companyHint={context.selection || context.hostname} />
+      )}
     </div>
   );
 }

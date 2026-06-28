@@ -1,7 +1,8 @@
+import { CSSProperties } from "react";
 import { LookupResult } from "../lib/api";
+import { theme, healthColor, statusColor } from "./theme";
 
 const CARD_URL = "https://www.dealecho.io";
-const INDIGO = "#4f46e5";
 
 /** ISO string → "Feb 12, 2026". Falls back to the raw value if unparseable. */
 function formatDate(iso: string): string {
@@ -10,13 +11,31 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+const eyebrow: CSSProperties = {
+  fontSize: 10,
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+  color: theme.faint,
+  fontWeight: 700,
+};
+
+const primaryBtn: CSSProperties = {
+  display: "block",
+  textAlign: "center",
+  padding: "11px 12px",
+  background: theme.navy,
+  color: theme.white,
+  fontWeight: 600,
+  fontSize: 13,
+  borderRadius: 8,
+  textDecoration: "none",
+};
+
+function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
     <div style={{ textAlign: "center", flex: 1 }}>
-      <div style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>{value}</div>
-      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.4, color: "#9ca3af" }}>
-        {label}
-      </div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: color ?? theme.navy }}>{value}</div>
+      <div style={eyebrow}>{label}</div>
     </div>
   );
 }
@@ -32,25 +51,11 @@ export function ReviewsView({
     const reviewUrl =
       `${CARD_URL}/review/new` + (companyHint ? `?company=${encodeURIComponent(companyHint)}` : "");
     return (
-      <div style={{ fontSize: 14, color: "#374151" }}>
-        <p style={{ marginTop: 0, color: "#6b7280" }}>
-          No reviews yet for this company on Dealecho.
+      <div style={{ fontSize: 14, color: theme.ink }}>
+        <p style={{ marginTop: 0, color: theme.sub, fontSize: 13 }}>
+          No reviews yet for this company on dealecho.
         </p>
-        <a
-          href={reviewUrl}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: "block",
-            textAlign: "center",
-            padding: "10px 12px",
-            background: INDIGO,
-            color: "#fff",
-            fontWeight: 600,
-            borderRadius: 8,
-            textDecoration: "none",
-          }}
-        >
+        <a href={reviewUrl} target="_blank" rel="noreferrer" style={primaryBtn}>
           Be the first to leave a review →
         </a>
       </div>
@@ -60,48 +65,41 @@ export function ReviewsView({
   const { companyName, summary, persona, isPro, recentReviews, companyId } = result;
 
   return (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: "#1f2937" }}>
-      <h2 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 10px" }}>{companyName}</h2>
+    <div style={{ fontSize: 14, lineHeight: 1.5, color: theme.ink }}>
+      <h2 style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.2, margin: "0 0 12px" }}>
+        {companyName}
+      </h2>
 
       {summary && (
         <div
           style={{
             display: "flex",
             gap: 8,
-            padding: "10px 8px",
-            background: "#f9fafb",
-            border: "1px solid #eef0f3",
-            borderRadius: 8,
-            margin: "0 0 12px",
+            padding: "12px 8px",
+            background: theme.panel,
+            border: `1px solid ${theme.border}`,
+            borderRadius: 10,
+            margin: "0 0 14px",
           }}
         >
           <Stat label="Rating" value={summary.rating.toFixed(1)} />
-          <Stat label="Health" value={summary.healthIndex} />
+          <Stat label="Health" value={summary.healthIndex} color={healthColor(summary.healthIndex)} />
           <Stat label={summary.reviewCount === 1 ? "Review" : "Reviews"} value={summary.reviewCount} />
         </div>
       )}
 
       {persona?.summary && (
-        <div style={{ margin: "0 0 14px" }}>
-          <div
-            style={{
-              fontSize: 10,
-              textTransform: "uppercase",
-              letterSpacing: 0.4,
-              color: "#9ca3af",
-              marginBottom: 4,
-            }}
-          >
-            Buyer persona
-          </div>
+        <div style={{ margin: "0 0 16px" }}>
+          <div style={{ ...eyebrow, marginBottom: 5 }}>Buyer persona</div>
           <p
             style={{
-              background: "#f3f4f6",
-              padding: 10,
+              background: theme.accent50,
+              borderLeft: `3px solid ${theme.accent}`,
+              padding: "10px 12px",
               borderRadius: 8,
               margin: 0,
               fontSize: 13,
-              color: "#374151",
+              color: "#312e81",
             }}
           >
             {persona.summary}
@@ -110,69 +108,52 @@ export function ReviewsView({
       )}
 
       {isPro ? (
-        <div style={{ display: "grid", gap: 10 }}>
-          {(recentReviews ?? []).map((r) => (
-            <div
-              key={r.id}
-              style={{
-                border: "1px solid #eef0f3",
-                borderRadius: 8,
-                padding: 10,
-                background: "#fff",
-              }}
-            >
+        <>
+          <div style={{ ...eyebrow, marginBottom: 6 }}>Recent reviews</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {(recentReviews ?? []).map((r) => (
               <div
+                key={r.id}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 11,
-                  color: "#6b7280",
-                  marginBottom: 4,
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: 10,
+                  padding: 12,
+                  background: theme.white,
+                  boxShadow: "0 1px 2px rgba(16,20,38,0.04)",
                 }}
               >
-                <span style={{ fontWeight: 600, color: statusColor(r.status) }}>{r.status}</span>
-                <span>{formatDate(r.createdAt)}</span>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 11,
+                    marginBottom: 5,
+                  }}
+                >
+                  <span style={{ fontWeight: 700, color: statusColor(r.status) }}>{r.status}</span>
+                  <span style={{ color: theme.faint }}>{formatDate(r.createdAt)}</span>
+                </div>
+                <div style={{ fontSize: 13, color: theme.ink }}>{r.content}</div>
               </div>
-              <div style={{ fontSize: 13 }}>{r.content}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       ) : (
-        <a
-          href="https://www.dealecho.io/pricing"
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: "block",
-            textAlign: "center",
-            padding: "10px 12px",
-            background: INDIGO,
-            color: "#fff",
-            fontWeight: 600,
-            borderRadius: 8,
-            textDecoration: "none",
-          }}
-        >
+        <a href="https://www.dealecho.io/pricing" target="_blank" rel="noreferrer" style={primaryBtn}>
           Upgrade to see reviews →
         </a>
       )}
 
-      <p style={{ marginTop: 14 }}>
+      <p style={{ marginTop: 16, marginBottom: 0 }}>
         <a
           href={companyId ? `${CARD_URL}/company/${companyId}` : CARD_URL}
           target="_blank"
           rel="noreferrer"
-          style={{ color: INDIGO, fontSize: 13, fontWeight: 600 }}
+          style={{ color: theme.accent, fontSize: 13, fontWeight: 600, textDecoration: "none" }}
         >
           View full company card →
         </a>
       </p>
     </div>
   );
-}
-
-function statusColor(status: string): string {
-  if (status === "Won") return "#15803d";
-  if (status === "Lost") return "#b91c1c";
-  return "#6b7280";
 }

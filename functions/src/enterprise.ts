@@ -40,7 +40,8 @@ export const inviteTeamMember = onCall({ cors: true, secrets: ['RESEND_API_KEY']
 
   await assertManager(uid, teamId);
 
-  const { email, teamRole }: { email: string; teamRole: 'manager' | 'user' } = request.data;
+  const { email: rawEmail, teamRole }: { email: string; teamRole: 'manager' | 'user' } = request.data;
+  const email = (rawEmail ?? '').trim().toLowerCase();
   if (!email || !teamRole) throw new HttpsError('invalid-argument', 'email and teamRole required.');
   if (!['manager', 'user'].includes(teamRole)) throw new HttpsError('invalid-argument', 'teamRole must be manager or user.');
 
@@ -134,7 +135,7 @@ export const acceptTeamInvite = onCall({ cors: true }, async (request) => {
   }
 
   const userRecord = await auth.getUser(uid);
-  if (userRecord.email !== foundMemberData.email) {
+  if ((userRecord.email ?? '').toLowerCase() !== (foundMemberData.email ?? '').toLowerCase()) {
     throw new HttpsError('permission-denied', 'This invite was sent to a different email address.');
   }
 

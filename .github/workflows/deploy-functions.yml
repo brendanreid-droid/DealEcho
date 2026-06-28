@@ -36,7 +36,7 @@ jobs:
         working-directory: functions
 
       - name: Deploy functions
-        run: firebase deploy --only functions:inviteTeamMember,functions:acceptTeamInvite,functions:updateTeamMemberRole,functions:removeTeamMember,functions:updateTeamSeats,functions:resendTeamInvite,functions:cancelPendingInvite,functions:createEnterpriseCheckout --force
+        run: firebase deploy --only functions:inviteTeamMember,functions:acceptTeamInvite,functions:updateTeamMemberRole,functions:removeTeamMember,functions:updateTeamSeats,functions:resendTeamInvite,functions:cancelPendingInvite,functions:createEnterpriseCheckout,functions:lookupCompanyReviews --force
  
 
 

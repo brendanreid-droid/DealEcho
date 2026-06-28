@@ -24,6 +24,9 @@ export const lookupCompanyReviews = onCall(
     if (!domain && !name) {
       throw new HttpsError("invalid-argument", "A domain or name is required.");
     }
+    if ((domain && domain.length > 500) || (name && name.length > 500)) {
+      throw new HttpsError("invalid-argument", "Query too long.");
+    }
 
     const apiKey = GEMINI_API_KEY.value();
     const ai = apiKey && !apiKey.includes("PLACEHOLDER") ? new GoogleGenAI({ apiKey }) : null;
@@ -91,43 +94,53 @@ export const lookupCompanyReviews = onCall(
       companyName: company.companyName,
       reviewCount,
       rating: Number(rating.toFixed(2)),
-      healthIndex: Number((rating * 20).toFixed(0)), // 0–100 scale
+      healthIndex: Number((rating * 20).toFixed(0)), // ratings are 1–5 → 20–100 scale
     };
 
     // ── Persona (cached) ────────────────────────────────────────────────────
+    // Degrade gracefully: a persona/Firestore failure should not fail the whole
+    // lookup — the rep still gets the summary (and reviews, if Pro).
     let persona: unknown = null;
     if (ai && reviewCount > 0) {
-      persona = await getOrCreatePersona(company.companyId, reviewCount, {
-        ttlMs: PERSONA_TTL_MS,
-        now: () => Date.now(),
-        async read(id) {
-          const s = await db.doc(`personas/${id}`).get();
-          return s.exists ? (s.data() as any) : null;
-        },
-        async write(id, entry) {
-          await db.doc(`personas/${id}`).set(entry, { merge: true });
-        },
-        async generate(_companyId) {
-          const resp = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: `Summarize the B2B buyer behaviour for "${company.companyName}" in 2-3 sentences for a sales rep, based on ${reviewCount} reviews. Plain text.`,
-          });
-          return { summary: (resp.text ?? "").trim() };
-        },
-      });
+      try {
+        persona = await getOrCreatePersona(company.companyId, reviewCount, {
+          ttlMs: PERSONA_TTL_MS,
+          now: () => Date.now(),
+          async read(id) {
+            const s = await db.doc(`personas/${id}`).get();
+            return s.exists ? (s.data() as any) : null;
+          },
+          async write(id, entry) {
+            await db.doc(`personas/${id}`).set(entry, { merge: true });
+          },
+          async generate(_companyId) {
+            const resp = await ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: `Summarize the B2B buyer behaviour for "${company.companyName}" in 2-3 sentences for a sales rep, based on ${reviewCount} reviews. Plain text.`,
+            });
+            return { summary: (resp.text ?? "").trim() };
+          },
+        });
+      } catch (err) {
+        console.error(`Persona generation failed for ${company.companyId}:`, err);
+      }
     }
 
     // ── Recent reviews (Pro only) ───────────────────────────────────────────
     let recentReviews: any[] | undefined;
     if (isPro) {
-      const revSnap = await db
-        .collection("reviews")
-        .where("companyId", "==", company.companyId)
-        .get();
-      recentReviews = revSnap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""))
-        .slice(0, 3);
+      try {
+        const revSnap = await db
+          .collection("reviews")
+          .where("companyId", "==", company.companyId)
+          .get();
+        recentReviews = revSnap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+          .slice(0, 3);
+      } catch (err) {
+        console.error(`Recent reviews fetch failed for ${company.companyId}:`, err);
+      }
     }
 
     return {

@@ -32,6 +32,7 @@ describe("resolveCompany", () => {
     const res = await resolveCompany({ domain: "acme.lightning.force.com", name: "Datadog" }, deps);
     expect(res?.companyId).toBe("c1");
     expect(deps.lookupDomainCache).not.toHaveBeenCalled();
+    expect(deps.saveDomainCache).not.toHaveBeenCalled();
   });
 
   it("fuzzy-matches a highlighted name", async () => {
@@ -56,6 +57,10 @@ describe("resolveCompany", () => {
     const res = await resolveCompany({ domain: "snowflake.io" }, deps);
     expect(deps.canonicalizeViaAI).toHaveBeenCalled();
     expect(res?.companyId).toBe("c2");
+    expect(deps.saveDomainCache).toHaveBeenCalledWith(
+      "snowflake.io",
+      expect.objectContaining({ companyId: "c2" }),
+    );
   });
 
   it("returns null when nothing resolves", async () => {

@@ -8,6 +8,11 @@ export default defineManifest({
   action: { default_title: "DealEcho" },
   background: { service_worker: "src/background.ts", type: "module" },
   permissions: ["activeTab", "scripting", "storage", "sidePanel"],
+  host_permissions: [
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://australia-southeast1-dealecho-io-sales-intel-hub.cloudfunctions.net/*",
+  ],
   side_panel: { default_path: "index.html" },
   icons: { "128": "public/icons/icon-128.png" },
 });

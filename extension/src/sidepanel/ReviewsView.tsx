@@ -4,13 +4,38 @@ import { theme, healthColor, statusColor } from "./theme";
 
 const CARD_URL = "https://www.dealecho.io";
 
-// The four review elements (each 1–5, high = good), labelled to match the web app.
-const METRICS: { key: keyof MetricScores; label: string; short: string }[] = [
-  { key: "communicationRating", label: "Responsiveness", short: "Resp" },
-  { key: "negotiationLevel", label: "Negotiation", short: "Neg" },
-  { key: "timeWasterLevel", label: "Buyer intent", short: "Intent" },
-  { key: "clarityOfScope", label: "Scope clarity", short: "Scope" },
+// The four review elements (each 1–5, high = good). Labels + hover hints match the
+// web app's review form (star tooltips run low→high).
+const METRICS: { key: keyof MetricScores; label: string; short: string; hint: string }[] = [
+  {
+    key: "communicationRating",
+    label: "Responsiveness",
+    short: "Resp",
+    hint: "How responsive the buyer was (1–5). 1 = Ghosting, 5 = Elite.",
+  },
+  {
+    key: "negotiationLevel",
+    label: "Negotiation",
+    short: "Neg",
+    hint: "How easy negotiation was (1–5). 1 = Brutal, 5 = Instant.",
+  },
+  {
+    key: "timeWasterLevel",
+    label: "Buyer intent",
+    short: "Intent",
+    hint: "Seriousness of buyer intent (1–5). 1 = Tire kicker, 5 = Critical.",
+  },
+  {
+    key: "clarityOfScope",
+    label: "Scope clarity",
+    short: "Scope",
+    hint: "How well-defined the scope was (1–5). 1 = Volatile, 5 = Crystal clear.",
+  },
 ];
+
+const RATING_HINT = "Average of all four review scores (1–5). Higher is better.";
+const HEALTH_HINT = "Overall health index (0–100), derived from the average rating.";
+const REVIEWS_HINT = "Number of reviews submitted for this company on dealecho.";
 
 /** ISO string → "Feb 12, 2026". Falls back to the raw value if unparseable. */
 function formatDate(iso: string): string {
@@ -27,6 +52,8 @@ const eyebrow: CSSProperties = {
   fontWeight: 700,
 };
 
+const unit: CSSProperties = { fontSize: 11, fontWeight: 600, color: theme.faint };
+
 const primaryBtn: CSSProperties = {
   display: "block",
   textAlign: "center",
@@ -39,23 +66,41 @@ const primaryBtn: CSSProperties = {
   textDecoration: "none",
 };
 
-function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
+function Stat({
+  label,
+  value,
+  suffix,
+  color,
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  suffix?: string;
+  color?: string;
+  hint?: string;
+}) {
   return (
-    <div style={{ textAlign: "center", flex: 1 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: color ?? theme.navy }}>{value}</div>
+    <div title={hint} style={{ textAlign: "center", flex: 1, cursor: hint ? "help" : "default" }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: color ?? theme.navy }}>
+        {value}
+        {suffix && <span style={unit}>{suffix}</span>}
+      </div>
       <div style={eyebrow}>{label}</div>
     </div>
   );
 }
 
 /** Aggregate metric with a labelled bar (value out of 5). */
-function MetricBar({ label, value }: { label: string; value: number }) {
+function MetricBar({ label, value, hint }: { label: string; value: number; hint: string }) {
   const pct = Math.max(0, Math.min(100, (value / 5) * 100));
   return (
-    <div>
+    <div title={hint} style={{ cursor: "help" }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
         <span style={{ color: theme.sub }}>{label}</span>
-        <span style={{ fontWeight: 700, color: theme.ink }}>{value.toFixed(1)}</span>
+        <span style={{ fontWeight: 700, color: theme.ink }}>
+          {value.toFixed(1)}
+          <span style={unit}>/5</span>
+        </span>
       </div>
       <div style={{ height: 5, background: theme.border, borderRadius: 3 }}>
         <div
@@ -113,9 +158,19 @@ export function ReviewsView({
             margin: "0 0 14px",
           }}
         >
-          <Stat label="Rating" value={summary.rating.toFixed(1)} />
-          <Stat label="Health" value={summary.healthIndex} color={healthColor(summary.healthIndex)} />
-          <Stat label={summary.reviewCount === 1 ? "Review" : "Reviews"} value={summary.reviewCount} />
+          <Stat label="Rating" value={summary.rating.toFixed(1)} suffix="/5" hint={RATING_HINT} />
+          <Stat
+            label="Health"
+            value={summary.healthIndex}
+            suffix="/100"
+            color={healthColor(summary.healthIndex)}
+            hint={HEALTH_HINT}
+          />
+          <Stat
+            label={summary.reviewCount === 1 ? "Review" : "Reviews"}
+            value={summary.reviewCount}
+            hint={REVIEWS_HINT}
+          />
         </div>
       )}
 
@@ -124,7 +179,7 @@ export function ReviewsView({
           <div style={{ ...eyebrow, marginBottom: 8 }}>Score breakdown</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 16px" }}>
             {METRICS.map((m) => (
-              <MetricBar key={m.key} label={m.label} value={summary.metrics![m.key]} />
+              <MetricBar key={m.key} label={m.label} value={summary.metrics![m.key]} hint={m.hint} />
             ))}
           </div>
         </div>
@@ -186,9 +241,10 @@ export function ReviewsView({
                   }}
                 >
                   {METRICS.map((m) => (
-                    <div key={m.key} style={{ textAlign: "center" }}>
+                    <div key={m.key} title={m.hint} style={{ textAlign: "center", cursor: "help" }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: healthColor((r[m.key] || 0) * 20) }}>
                         {r[m.key]}
+                        <span style={unit}>/5</span>
                       </div>
                       <div
                         style={{

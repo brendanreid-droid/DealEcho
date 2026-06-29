@@ -1,8 +1,16 @@
 import { CSSProperties } from "react";
-import { LookupResult } from "../lib/api";
+import { LookupResult, MetricScores } from "../lib/api";
 import { theme, healthColor, statusColor } from "./theme";
 
 const CARD_URL = "https://www.dealecho.io";
+
+// The four review elements (each 1–5, high = good), labelled to match the web app.
+const METRICS: { key: keyof MetricScores; label: string; short: string }[] = [
+  { key: "communicationRating", label: "Responsiveness", short: "Resp" },
+  { key: "negotiationLevel", label: "Negotiation", short: "Neg" },
+  { key: "timeWasterLevel", label: "Buyer intent", short: "Intent" },
+  { key: "clarityOfScope", label: "Scope clarity", short: "Scope" },
+];
 
 /** ISO string → "Feb 12, 2026". Falls back to the raw value if unparseable. */
 function formatDate(iso: string): string {
@@ -36,6 +44,29 @@ function Stat({ label, value, color }: { label: string; value: string | number; 
     <div style={{ textAlign: "center", flex: 1 }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: color ?? theme.navy }}>{value}</div>
       <div style={eyebrow}>{label}</div>
+    </div>
+  );
+}
+
+/** Aggregate metric with a labelled bar (value out of 5). */
+function MetricBar({ label, value }: { label: string; value: number }) {
+  const pct = Math.max(0, Math.min(100, (value / 5) * 100));
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
+        <span style={{ color: theme.sub }}>{label}</span>
+        <span style={{ fontWeight: 700, color: theme.ink }}>{value.toFixed(1)}</span>
+      </div>
+      <div style={{ height: 5, background: theme.border, borderRadius: 3 }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: healthColor(value * 20),
+            borderRadius: 3,
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -88,6 +119,17 @@ export function ReviewsView({
         </div>
       )}
 
+      {summary?.metrics && (
+        <div style={{ margin: "0 0 16px" }}>
+          <div style={{ ...eyebrow, marginBottom: 8 }}>Score breakdown</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 16px" }}>
+            {METRICS.map((m) => (
+              <MetricBar key={m.key} label={m.label} value={summary.metrics![m.key]} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {persona?.summary && (
         <div style={{ margin: "0 0 16px" }}>
           <div style={{ ...eyebrow, marginBottom: 5 }}>Buyer persona</div>
@@ -133,7 +175,34 @@ export function ReviewsView({
                   <span style={{ fontWeight: 700, color: statusColor(r.status) }}>{r.status}</span>
                   <span style={{ color: theme.faint }}>{formatDate(r.createdAt)}</span>
                 </div>
-                <div style={{ fontSize: 13, color: theme.ink }}>{r.content}</div>
+                <div style={{ fontSize: 13, color: theme.ink, marginBottom: 10 }}>{r.content}</div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: 4,
+                    borderTop: `1px solid ${theme.border}`,
+                    paddingTop: 8,
+                  }}
+                >
+                  {METRICS.map((m) => (
+                    <div key={m.key} style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: healthColor((r[m.key] || 0) * 20) }}>
+                        {r[m.key]}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: theme.faint,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.3,
+                        }}
+                      >
+                        {m.short}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

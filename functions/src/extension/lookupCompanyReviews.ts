@@ -95,6 +95,13 @@ export const lookupCompanyReviews = onCall(
       reviewCount,
       rating: Number(rating.toFixed(2)),
       healthIndex: Number((rating * 20).toFixed(0)), // ratings are 1–5 → 20–100 scale
+      // Per-element aggregate averages (each 1–5, high = good) for the extension's micro-bars.
+      metrics: {
+        communicationRating: Number(avg("communicationRating").toFixed(2)),
+        negotiationLevel: Number(avg("negotiationLevel").toFixed(2)),
+        timeWasterLevel: Number(avg("timeWasterLevel").toFixed(2)),
+        clarityOfScope: Number(avg("clarityOfScope").toFixed(2)),
+      },
     };
 
     // ── Persona (cached) ────────────────────────────────────────────────────

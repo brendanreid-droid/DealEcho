@@ -1,12 +1,21 @@
 import { httpsCallable } from "firebase/functions";
 import { functions } from "./firebase";
 
+export interface MetricScores {
+  communicationRating: number;
+  negotiationLevel: number;
+  timeWasterLevel: number;
+  clarityOfScope: number;
+}
+
 export interface LookupSummary {
   companyId: string;
   companyName: string;
   reviewCount: number;
   rating: number;
   healthIndex: number;
+  // Per-element aggregate averages (1–5). Optional: absent until the backend redeploys.
+  metrics?: MetricScores;
 }
 
 export interface LookupReview {

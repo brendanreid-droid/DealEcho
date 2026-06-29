@@ -1,6 +1,7 @@
 import { CSSProperties, ReactNode, useState } from "react";
 import { LookupResult, MetricScores } from "../lib/api";
 import { theme, healthColor, statusColor } from "./theme";
+import { buildFlags, FLAG_LABELS } from "./flags";
 
 const CARD_URL = "https://www.dealecho.io";
 
@@ -174,6 +175,8 @@ export function ReviewsView({
   }
 
   const { companyName, summary, persona, isPro, recentReviews, companyId } = result;
+  // Red flags from the available reviews (Pro sees the review set; same rules as the site).
+  const flags = isPro && recentReviews ? buildFlags(recentReviews) : [];
 
   return (
     <div style={{ fontSize: 14, lineHeight: 1.5, color: theme.ink }}>
@@ -236,6 +239,42 @@ export function ReviewsView({
           >
             {persona.summary}
           </p>
+        </div>
+      )}
+
+      {flags.length > 0 && (
+        <div style={{ margin: "0 0 16px" }}>
+          <div style={{ ...eyebrow, marginBottom: 6 }}>Red flags</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {flags.map((f) => {
+              const color = f.severity === "critical" ? theme.risk : theme.caution;
+              return (
+                <div
+                  key={f.type}
+                  style={{
+                    borderLeft: `3px solid ${color}`,
+                    background: theme.white,
+                    border: `1px solid ${theme.border}`,
+                    borderLeftWidth: 3,
+                    borderRadius: 8,
+                    padding: "8px 10px",
+                  }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 700, color }}>
+                    {FLAG_LABELS[f.type]}
+                    <span style={{ ...unit, color: theme.faint, marginLeft: 6 }}>
+                      {f.severity} · {f.reviewIds.length} report{f.reviewIds.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  {f.evidence && (
+                    <p style={{ fontSize: 11, fontStyle: "italic", color: theme.sub, margin: "3px 0 0" }}>
+                      “{f.evidence}”
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

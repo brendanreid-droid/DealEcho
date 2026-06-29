@@ -22,8 +22,8 @@ function hostnameFromUrl(url: string | undefined): string {
  * pages or an unreadable tab), and skips redundant writes unless forced.
  */
 async function storeContext(hostname: string, selection: string, force = false): Promise<void> {
-  if (!hostname) {
-    console.debug("[Dealecho] storeContext skipped — empty hostname");
+  if (!hostname && !selection) {
+    console.debug("[Dealecho] storeContext skipped — nothing to look up");
     return;
   }
   if (!force) {
@@ -84,4 +84,20 @@ chrome.runtime.onMessage.addListener((msg) => {
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     await storeContext(hostnameFromUrl(tab?.url), "", true);
   })();
+});
+
+// Right-click → "Search Dealecho for '<selection>'": the reliable way to look up
+// highlighted text on any page (selection comes straight from the menu event).
+const SEARCH_MENU_ID = "dealecho-search-selection";
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: SEARCH_MENU_ID,
+    title: 'Search Dealecho for "%s"',
+    contexts: ["selection"],
+  });
+});
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId !== SEARCH_MENU_ID || !tab?.id) return;
+  await chrome.sidePanel.open({ tabId: tab.id });
+  await storeContext(hostnameFromUrl(tab.url), (info.selectionText || "").trim(), true);
 });

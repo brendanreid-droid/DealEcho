@@ -25,6 +25,16 @@ export function App() {
   const [context, setContext] = useState<PageContext | null>(null);
   const [result, setResult] = useState<LookupResult | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [hideTip, setHideTip] = useState(true);
+
+  // First-run tip (highlight → search) — shown until dismissed.
+  useEffect(() => {
+    chrome.storage.local.get("dealecho:hideTip").then((d) => setHideTip(!!d["dealecho:hideTip"]));
+  }, []);
+  const dismissTip = () => {
+    setHideTip(true);
+    void chrome.storage.local.set({ "dealecho:hideTip": true });
+  };
 
   // Auth subscription.
   useEffect(() => subscribeToAuth((u) => {
@@ -123,6 +133,44 @@ export function App() {
       </div>
 
       <div style={body}>
+        {!hideTip && (
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "flex-start",
+              background: theme.accent50,
+              border: `1px solid ${theme.accent100}`,
+              borderRadius: 8,
+              padding: "8px 10px",
+              margin: "0 0 12px",
+              fontSize: 12,
+              color: "#3730a3",
+              lineHeight: 1.4,
+            }}
+          >
+            <span>
+              💡 Tip: highlight a company name on any page, then{" "}
+              <strong>right-click → Search Dealecho</strong> (or click the icon) to look it up.
+            </span>
+            <button
+              onClick={dismissTip}
+              aria-label="Dismiss tip"
+              style={{
+                marginLeft: "auto",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                color: theme.accent,
+                fontWeight: 800,
+                fontSize: 14,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
         {context && (
           <p style={{ fontSize: 11, color: theme.faint, margin: "0 0 10px" }}>
             Looking at <strong style={{ color: theme.sub }}>{context.hostname || "—"}</strong>

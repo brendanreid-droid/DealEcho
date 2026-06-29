@@ -90,10 +90,13 @@ chrome.runtime.onMessage.addListener((msg) => {
 // highlighted text on any page (selection comes straight from the menu event).
 const SEARCH_MENU_ID = "dealecho-search-selection";
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: SEARCH_MENU_ID,
-    title: 'Search Dealecho for "%s"',
-    contexts: ["selection"],
+  // removeAll first — re-running create with the same id throws "duplicate id".
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: SEARCH_MENU_ID,
+      title: 'Search Dealecho for "%s"',
+      contexts: ["selection"],
+    });
   });
 });
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {

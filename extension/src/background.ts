@@ -17,8 +17,12 @@ function hostnameFromUrl(url: string | undefined): string {
   }
 }
 
-/** Persist the captured context. Skips redundant writes unless forced. */
+/**
+ * Persist the captured context. Never clobbers with an empty hostname (e.g. chrome://
+ * pages or an unreadable tab), and skips redundant writes unless forced.
+ */
 async function storeContext(hostname: string, selection: string, force = false): Promise<void> {
+  if (!hostname) return;
   if (!force) {
     const existing = (await chrome.storage.session.get(CONTEXT_STORAGE_KEY))[CONTEXT_STORAGE_KEY] as
       | PageContext
@@ -27,12 +31,6 @@ async function storeContext(hostname: string, selection: string, force = false):
   }
   const context: PageContext = { hostname, selection, capturedAt: Date.now() };
   await chrome.storage.session.set({ [CONTEXT_STORAGE_KEY]: context });
-}
-
-/** Read the active tab's URL (no injection — uses the "tabs" permission). Domain only. */
-async function captureActiveTabUrl(force = false): Promise<void> {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  await storeContext(hostnameFromUrl(tab?.url), "", force);
 }
 
 // Icon click: open the panel + capture the domain AND any highlighted text
@@ -54,17 +52,27 @@ chrome.action.onClicked.addListener(async (tab) => {
   await storeContext(captured.hostname, captured.selection, true);
 });
 
-// Auto-refresh as the user browses: switching tabs or navigating updates the domain.
-chrome.tabs.onActivated.addListener(() => {
-  void captureActiveTabUrl();
+// Auto-refresh as the user browses. Use the tab the event provides — a service
+// worker has no "current window", so querying for it is unreliable.
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    await storeContext(hostnameFromUrl(tab.url), "");
+  } catch {
+    /* tab gone or unreadable — leave the panel as-is */
+  }
 });
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   if (tab.active && (changeInfo.status === "complete" || changeInfo.url)) {
-    void captureActiveTabUrl();
+    void storeContext(hostnameFromUrl(tab.url), "");
   }
 });
 
-// Manual refresh button in the panel forces a re-read of the active tab.
+// Manual refresh button: re-read the focused window's active tab and force a lookup.
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === "dealecho:refresh") void captureActiveTabUrl(true);
+  if (msg?.type !== "dealecho:refresh") return;
+  void (async () => {
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    await storeContext(hostnameFromUrl(tab?.url), "", true);
+  })();
 });

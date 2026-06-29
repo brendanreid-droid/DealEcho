@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import { CSSProperties, ReactNode, useState } from "react";
 import { LookupResult, MetricScores } from "../lib/api";
 import { theme, healthColor, statusColor } from "./theme";
 
@@ -66,6 +66,41 @@ const primaryBtn: CSSProperties = {
   textDecoration: "none",
 };
 
+const tipPopup: CSSProperties = {
+  position: "absolute",
+  top: "100%",
+  left: "50%",
+  transform: "translateX(-50%)",
+  marginTop: 6,
+  background: theme.navy,
+  color: theme.white,
+  fontSize: 11,
+  fontWeight: 500,
+  lineHeight: 1.4,
+  padding: "6px 9px",
+  borderRadius: 6,
+  width: 150,
+  textAlign: "center",
+  zIndex: 30,
+  boxShadow: "0 6px 16px rgba(16,20,38,0.25)",
+  pointerEvents: "none",
+};
+
+/** Hover tooltip — a styled popup (native `title` is unreliable inside the panel). */
+function Tip({ text, children, style }: { text: string; children: ReactNode; style?: CSSProperties }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+      style={{ position: "relative", cursor: "help", ...style }}
+    >
+      {children}
+      {show && <div style={tipPopup}>{text}</div>}
+    </div>
+  );
+}
+
 function Stat({
   label,
   value,
@@ -77,16 +112,16 @@ function Stat({
   value: string | number;
   suffix?: string;
   color?: string;
-  hint?: string;
+  hint: string;
 }) {
   return (
-    <div title={hint} style={{ textAlign: "center", flex: 1, cursor: hint ? "help" : "default" }}>
+    <Tip text={hint} style={{ flex: 1, textAlign: "center" }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: color ?? theme.navy }}>
         {value}
         {suffix && <span style={unit}>{suffix}</span>}
       </div>
       <div style={eyebrow}>{label}</div>
-    </div>
+    </Tip>
   );
 }
 
@@ -94,7 +129,7 @@ function Stat({
 function MetricBar({ label, value, hint }: { label: string; value: number; hint: string }) {
   const pct = Math.max(0, Math.min(100, (value / 5) * 100));
   return (
-    <div title={hint} style={{ cursor: "help" }}>
+    <Tip text={hint}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
         <span style={{ color: theme.sub }}>{label}</span>
         <span style={{ fontWeight: 700, color: theme.ink }}>
@@ -112,7 +147,7 @@ function MetricBar({ label, value, hint }: { label: string; value: number; hint:
           }}
         />
       </div>
-    </div>
+    </Tip>
   );
 }
 
@@ -241,7 +276,7 @@ export function ReviewsView({
                   }}
                 >
                   {METRICS.map((m) => (
-                    <div key={m.key} title={m.hint} style={{ textAlign: "center", cursor: "help" }}>
+                    <Tip key={m.key} text={m.hint} style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: healthColor((r[m.key] || 0) * 20) }}>
                         {r[m.key]}
                         <span style={unit}>/5</span>
@@ -256,7 +291,7 @@ export function ReviewsView({
                       >
                         {m.short}
                       </div>
-                    </div>
+                    </Tip>
                   ))}
                 </div>
               </div>

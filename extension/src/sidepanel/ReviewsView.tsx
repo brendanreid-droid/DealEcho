@@ -1,7 +1,16 @@
-import { LookupResult } from "../lib/api";
+import { CSSProperties } from "react";
+import { LookupResult, MetricScores } from "../lib/api";
+import { theme, healthColor, statusColor } from "./theme";
 
 const CARD_URL = "https://www.dealecho.io";
-const INDIGO = "#4f46e5";
+
+// The four review elements (each 1–5, high = good), labelled to match the web app.
+const METRICS: { key: keyof MetricScores; label: string; short: string }[] = [
+  { key: "communicationRating", label: "Responsiveness", short: "Resp" },
+  { key: "negotiationLevel", label: "Negotiation", short: "Neg" },
+  { key: "timeWasterLevel", label: "Buyer intent", short: "Intent" },
+  { key: "clarityOfScope", label: "Scope clarity", short: "Scope" },
+];
 
 /** ISO string → "Feb 12, 2026". Falls back to the raw value if unparseable. */
 function formatDate(iso: string): string {
@@ -10,71 +19,129 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+const eyebrow: CSSProperties = {
+  fontSize: 10,
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+  color: theme.faint,
+  fontWeight: 700,
+};
+
+const primaryBtn: CSSProperties = {
+  display: "block",
+  textAlign: "center",
+  padding: "11px 12px",
+  background: theme.navy,
+  color: theme.white,
+  fontWeight: 600,
+  fontSize: 13,
+  borderRadius: 8,
+  textDecoration: "none",
+};
+
+function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
     <div style={{ textAlign: "center", flex: 1 }}>
-      <div style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>{value}</div>
-      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.4, color: "#9ca3af" }}>
-        {label}
+      <div style={{ fontSize: 18, fontWeight: 800, color: color ?? theme.navy }}>{value}</div>
+      <div style={eyebrow}>{label}</div>
+    </div>
+  );
+}
+
+/** Aggregate metric with a labelled bar (value out of 5). */
+function MetricBar({ label, value }: { label: string; value: number }) {
+  const pct = Math.max(0, Math.min(100, (value / 5) * 100));
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
+        <span style={{ color: theme.sub }}>{label}</span>
+        <span style={{ fontWeight: 700, color: theme.ink }}>{value.toFixed(1)}</span>
+      </div>
+      <div style={{ height: 5, background: theme.border, borderRadius: 3 }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: healthColor(value * 20),
+            borderRadius: 3,
+          }}
+        />
       </div>
     </div>
   );
 }
 
-export function ReviewsView({ result }: { result: LookupResult }) {
+export function ReviewsView({
+  result,
+  companyHint,
+}: {
+  result: LookupResult;
+  companyHint?: string;
+}) {
   if (!result.matched) {
+    const reviewUrl =
+      `${CARD_URL}/review/new` + (companyHint ? `?company=${encodeURIComponent(companyHint)}` : "");
     return (
-      <p style={{ fontSize: 14, color: "#6b7280" }}>
-        No reviews yet for this company on DealEcho.
-      </p>
+      <div style={{ fontSize: 14, color: theme.ink }}>
+        <p style={{ marginTop: 0, color: theme.sub, fontSize: 13 }}>
+          No reviews yet for this company on dealecho.
+        </p>
+        <a href={reviewUrl} target="_blank" rel="noreferrer" style={primaryBtn}>
+          Be the first to leave a review →
+        </a>
+      </div>
     );
   }
 
   const { companyName, summary, persona, isPro, recentReviews, companyId } = result;
 
   return (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: "#1f2937" }}>
-      <h2 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 10px" }}>{companyName}</h2>
+    <div style={{ fontSize: 14, lineHeight: 1.5, color: theme.ink }}>
+      <h2 style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.2, margin: "0 0 12px" }}>
+        {companyName}
+      </h2>
 
       {summary && (
         <div
           style={{
             display: "flex",
             gap: 8,
-            padding: "10px 8px",
-            background: "#f9fafb",
-            border: "1px solid #eef0f3",
-            borderRadius: 8,
-            margin: "0 0 12px",
+            padding: "12px 8px",
+            background: theme.panel,
+            border: `1px solid ${theme.border}`,
+            borderRadius: 10,
+            margin: "0 0 14px",
           }}
         >
           <Stat label="Rating" value={summary.rating.toFixed(1)} />
-          <Stat label="Health" value={summary.healthIndex} />
+          <Stat label="Health" value={summary.healthIndex} color={healthColor(summary.healthIndex)} />
           <Stat label={summary.reviewCount === 1 ? "Review" : "Reviews"} value={summary.reviewCount} />
         </div>
       )}
 
-      {persona?.summary && (
-        <div style={{ margin: "0 0 14px" }}>
-          <div
-            style={{
-              fontSize: 10,
-              textTransform: "uppercase",
-              letterSpacing: 0.4,
-              color: "#9ca3af",
-              marginBottom: 4,
-            }}
-          >
-            Buyer persona
+      {summary?.metrics && (
+        <div style={{ margin: "0 0 16px" }}>
+          <div style={{ ...eyebrow, marginBottom: 8 }}>Score breakdown</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 16px" }}>
+            {METRICS.map((m) => (
+              <MetricBar key={m.key} label={m.label} value={summary.metrics![m.key]} />
+            ))}
           </div>
+        </div>
+      )}
+
+      {persona?.summary && (
+        <div style={{ margin: "0 0 16px" }}>
+          <div style={{ ...eyebrow, marginBottom: 5 }}>Buyer persona</div>
           <p
             style={{
-              background: "#f3f4f6",
-              padding: 10,
+              background: theme.accent50,
+              borderLeft: `3px solid ${theme.accent}`,
+              padding: "10px 12px",
               borderRadius: 8,
               margin: 0,
               fontSize: 13,
-              color: "#374151",
+              color: "#312e81",
             }}
           >
             {persona.summary}
@@ -83,69 +150,79 @@ export function ReviewsView({ result }: { result: LookupResult }) {
       )}
 
       {isPro ? (
-        <div style={{ display: "grid", gap: 10 }}>
-          {(recentReviews ?? []).map((r) => (
-            <div
-              key={r.id}
-              style={{
-                border: "1px solid #eef0f3",
-                borderRadius: 8,
-                padding: 10,
-                background: "#fff",
-              }}
-            >
+        <>
+          <div style={{ ...eyebrow, marginBottom: 6 }}>Recent reviews</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {(recentReviews ?? []).map((r) => (
               <div
+                key={r.id}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 11,
-                  color: "#6b7280",
-                  marginBottom: 4,
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: 10,
+                  padding: 12,
+                  background: theme.white,
+                  boxShadow: "0 1px 2px rgba(16,20,38,0.04)",
                 }}
               >
-                <span style={{ fontWeight: 600, color: statusColor(r.status) }}>{r.status}</span>
-                <span>{formatDate(r.createdAt)}</span>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 11,
+                    marginBottom: 5,
+                  }}
+                >
+                  <span style={{ fontWeight: 700, color: statusColor(r.status) }}>{r.status}</span>
+                  <span style={{ color: theme.faint }}>{formatDate(r.createdAt)}</span>
+                </div>
+                <div style={{ fontSize: 13, color: theme.ink, marginBottom: 10 }}>{r.content}</div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: 4,
+                    borderTop: `1px solid ${theme.border}`,
+                    paddingTop: 8,
+                  }}
+                >
+                  {METRICS.map((m) => (
+                    <div key={m.key} style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: healthColor((r[m.key] || 0) * 20) }}>
+                        {r[m.key]}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: theme.faint,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.3,
+                        }}
+                      >
+                        {m.short}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ fontSize: 13 }}>{r.content}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       ) : (
-        <a
-          href="https://www.dealecho.io/pricing"
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: "block",
-            textAlign: "center",
-            padding: "10px 12px",
-            background: INDIGO,
-            color: "#fff",
-            fontWeight: 600,
-            borderRadius: 8,
-            textDecoration: "none",
-          }}
-        >
+        <a href="https://www.dealecho.io/pricing" target="_blank" rel="noreferrer" style={primaryBtn}>
           Upgrade to see reviews →
         </a>
       )}
 
-      <p style={{ marginTop: 14 }}>
+      <p style={{ marginTop: 16, marginBottom: 0 }}>
         <a
           href={companyId ? `${CARD_URL}/company/${companyId}` : CARD_URL}
           target="_blank"
           rel="noreferrer"
-          style={{ color: INDIGO, fontSize: 13, fontWeight: 600 }}
+          style={{ color: theme.accent, fontSize: 13, fontWeight: 600, textDecoration: "none" }}
         >
           View full company card →
         </a>
       </p>
     </div>
   );
-}
-
-function statusColor(status: string): string {
-  if (status === "Won") return "#15803d";
-  if (status === "Lost") return "#b91c1c";
-  return "#6b7280";
 }

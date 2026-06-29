@@ -2,12 +2,14 @@ import { defineManifest } from "@crxjs/vite-plugin";
 
 export default defineManifest({
   manifest_version: 3,
-  name: "DealEcho — Company Reviews",
+  name: "Dealecho — Company Reviews",
   version: "0.1.0",
-  description: "See DealEcho deal intelligence for any company, on prospect sites or in your CRM.",
-  action: { default_title: "DealEcho" },
+  description: "See Dealecho deal intelligence for any company, on prospect sites or in your CRM.",
+  action: { default_title: "Dealecho" },
   background: { service_worker: "src/background.ts", type: "module" },
-  permissions: ["activeTab", "scripting", "storage", "sidePanel"],
+  // "tabs" lets the worker read the active tab's URL on tab-switch/navigation
+  // (domain only, no page injection) so the panel refreshes as the user browses.
+  permissions: ["activeTab", "scripting", "storage", "sidePanel", "tabs"],
   host_permissions: [
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",

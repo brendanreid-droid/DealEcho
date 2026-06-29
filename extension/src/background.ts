@@ -22,15 +22,22 @@ function hostnameFromUrl(url: string | undefined): string {
  * pages or an unreadable tab), and skips redundant writes unless forced.
  */
 async function storeContext(hostname: string, selection: string, force = false): Promise<void> {
-  if (!hostname) return;
+  if (!hostname) {
+    console.debug("[Dealecho] storeContext skipped — empty hostname");
+    return;
+  }
   if (!force) {
     const existing = (await chrome.storage.session.get(CONTEXT_STORAGE_KEY))[CONTEXT_STORAGE_KEY] as
       | PageContext
       | undefined;
-    if (existing && existing.hostname === hostname && existing.selection === selection) return;
+    if (existing && existing.hostname === hostname && existing.selection === selection) {
+      console.debug("[Dealecho] storeContext skipped — unchanged", hostname);
+      return;
+    }
   }
   const context: PageContext = { hostname, selection, capturedAt: Date.now() };
   await chrome.storage.session.set({ [CONTEXT_STORAGE_KEY]: context });
+  console.debug("[Dealecho] context set →", hostname, selection ? `(sel: ${selection})` : "");
 }
 
 // Icon click: open the panel + capture the domain AND any highlighted text
@@ -57,13 +64,15 @@ chrome.action.onClicked.addListener(async (tab) => {
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   try {
     const tab = await chrome.tabs.get(tabId);
+    console.debug("[Dealecho] onActivated", tabId, "url:", tab.url);
     await storeContext(hostnameFromUrl(tab.url), "");
-  } catch {
-    /* tab gone or unreadable — leave the panel as-is */
+  } catch (err) {
+    console.debug("[Dealecho] onActivated failed", err);
   }
 });
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   if (tab.active && (changeInfo.status === "complete" || changeInfo.url)) {
+    console.debug("[Dealecho] onUpdated", _tabId, "url:", tab.url, "status:", changeInfo.status);
     void storeContext(hostnameFromUrl(tab.url), "");
   }
 });

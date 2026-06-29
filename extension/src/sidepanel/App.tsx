@@ -123,6 +123,11 @@ export function App() {
       </div>
 
       <div style={body}>
+        {context && (
+          <p style={{ fontSize: 11, color: theme.faint, margin: "0 0 10px" }}>
+            Looking at <strong style={{ color: theme.sub }}>{context.hostname || "—"}</strong>
+          </p>
+        )}
         {!context && (
           <p style={{ fontSize: 13, color: theme.sub }}>
             Click the dealecho icon on a company page to begin.

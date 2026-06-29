@@ -30,6 +30,7 @@ export {
 export { onReviewWritten } from "./reviewModeration";
 export { searchCompanyEntities, getAICompanyPersona } from "./searchCompanies";
 export { lookupCompanyReviews } from "./extension/lookupCompanyReviews";
+// redeploy trigger: lookupCompanyReviews score-breakdown metrics (2026-06-28)
 
 // Automated Lifecycle Email Triggers (Resend)
 export { sendWelcomeEmail } from "./triggers/welcomeTrigger";

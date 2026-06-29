@@ -9,18 +9,19 @@ const CRM_HOSTS = [
   "dynamics.com",
 ];
 
-/** Normalize any URL or hostname to its registrable domain (no protocol, no www, no subdomain). */
+/**
+ * Normalize any URL or hostname to a stable lookup key: strip protocol, path/query
+ * and a leading "www.". We deliberately KEEP the full remaining host rather than
+ * slicing to the last two labels — slicing collapses multi-part TLDs (e.g. every
+ * "*.com.au" → "com.au"), which would map unrelated companies to one cache key.
+ */
 export function registrableDomain(input: string): string {
   if (!input) return "";
   let host = input.trim().toLowerCase();
   host = host.replace(/^[a-z]+:\/\//, ""); // strip protocol
-  host = host.split("/")[0]; // strip path
-  host = host.split("?")[0];
-  if (!host) return "";
-  const parts = host.split(".").filter(Boolean);
-  if (parts.length <= 2) return parts.join(".");
-  // Keep the last two labels (good enough for .com/.io/.co; refine later if needed).
-  return parts.slice(-2).join(".");
+  host = host.split("/")[0].split("?")[0]; // strip path + query
+  host = host.replace(/^www\./, ""); // strip leading www.
+  return host;
 }
 
 /** True when the host belongs to a CRM/SaaS app rather than a prospect's own site. */

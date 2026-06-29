@@ -5,7 +5,14 @@ export default defineManifest({
   name: "Dealecho - Sales Intelligence",
   version: "0.1.0",
   description: "See Dealecho deal intelligence for any company, on prospect sites or in your CRM.",
-  action: { default_title: "Dealecho" },
+  action: {
+    default_title: "Dealecho",
+    default_icon: {
+      "16": "public/icons/icon-16.png",
+      "32": "public/icons/icon-32.png",
+      "48": "public/icons/icon-48.png",
+    },
+  },
   background: { service_worker: "src/background.ts", type: "module" },
   // "tabs" lets the worker read the active tab's URL on tab-switch/navigation
   // (domain only, no page injection) so the panel refreshes as the user browses.
@@ -16,5 +23,10 @@ export default defineManifest({
     "https://australia-southeast1-dealecho-io-sales-intel-hub.cloudfunctions.net/*",
   ],
   side_panel: { default_path: "index.html" },
-  icons: { "128": "public/icons/icon-128.png" },
+  icons: {
+    "16": "public/icons/icon-16.png",
+    "32": "public/icons/icon-32.png",
+    "48": "public/icons/icon-48.png",
+    "128": "public/icons/icon-128.png",
+  },
 });

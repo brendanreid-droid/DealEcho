@@ -41,13 +41,14 @@ describe("resolveCompany", () => {
     expect(res?.companyId).toBe("c2");
   });
 
-  it("caches the domain after a successful prospect-site match", async () => {
+  it("matches a highlighted name without reading OR writing the domain cache", async () => {
+    // Highlighting a name on a page (e.g. dealecho.io / a CRM) must not cache
+    // domain→company — otherwise the next highlight on the same site is ignored.
     const deps = makeDeps();
-    await resolveCompany({ domain: "datadog.com", name: "Datadog" }, deps);
-    expect(deps.saveDomainCache).toHaveBeenCalledWith(
-      "datadog.com",
-      expect.objectContaining({ companyId: "c1" }),
-    );
+    const res = await resolveCompany({ domain: "www.dealecho.io", name: "Datadog" }, deps);
+    expect(res?.companyId).toBe("c1");
+    expect(deps.lookupDomainCache).not.toHaveBeenCalled();
+    expect(deps.saveDomainCache).not.toHaveBeenCalled();
   });
 
   it("falls back to AI when no direct match, then re-matches", async () => {

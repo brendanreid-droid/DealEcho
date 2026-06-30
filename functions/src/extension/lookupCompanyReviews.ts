@@ -121,9 +121,21 @@ export const lookupCompanyReviews = onCall(
             await db.doc(`personas/${id}`).set(entry, { merge: true });
           },
           async generate(_companyId) {
+            // Feed the actual review excerpts; without them Gemini replies
+            // "please provide the review". Excerpts come from public review_summaries.
+            const lines = sums
+              .map((s) => (typeof s.excerpt === "string" ? s.excerpt.trim() : ""))
+              .filter(Boolean)
+              .map((e) => `- ${e}`);
+            const corpus = lines.length ? lines.join("\n") : "(no review text available)";
             const resp = await ai.models.generateContent({
               model: "gemini-2.5-flash",
-              contents: `Summarize the B2B buyer behaviour for "${company.companyName}" in 2-3 sentences for a sales rep, based on ${reviewCount} reviews. Plain text.`,
+              contents:
+                `You are a B2B sales strategist. Based only on these ${reviewCount} seller-submitted ` +
+                `review excerpt(s) about selling to "${company.companyName}", write a 2-3 sentence ` +
+                `buyer-behaviour summary for a sales rep. Do NOT ask for more information — if the ` +
+                `evidence is thin, summarise what's available and note it's from limited reports. ` +
+                `Plain text only.\n\nReviews:\n${corpus}`,
             });
             return { summary: (resp.text ?? "").trim() };
           },

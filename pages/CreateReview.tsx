@@ -582,6 +582,18 @@ const CreateReview: React.FC<CreateReviewProps> = ({
               placeholder="Share tactical advice about the deal. Do NOT include individual names, job titles/positions, weblinks, or confidential commercial details — reviews containing these are automatically rejected..."
               className="w-full h-72 bg-slate-50 border-2 border-slate-100 rounded-[40px] px-12 py-10 focus:bg-white focus:border-indigo-200 outline-none transition resize-none text-slate-700 leading-relaxed text-lg shadow-inner"
             />
+            <div className="flex items-center justify-between px-4">
+              <p className="text-sm text-slate-500 font-medium">
+                {content.length < 100 ? (
+                  <>Share what <strong>worked</strong> and what <strong>didn't</strong> in your sales cycle</>
+                ) : (
+                  <span className="text-emerald-600 font-bold">✓ Ready to submit</span>
+                )}
+              </p>
+              <div className={`text-sm font-bold ${content.length >= 100 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                {content.length}/100
+              </div>
+            </div>
           </section>
 
           {/* Review guidelines + required acknowledgement */}

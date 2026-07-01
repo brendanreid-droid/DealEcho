@@ -51,8 +51,8 @@ function sanitize(data: any): ReviewPayload {
   const companyId = str(data?.companyId).trim();
   const content = str(data?.content).trim();
   if (!companyId) throw new HttpsError("invalid-argument", "companyId is required.");
-  if (content.length < 20) {
-    throw new HttpsError("invalid-argument", "Review content is too short (minimum 20 characters).");
+  if (content.length < 100) {
+    throw new HttpsError("invalid-argument", "Review content is too short (minimum 100 characters). Please share what worked and what didn't in this sales cycle - include details about communication, negotiation ease, buyer intent, and scope clarity.");
   }
 
   const outcome = ["Won", "Lost", "Ongoing"].includes(data?.status) ? data.status : "Ongoing";

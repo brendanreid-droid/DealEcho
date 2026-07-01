@@ -1,7 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { randomBytes } from 'crypto';
 import { db, auth } from './lib/firebaseAdmin';
-import { getStripe } from './lib/stripe';
+import { getStripe, STRIPE_SECRET_KEY } from './lib/stripe';
 import { sendReactEmail } from './lib/email';
 import { TeamInviteEmail } from './emails/TeamInviteEmail';
 import * as React from 'react';
@@ -254,7 +254,7 @@ export const removeTeamMember = onCall({ cors: true }, async (request) => {
 
 // ── updateTeamSeats ──────────────────────────────────────────────────────────
 
-export const updateTeamSeats = onCall({ cors: true }, async (request) => {
+export const updateTeamSeats = onCall({ cors: true, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required.');
 
   const uid = request.auth.uid;

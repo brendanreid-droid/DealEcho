@@ -1,15 +1,10 @@
 import Stripe from 'stripe';
+import { defineSecret } from 'firebase-functions/params';
 
-let stripeInstance: Stripe | null = null;
+export const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY');
 
 export const getStripe = () => {
-  if (!stripeInstance) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
-    }
-    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia' as any,
-    });
-  }
-  return stripeInstance;
+  const key = STRIPE_SECRET_KEY.value() || process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('STRIPE_SECRET_KEY is not configured');
+  return new Stripe(key, { apiVersion: '2025-01-27.acacia' as any });
 };

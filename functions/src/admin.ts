@@ -4,6 +4,7 @@ import {
   CallableRequest,
 } from "firebase-functions/v2/https";
 import { db, auth } from "./lib/firebaseAdmin";
+import { STRIPE_SECRET_KEY } from "./lib/stripe";
 import { sendReactEmail } from "./lib/email";
 import * as React from "react";
 import { InviteEmail } from "./emails/InviteEmail";
@@ -194,7 +195,7 @@ export const adminGetPricing = onCall({ cors: true }, async (request) => {
  * Creates new Stripe Price objects and stores them in Firestore.
  * Admin only. Accepts monthlyAmount and annualAmount in cents.
  */
-export const adminUpdatePricing = onCall({ cors: true }, async (request) => {
+export const adminUpdatePricing = onCall({ cors: true, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
   requireAdmin(request);
 
   const { monthlyAmount, annualAmount, currency } = request.data as {
@@ -217,7 +218,7 @@ export const adminUpdatePricing = onCall({ cors: true }, async (request) => {
     );
   }
 
-  const { getStripe } = await import("./lib/stripe");
+  const { getStripe } = await import("./lib/stripe"); // getStripe reads STRIPE_SECRET_KEY at call time
   const stripe = getStripe();
   const cur = currency ?? "aud";
 

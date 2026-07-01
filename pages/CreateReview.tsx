@@ -584,14 +584,14 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             />
             <div className="flex items-center justify-between px-4">
               <p className="text-sm text-slate-500 font-medium">
-                {content.length < 100 ? (
+                {content.trim().split(/\s+/).length < 50 ? (
                   <>Share what <strong>worked</strong> and what <strong>didn't</strong> in your sales cycle</>
                 ) : (
                   <span className="text-emerald-600 font-bold">✓ Ready to submit</span>
                 )}
               </p>
-              <div className={`text-sm font-bold ${content.length >= 100 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                {content.length}/100
+              <div className={`text-sm font-bold ${content.trim().split(/\s+/).length >= 50 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                {content.trim().split(/\s+/).filter(w => w).length}/50 words
               </div>
             </div>
           </section>

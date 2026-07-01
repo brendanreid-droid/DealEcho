@@ -390,12 +390,14 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
           )}
         </div>
       </div>
-      <CtaBand
-        headline="Ready to stop guessing?"
-        subtext="Start your 30-day Pro trial. Cancel anytime."
-        ctaLabel="Start free trial"
-        to="/pricing"
-      />
+      <div className="mt-24">
+        <CtaBand
+          headline="Ready to stop guessing?"
+          subtext="Start your 30-day Pro trial. Cancel anytime."
+          ctaLabel="Start free trial"
+          to="/pricing"
+        />
+      </div>
     </div>
   );
 };

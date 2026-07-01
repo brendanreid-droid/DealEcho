@@ -231,50 +231,86 @@ const MyIntel: React.FC<MyIntelProps> = ({
 
             <div className="space-y-4">
               {trackedCompanies.length > 0 ? (
-                trackedCompanies.map((c) => (
-                  <div
-                    key={c.id}
-                    className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group"
-                  >
-                    {notifications[c.id] && (
-                      <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">
-                        NEW
-                      </div>
-                    )}
-                    <div className="flex justify-between items-start mb-4">
-                      <Link
-                        to={`/company/${c.id}`}
-                        className="flex items-center space-x-4 group-hover:text-indigo-600 transition-colors"
-                      >
-                        <CompanyLogo
-                          name={c.name}
-                          logoUrl={c.logoUrl}
-                          size="md"
-                        />
-                        <div>
-                          <h4 className="font-bold text-slate-900">{c.name}</h4>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            {c.industry}
-                          </p>
+                trackedCompanies.map((c) => {
+                  const companyReviews = reviews.filter((r) => r.companyId === c.id);
+                  const avgComm = companyReviews.length > 0 ? Math.round((companyReviews.reduce((sum, r) => sum + r.communicationRating, 0) / companyReviews.length) * 10) / 10 : 0;
+                  const avgNeg = companyReviews.length > 0 ? Math.round((companyReviews.reduce((sum, r) => sum + r.negotiationLevel, 0) / companyReviews.length) * 10) / 10 : 0;
+                  const avgTime = companyReviews.length > 0 ? Math.round((companyReviews.reduce((sum, r) => sum + r.timeWasterLevel, 0) / companyReviews.length) * 10) / 10 : 0;
+                  const avgClarity = companyReviews.length > 0 ? Math.round((companyReviews.reduce((sum, r) => sum + (r.clarityOfScope || 3), 0) / companyReviews.length) * 10) / 10 : 0;
+                  const mostRecent = companyReviews.length > 0 ? companyReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] : null;
+
+                  return (
+                    <div
+                      key={c.id}
+                      className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm relative group"
+                    >
+                      {notifications[c.id] && (
+                        <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">
+                          NEW
                         </div>
-                      </Link>
-                      <button
-                        onClick={() => onToggleTrack(c.id)}
-                        className="text-slate-200 hover:text-rose-500 flex items-center justify-center"
-                      >
-                        <Icon name="fa-times-circle" size={16} />
-                      </button>
-                    </div>
-                    <div className="pt-4 border-t border-slate-50 flex justify-between">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase">
-                        {c.count} Reports
+                      )}
+                      <div className="flex justify-between items-start mb-3">
+                        <Link
+                          to={`/company/${c.id}`}
+                          className="flex items-center space-x-3 group-hover:text-indigo-600 transition-colors flex-1"
+                        >
+                          <CompanyLogo
+                            name={c.name}
+                            logoUrl={c.logoUrl}
+                            size="md"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-slate-900 text-sm">{c.name}</h4>
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                              {c.industry}
+                            </p>
+                          </div>
+                        </Link>
+                        <button
+                          onClick={() => onToggleTrack(c.id)}
+                          className="text-slate-200 hover:text-rose-500 flex items-center justify-center ml-2 flex-shrink-0"
+                        >
+                          <Icon name="fa-times-circle" size={14} />
+                        </button>
                       </div>
-                      <div className="text-[10px] font-bold text-indigo-500 uppercase">
-                        Active tracking
+
+                      <div className="grid grid-cols-4 gap-1 mb-2 py-1.5 bg-slate-50 rounded px-1.5">
+                        <div className="text-center">
+                          <div className="text-[6px] text-slate-500 uppercase font-black">Comm</div>
+                          <div className="text-xs font-black text-slate-900">{avgComm}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[6px] text-slate-500 uppercase font-black">Neg</div>
+                          <div className="text-xs font-black text-slate-900">{avgNeg}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[6px] text-slate-500 uppercase font-black">Intent</div>
+                          <div className="text-xs font-black text-slate-900">{avgTime}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[6px] text-slate-500 uppercase font-black">Scope</div>
+                          <div className="text-xs font-black text-slate-900">{avgClarity}</div>
+                        </div>
+                      </div>
+
+                      {mostRecent && (
+                        <div className="pt-2 border-t border-slate-50 text-[8px]">
+                          <p className="text-slate-500 font-semibold mb-0.5">Latest: {mostRecent.content.substring(0, 45)}...</p>
+                          <p className="text-slate-400">{getTimeAgo(mostRecent.createdAt)}</p>
+                        </div>
+                      )}
+
+                      <div className="pt-2 border-t border-slate-50 flex justify-between text-[9px]">
+                        <div className="font-bold text-slate-400 uppercase">
+                          {c.count} Reports
+                        </div>
+                        <div className="font-bold text-indigo-500 uppercase">
+                          Tracking
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="bg-white p-12 rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
                   <Icon name="fa-search" className="text-slate-200 mx-auto block" size={40} />

@@ -40,16 +40,37 @@ interface ModerationVerdict {
   reason?: string;
 }
 
+// Weblinks are caught deterministically before the AI call — regex is more
+// reliable than the model for URLs, and it saves an API round-trip on obvious
+// violations. Matches http(s):// links, www.-prefixed, and bare domains.
+const URL_PATTERN =
+  /\b(?:https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(?:com|net|org|io|co|ai|app|dev|biz|info|gov|edu)\b(?:\/\S*)?/i;
+
 async function moderate(content: string, apiKey: string): Promise<ModerationVerdict> {
+  // ── Deterministic pre-check: reject weblinks outright ──
+  if (URL_PATTERN.test(content)) {
+    return {
+      isSafe: false,
+      reason: "Reviews may not contain web links or URLs. Please remove any links.",
+    };
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   const prompt = `You are a content moderator for a B2B sales review platform.
-Reviews describe a company's BUYING behaviour. Reject content that contains:
-- Personal names of individuals (first names, surnames, or identifiable role+name combos)
+Reviews describe a company's BUYING behaviour. They MAY reference generic
+departments or teams (e.g. "Procurement", "Legal", "the IT team", "their
+finance department") — that is expected and ALLOWED.
+
+Reject content that contains:
+- Names of individual people (first names, surnames, initials, or nicknames)
+- Job titles or positions that identify a SPECIFIC individual, e.g. "their CFO",
+  "the Head of Procurement", "our VP of Sales", "the CEO said". Do NOT reject
+  generic team/department references like "the procurement team".
 - Defamatory claims, profanity, hate speech, or harassment
 - Confidential pricing details or contract terms attributable to a named deal
-- Contact details (emails, phone numbers)
+- Contact details (emails, phone numbers) or web links / URLs
 
-Respond ONLY with minified JSON: {"isSafe": boolean, "reason": "short reason if unsafe"}
+Respond ONLY with minified JSON: {"isSafe": boolean, "reason": "short, specific reason if unsafe — tell the reviewer exactly what to remove"}
 
 REVIEW:
 """${content}"""`;

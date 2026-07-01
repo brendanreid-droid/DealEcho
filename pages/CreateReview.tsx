@@ -55,6 +55,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
   const [timeWaster, setTimeWaster] = useState(0);
   const [clarityScope, setClarityScope] = useState(0);
   const [content, setContent] = useState("");
+  const [acknowledged, setAcknowledged] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,6 +99,13 @@ const CreateReview: React.FC<CreateReviewProps> = ({
     ) {
       setError(
         "Please complete all sections, including selecting at least one department in the Buying Team.",
+      );
+      errorRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (!acknowledged) {
+      setError(
+        "Please confirm the review guidelines checkbox before submitting.",
       );
       errorRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
@@ -570,9 +578,47 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share tactical advice (AI will anonymize sensitive names)..."
+              placeholder="Share tactical advice about the deal. Do NOT include individual names, job titles/positions, weblinks, or confidential commercial details — reviews containing these are automatically rejected..."
               className="w-full h-72 bg-slate-50 border-2 border-slate-100 rounded-[40px] px-12 py-10 focus:bg-white focus:border-indigo-200 outline-none transition resize-none text-slate-700 leading-relaxed text-lg shadow-inner"
             />
+          </section>
+
+          {/* Review guidelines + required acknowledgement */}
+          <section className="space-y-5">
+            <div className="p-8 bg-amber-50/60 border border-amber-100 rounded-[32px] space-y-4">
+              <div className="flex items-center space-x-3 text-amber-700">
+                <Icon name="fa-shield-halved" size={16} />
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">
+                  Before you submit
+                </h4>
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                Reviews must be <strong>honest and based on your own direct
+                experience</strong>. To protect everyone, do not include:
+              </p>
+              <ul className="text-sm text-slate-600 leading-relaxed font-medium space-y-1.5 list-disc pl-5">
+                <li>Names of individuals, or job titles / positions that identify a specific person</li>
+                <li>Web links or URLs</li>
+                <li>Confidential, commercially sensitive, or personal information (exact pricing, contract terms, contact details)</li>
+              </ul>
+              <p className="text-[11px] text-slate-400 font-medium">
+                Generic department references (e.g. "the procurement team") are fine. Reviews are moderated and rejected if they breach these rules.
+              </p>
+            </div>
+
+            <label className="flex items-start space-x-4 cursor-pointer group p-2">
+              <input
+                type="checkbox"
+                checked={acknowledged}
+                onChange={(e) => setAcknowledged(e.target.checked)}
+                className="mt-1 h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
+              />
+              <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors leading-relaxed">
+                I confirm this review is honest and based on my own experience, and
+                contains no confidential, commercial, or personal information, and
+                does not identify any individual.
+              </span>
+            </label>
           </section>
 
           <button
@@ -585,7 +631,8 @@ const CreateReview: React.FC<CreateReviewProps> = ({
               negotiation === 0 ||
               timeWaster === 0 ||
               clarityScope === 0 ||
-              buyingTeam.length === 0
+              buyingTeam.length === 0 ||
+              !acknowledged
             }
             className="w-full bg-[#0f172a] text-white py-10 rounded-[40px] font-black text-2xl hover:bg-black transition-all disabled:bg-slate-100 disabled:text-slate-300 shadow-xl shadow-slate-200/50"
           >

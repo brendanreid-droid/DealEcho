@@ -7,6 +7,7 @@ import { Review } from "../types";
 import CompanyLogo from "../components/CompanyLogo";
 import { useAuth, MappedUser } from "../src/hooks/useAuth";
 import Icon from "../src/components/Icon";
+import MySubmissions from "../src/components/MySubmissions";
 import { Loader2 } from "lucide-react";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
@@ -385,6 +386,8 @@ const MyIntel: React.FC<MyIntelProps> = ({
         </div>
 
         <div className="lg:col-span-2 space-y-8">
+          {user?.id && <MySubmissions userId={user.id} />}
+
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold flex items-center">
               <Icon name="fa-history" className="text-indigo-500 mr-3" size={18} />

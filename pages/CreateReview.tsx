@@ -9,6 +9,14 @@ import { useToast } from "../src/components/Toast";
 import { companyLogoUrl } from "../src/utils/companyLogo";
 import { DEPARTMENTS, TCV_BRACKETS, DURATION_BRACKETS } from "../src/constants/dealData";
 import { MappedUser } from "../src/hooks/useAuth";
+import { ReviewCooldownError } from "../src/hooks/useReviews";
+
+const formatDate = (iso: string): string =>
+  new Date(iso).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 
 interface CreateReviewProps {
   user: MappedUser | null;
@@ -127,8 +135,18 @@ const CreateReview: React.FC<CreateReviewProps> = ({
         toast.error("Failed to save review. Please try again.");
       }
     }).catch((err) => {
-      console.error(err);
       setIsSubmitting(false);
+      if (err instanceof ReviewCooldownError) {
+        const when = err.nextAllowedAt
+          ? ` You can review ${selectedCompany.name} again after ${formatDate(err.nextAllowedAt)}.`
+          : "";
+        const msg = `You can only submit one review per company every 6 months.${when}`;
+        setError(msg);
+        errorRef.current?.scrollIntoView({ behavior: "smooth" });
+        toast.error("Review limit reached for this company.");
+        return;
+      }
+      console.error(err);
       toast.error("Failed to save review. Please try again.");
     });
   };

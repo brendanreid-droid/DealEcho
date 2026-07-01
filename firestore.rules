@@ -40,12 +40,14 @@ service cloud.firestore {
     // Users cannot set moderation fields — only Cloud Functions (Admin SDK) can.
     // Admins can moderate (update/delete).
     match /reviews/{reviewId} {
-      allow read: if isPro();
-      allow create: if isSignedIn() 
-                    && request.resource.data.userId == request.auth.uid
-                    && !('moderationStatus' in request.resource.data && request.resource.data.moderationStatus != 'pending')
-                    && !('moderationReason' in request.resource.data)
-                    && !('flaggedSegments' in request.resource.data);
+      // Pro users read all reviews; any signed-in user can read their OWN
+      // reviews (so they can see a rejected review + its moderation reason).
+      allow read: if isPro()
+                  || (isSignedIn() && resource.data.userId == request.auth.uid);
+      // Reviews are created/edited exclusively via the submitReview /
+      // resubmitReview callables (Admin SDK, bypasses rules). This enforces the
+      // 6-month-per-company rate limit that rules alone cannot express.
+      allow create: if false;
       allow update, delete: if isAdmin();
     }
 

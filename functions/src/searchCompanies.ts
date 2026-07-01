@@ -23,7 +23,7 @@ export const searchCompanyEntities = onCall(
     try {
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: `Search for companies matching: "${query}". Return a JSON array of objects with: name, industry, country, domain (e.g. atlassian.com, when known, otherwise empty string), and a brief description. Use real data from your knowledge or search. Respond ONLY with a valid minified JSON array of objects.`,
+        contents: `Search for companies matching: "${query}". Return a JSON array of objects with: name, industry, country, domain (e.g. atlassian.com, when known, otherwise empty string), logoUrl (URL to company logo/favicon if available, otherwise empty string), and a brief description. Use real data from your knowledge or search. Respond ONLY with a valid minified JSON array of objects.`,
         config: {
           tools: [{ googleSearch: {} }],
         },

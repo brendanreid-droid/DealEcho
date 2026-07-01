@@ -409,10 +409,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
                           },
                         )
                       }
-                      className="bg-white p-6 md:p-8 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all cursor-pointer group"
+                      className="bg-white p-4 md:p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all cursor-pointer group"
                     >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center space-x-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
                           <CompanyLogo
                             name={review.companyName}
                             logoUrl={logoUrl}
@@ -420,18 +420,18 @@ const MyIntel: React.FC<MyIntelProps> = ({
                             className="group-hover:scale-105 transition"
                           />
                           <div>
-                            <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                            <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">
                               {review.companyName}
                             </h4>
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                               {review.industry} &bull;{" "}
                               {review.country || review.location}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center gap-2">
                           <span
-                            className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${
+                            className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
                               review.status === "Won"
                                 ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                                 : review.status === "Lost"
@@ -441,9 +441,9 @@ const MyIntel: React.FC<MyIntelProps> = ({
                           >
                             {review.status}
                           </span>
-                          <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-center">
-                            <div className="text-[7px] font-black uppercase tracking-tighter opacity-60">
-                              Score
+                          <div className="bg-slate-900 text-white px-2 py-1 rounded-lg text-center">
+                            <div className="text-[6px] font-black uppercase tracking-tighter opacity-60">
+                              Overall
                             </div>
                             <div className="text-xs font-black text-indigo-400">
                               {avgScore}%
@@ -452,22 +452,41 @@ const MyIntel: React.FC<MyIntelProps> = ({
                         </div>
                       </div>
 
-                      <p className="text-slate-600 text-sm leading-relaxed line-clamp-2 mb-4 font-medium">
+                      <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 mb-2 font-medium">
                         {review.content}
                       </p>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                        <div className="flex items-center space-x-4">
-                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
-                            <Icon name="fa-dollar-sign" className="mr-1" size={10} />
+                      <div className="grid grid-cols-4 gap-1.5 mb-3 py-2 bg-slate-50 rounded-lg px-2">
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Communication</div>
+                          <div className="text-sm font-black text-slate-900">{review.communicationRating}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Negotiation</div>
+                          <div className="text-sm font-black text-slate-900">{review.negotiationLevel}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Time Waster</div>
+                          <div className="text-sm font-black text-slate-900">{review.timeWasterLevel}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Clarity</div>
+                          <div className="text-sm font-black text-slate-900">{review.clarityOfScope || 3}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[8px]">
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-400 uppercase tracking-widest flex items-center">
+                            <Icon name="fa-dollar-sign" className="mr-0.5" size={9} />
                             {review.tcvBracket}
                           </span>
-                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
-                            <Icon name="fa-clock" className="mr-1" size={10} />
+                          <span className="font-black text-slate-400 uppercase tracking-widest flex items-center">
+                            <Icon name="fa-clock" className="mr-0.5" size={9} />
                             {review.cycleDuration}
                           </span>
                         </div>
-                        <span className="text-[9px] font-bold text-slate-300">
+                        <span className="font-bold text-slate-300">
                           {timeAgo}
                         </span>
                       </div>

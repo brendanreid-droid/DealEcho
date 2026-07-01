@@ -1,0 +1,40 @@
+<h2>Three approaches to Enterprise billing + team model</h2>
+<p class="subtitle">$13/seat/month, minimum 5 seats. Multiple managers. Email invites.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A ★</div>
+    <div class="content">
+      <h3>Stripe quantity subscription + Firestore teams collection</h3>
+      <p><strong>Recommended.</strong> One Stripe price at $13/seat with quantity = seat count (min 5). Stripe handles proration natively when quantity changes. Firestore gets a dedicated <code>teams</code> collection — members, roles, invites all live there. Clean, scalable, minimal custom billing logic.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Stripe manages all proration math</li><li>Clean data model</li><li>Seat changes = one Stripe API call</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>New Stripe price object needed</li><li>New Firestore collection + security rules</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Two Stripe items (flat $65 base + $13 addon per extra seat)</h3>
+      <p>Subscription has two line items: a fixed $65/mo base + a $13/seat item for seats above 5. Preserves the "5 included" mental model explicitly in Stripe.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Invoices clearly show "base + extras"</li><li>Easy to change base price independently</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More complex Stripe subscription structure</li><li>Two items to manage on every change</li><li>No real benefit over approach A at this pricing</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Fixed subscription + manual invoice items for overages</h3>
+      <p>Enterprise starts as a flat $65/mo subscription. When seats exceed 5, create one-off Stripe invoice items at billing cycle end for the overage.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Simplest initial Stripe setup</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Must build custom metering/overage tracking</li><li>Delayed billing = revenue leakage risk</li><li>Complex webhook handling</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

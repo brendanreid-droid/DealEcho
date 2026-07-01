@@ -22,12 +22,13 @@ DealEcho is a B2B SaaS platform for deal and company intelligence. Built with Re
 
 ### Git Workflow
 
-Use **GitHub Desktop** for all commits and pushes — no terminal `git` commands needed.
+Use **terminal** for all commits and pushes.
 
-1. Make changes (I'll edit files, or you do)
-2. GitHub Desktop shows changed files in the left panel
-3. Type a short commit message in the **Summary** box
-4. Click **Commit to main** → **Push origin**
+```bash
+git add <files>
+git commit -m "message"
+git push origin main
+```
 
 GitHub Actions automatically deploys on push (if `functions/` or `.github/workflows/` changed).
 
@@ -83,7 +84,7 @@ npm run deploy -w functions       # Deploy to Firebase
 ```
 
 **Git + Deploy:**
-- Use **GitHub Desktop** (GUI) for commits
+- Use terminal: `git add`, `git commit -m "msg"`, `git push origin main`
 - Push triggers GitHub Actions automatically
 - Logs viewable at: https://github.com/brendanreid-droid/DealEcho/actions
 

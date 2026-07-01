@@ -1,0 +1,33 @@
+<h2>What can a manager control per team member?</h2>
+<p class="subtitle">Select all that apply — these are the per-seat permissions the manager can set</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="role" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Role: Manager vs User</h3>
+      <p>Promote a user to manager (can also manage seats/team) or demote back to user.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="active" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Enable / disable seat</h3>
+      <p>Deactivate a member without removing them — they lose Pro access but keep their account. Seat stays allocated.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="remove" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Remove from team</h3>
+      <p>Free up their seat entirely. They revert to free tier. Seat can be reassigned.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="custom" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Custom feature flags</h3>
+      <p>Per-user toggles for specific features (e.g. can submit reviews, can export data). More granular than role.</p>
+    </div>
+  </div>
+</div>

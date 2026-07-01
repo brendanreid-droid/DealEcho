@@ -1,0 +1,105 @@
+<h2>Team Management Dashboard (mockup)</h2>
+<p class="subtitle">What a manager sees at /settings/team — does this layout feel right?</p>
+
+<div class="mockup">
+  <div class="mockup-header">Settings → Team</div>
+  <div class="mockup-body">
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
+      <div>
+        <div class="label">Enterprise Plan</div>
+        <div style="font-size:1.2em; font-weight:600; margin-top:4px;">Acme Corp</div>
+        <div style="color:var(--text-muted); font-size:0.875em; margin-top:2px;">5 of 6 seats used · $78/mo · renews Jul 27</div>
+      </div>
+      <button class="mock-button">+ Add Seat ($13/mo)</button>
+    </div>
+
+    <table style="width:100%; border-collapse:collapse; font-size:0.9em;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border); text-align:left;">
+          <th style="padding:8px 12px; color:var(--text-muted); font-weight:500;">Member</th>
+          <th style="padding:8px 12px; color:var(--text-muted); font-weight:500;">Role</th>
+          <th style="padding:8px 12px; color:var(--text-muted); font-weight:500;">Status</th>
+          <th style="padding:8px 12px; color:var(--text-muted); font-weight:500;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:10px 12px;">
+            <div style="font-weight:500;">Brendan Reid</div>
+            <div style="color:var(--text-muted); font-size:0.8em;">brendan@acme.com</div>
+          </td>
+          <td style="padding:10px 12px;"><span style="background:var(--accent-subtle,#f0ebff); color:var(--accent,#7c3aed); padding:2px 8px; border-radius:4px; font-size:0.8em; font-weight:500;">Manager (Owner)</span></td>
+          <td style="padding:10px 12px;"><span style="color:#16a34a; font-size:0.85em;">● Active</span></td>
+          <td style="padding:10px 12px; color:var(--text-muted); font-size:0.8em;">—</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:10px 12px;">
+            <div style="font-weight:500;">Sarah Chen</div>
+            <div style="color:var(--text-muted); font-size:0.8em;">sarah@acme.com</div>
+          </td>
+          <td style="padding:10px 12px;"><span style="background:var(--accent-subtle,#f0ebff); color:var(--accent,#7c3aed); padding:2px 8px; border-radius:4px; font-size:0.8em; font-weight:500;">Manager</span></td>
+          <td style="padding:10px 12px;"><span style="color:#16a34a; font-size:0.85em;">● Active</span></td>
+          <td style="padding:10px 12px;">
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px;">Make User</button>
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px; margin-left:4px; color:#dc2626;">Remove</button>
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:10px 12px;">
+            <div style="font-weight:500;">Tom Nguyen</div>
+            <div style="color:var(--text-muted); font-size:0.8em;">tom@acme.com</div>
+          </td>
+          <td style="padding:10px 12px;"><span style="background:var(--surface-2,#f5f5f5); color:var(--text-muted); padding:2px 8px; border-radius:4px; font-size:0.8em; font-weight:500;">User</span></td>
+          <td style="padding:10px 12px;"><span style="color:#16a34a; font-size:0.85em;">● Active</span></td>
+          <td style="padding:10px 12px;">
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px;">Make Manager</button>
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px; margin-left:4px; color:#dc2626;">Remove</button>
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:10px 12px;">
+            <div style="font-weight:500; color:var(--text-muted);">james@acme.com</div>
+          </td>
+          <td style="padding:10px 12px;"><span style="background:var(--surface-2,#f5f5f5); color:var(--text-muted); padding:2px 8px; border-radius:4px; font-size:0.8em; font-weight:500;">User</span></td>
+          <td style="padding:10px 12px;"><span style="color:#d97706; font-size:0.85em;">⏳ Invite pending</span></td>
+          <td style="padding:10px 12px;">
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px;">Resend</button>
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px; margin-left:4px; color:#dc2626;">Cancel</button>
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:10px 12px;">
+            <div style="font-weight:500;">Priya Patel</div>
+            <div style="color:var(--text-muted); font-size:0.8em;">priya@acme.com</div>
+          </td>
+          <td style="padding:10px 12px;"><span style="background:var(--surface-2,#f5f5f5); color:var(--text-muted); padding:2px 8px; border-radius:4px; font-size:0.8em; font-weight:500;">User</span></td>
+          <td style="padding:10px 12px;"><span style="color:#16a34a; font-size:0.85em;">● Active</span></td>
+          <td style="padding:10px 12px;">
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px;">Make Manager</button>
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px; margin-left:4px; color:#dc2626;">Remove</button>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:10px 12px;">
+            <div style="font-weight:500;">Liam Torres</div>
+            <div style="color:var(--text-muted); font-size:0.8em;">liam@acme.com</div>
+          </td>
+          <td style="padding:10px 12px;"><span style="background:var(--surface-2,#f5f5f5); color:var(--text-muted); padding:2px 8px; border-radius:4px; font-size:0.8em; font-weight:500;">User</span></td>
+          <td style="padding:10px 12px;"><span style="color:#16a34a; font-size:0.85em;">● Active</span></td>
+          <td style="padding:10px 12px;">
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px;">Make Manager</button>
+            <button class="mock-button" style="font-size:0.75em; padding:3px 8px; margin-left:4px; color:#dc2626;">Remove</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:20px; padding:12px 16px; border:1px dashed var(--border); border-radius:8px; display:flex; align-items:center; gap:12px;">
+      <input class="mock-input" placeholder="colleague@company.com" style="flex:1;">
+      <select class="mock-input" style="width:140px;"><option>User</option><option>Manager</option></select>
+      <button class="mock-button">Send Invite</button>
+    </div>
+
+  </div>
+</div>

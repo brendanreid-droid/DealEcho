@@ -1,0 +1,19 @@
+<h2>When does billing update for extra seats?</h2>
+<p class="subtitle">Manager adds a 6th user ($13/mo extra) — when does Stripe charge them?</p>
+
+<div class="options">
+  <div class="option" data-choice="immediate" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Immediately (prorated)</h3>
+      <p>Stripe charges the prorated amount for the rest of the billing period right away. Next invoice reflects the new seat count. Most transparent — user sees the charge instantly.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="next-cycle" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Next billing cycle</h3>
+      <p>Extra seat activates immediately but billing only changes on the next renewal. Simpler UX — no surprise mid-cycle charges. Slightly favors the customer.</p>
+    </div>
+  </div>
+</div>

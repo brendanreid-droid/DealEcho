@@ -38,10 +38,24 @@ export const useReviewSummaries = () => {
       orderBy('createdAt', 'desc'),
       limit(200)
     );
-    
+
+    // Fallback: if Firebase goes offline silently (e.g. corporate network blocks
+    // googleapis.com), the snapshot callback may never fire. Show an error after 10s.
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+      setIsError(true);
+    }, 10000);
+
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        clearTimeout(timeoutId);
+        // fromCache + empty = Firebase offline with no local data
+        if (snapshot.metadata.fromCache && snapshot.empty) {
+          setIsLoading(false);
+          setIsError(true);
+          return;
+        }
         const fetched = snapshot.docs
           .map(doc => ({
             reviewId: doc.id,
@@ -49,18 +63,22 @@ export const useReviewSummaries = () => {
           }))
           .filter(doc => doc.excerpt) // Only summaries with content
           .slice(0, 200) as ReviewSummary[];
-        
+
         setSummaries(fetched);
         setIsLoading(false);
       },
       (error) => {
+        clearTimeout(timeoutId);
         console.error("Review summaries sync error:", error);
         setIsLoading(false);
         setIsError(true);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timeoutId);
+      unsubscribe();
+    };
   }, []);
 
   return { summaries, isLoading, isError };

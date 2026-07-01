@@ -19,7 +19,7 @@ export interface Review {
   userId: string;
   userName: string;
   currency: string;
-  tcvBracket: string; 
+  tcvBracket: string;
   cycleDuration: string;
   status: 'Won' | 'Lost' | 'Ongoing';
   isTender: boolean;
@@ -35,6 +35,7 @@ export interface Review {
   industry: string;
   country: string;
   content: string;
+  logoUrl?: string;
   createdAt: string;
 }
 

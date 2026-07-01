@@ -380,7 +380,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
               <div className="space-y-4">
                 {userReviews.map((review) => {
                   const domainGuess = guessDomainFromName(review.companyName);
-                  const logoUrl = companyLogoUrl({ name: review.companyName, domain: domainGuess });
+                  const logoUrl = review.logoUrl || companyLogoUrl({ name: review.companyName, domain: domainGuess });
                   const avgScore = Math.round(
                     ((review.communicationRating +
                       review.negotiationLevel +

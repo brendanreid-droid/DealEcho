@@ -132,6 +132,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       industry: selectedCompany.industry,
       country: selectedCompany.country,
       content,
+      logoUrl: selectedCompany.logoUrl,
       createdAt: new Date().toISOString(),
     };
     onAddReview(newReview).then((success) => {

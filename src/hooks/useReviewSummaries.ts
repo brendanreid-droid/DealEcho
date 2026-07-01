@@ -28,6 +28,7 @@ export interface ReviewSummary {
 export const useReviewSummaries = () => {
   const [summaries, setSummaries] = useState<ReviewSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     // SECURITY: this collection is public-readable (Firestore rules).
@@ -55,11 +56,12 @@ export const useReviewSummaries = () => {
       (error) => {
         console.error("Review summaries sync error:", error);
         setIsLoading(false);
+        setIsError(true);
       }
     );
 
     return () => unsubscribe();
   }, []);
 
-  return { summaries, isLoading };
+  return { summaries, isLoading, isError };
 };

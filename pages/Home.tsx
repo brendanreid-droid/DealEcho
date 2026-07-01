@@ -19,6 +19,7 @@ interface HomeProps {
   trackedIds: string[];
   onToggleTrack: (id: string) => void;
   isLoading?: boolean;
+  isError?: boolean;
 }
 
 const BENEFITS = [
@@ -27,7 +28,7 @@ const BENEFITS = [
   { Icon: Zap, title: "Win faster", body: "Walk in with the playbook instead of spending a quarter discovering it." },
 ];
 
-const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
+const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading, isError }) => {
   useSEO({
     title: "dealecho - Sales Intelligence",
     description:
@@ -131,6 +132,11 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading }) => {
         <p className="text-slate-500 text-sm mt-2 mb-7">Freshly analysed accounts from the seller community.</p>
         {isLoading ? (
           <CardGridSkeleton count={6} />
+        ) : isError ? (
+          <div className="de-card p-12 text-center">
+            <p className="text-slate-700 font-medium mb-2">Unable to load intelligence feed.</p>
+            <p className="text-slate-500 text-sm">Your network may be blocking Google services. Try a different browser or network - Safari usually works on corporate connections.</p>
+          </div>
         ) : companies.length === 0 ? (
           <div className="de-card p-12 text-center">
             <p className="text-slate-600 font-medium">No accounts yet. Be the first to share intel.</p>

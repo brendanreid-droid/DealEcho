@@ -59,6 +59,7 @@ const App: React.FC = () => {
   const {
     summaries: reviewSummaries,
     isLoading: summariesLoading,
+    isError: summariesError,
   } = useReviewSummaries();
   const { trackedCompanies, toggleTrack: toggleTrackCompany } = useTracking(
     user?.id,
@@ -151,6 +152,7 @@ const App: React.FC = () => {
                     onSignInClick={triggerSignIn}
                     reviewSummaries={reviewSummaries}
                     isLoading={summariesLoading}
+                    isError={summariesError}
                     trackedIds={trackedCompanies}
                     onToggleTrack={toggleTrackCompany}
                   />

@@ -7,6 +7,7 @@ import { useAuth, MappedUser } from "../src/hooks/useAuth";
 import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
 import CtaBand from "../src/components/ui/CtaBand";
+import { CHROME_EXTENSION_URL } from "../src/constants/dealData";
 
 interface PricingProps {
   user: MappedUser | null;
@@ -32,6 +33,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
   const [annualAmount, setAnnualAmount] = useState(144);
   const [priceCurrency, setPriceCurrency] = useState("AUD");
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  const [showExtPrompt, setShowExtPrompt] = useState(false);
 
   const { search } = useLocation();
   const navigate = useNavigate();
@@ -94,6 +96,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
               text: "Upgrade successful! Welcome to Sales Pro.",
               type: "success",
             });
+            setShowExtPrompt(true);
             return;
           }
         }
@@ -166,6 +169,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     "Deep-dive MEDDPICC blueprints",
     "Departmental playbooks",
     "Live notification alerts",
+    "Browser extension — intel on any site or CRM",
   ];
   const freeFeatures = [
     "Search companies",
@@ -175,6 +179,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
   ];
   const enterpriseFeatures = [
     "All Pro features",
+    "Browser extension for every seat",
     "Team management dashboard",
     "Manager & user roles",
     "Add seats any time",
@@ -198,6 +203,38 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
           <button onClick={() => setMessage(null)} className="ml-2 hover:opacity-60" aria-label="Dismiss">
             <Icon name="fa-times" size={16} />
           </button>
+        </div>
+      )}
+
+      {showExtPrompt && (
+        <div className="mb-12 rounded-card border border-accent-100 bg-accent-50 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+            <Icon name="fa-star" size={22} className="text-accent" />
+          </div>
+          <div className="flex-grow">
+            <h3 className="font-bold text-navy text-lg">One more step — add the browser extension</h3>
+            <p className="text-slate-600 text-sm mt-1">
+              See DealEcho intel on any prospect site or inside your CRM. Highlight a company name to
+              get reviews, scores, and red flags instantly — right where you work.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <a
+              href={CHROME_EXTENSION_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 bg-navy hover:bg-navy-800 text-white font-bold text-sm px-5 py-3 rounded-control transition-colors"
+            >
+              Add to Chrome
+            </a>
+            <button
+              onClick={() => setShowExtPrompt(false)}
+              className="text-slate-400 hover:text-slate-600"
+              aria-label="Dismiss"
+            >
+              <Icon name="fa-times" size={16} />
+            </button>
+          </div>
         </div>
       )}
 

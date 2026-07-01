@@ -1,3 +1,8 @@
+// Chrome Web Store listing for the DealEcho browser extension.
+// TODO: replace PLACEHOLDER_EXTENSION_ID with the real listing URL once published (phase 2D).
+export const CHROME_EXTENSION_URL =
+  "https://chrome.google.com/webstore/detail/dealecho-sales-intelligence/PLACEHOLDER_EXTENSION_ID";
+
 export const DEPARTMENTS = [
   "IT / Engineering",
   "Security / InfoSec",

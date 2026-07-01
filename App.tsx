@@ -67,6 +67,7 @@ const App: React.FC = () => {
   );
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
 
   const [notifications, setNotifications] = useState<Record<string, number>>(
     {},
@@ -91,7 +92,8 @@ const App: React.FC = () => {
     }
   }, [notifications, user?.id]);
 
-  const triggerSignIn = () => setIsAuthModalOpen(true);
+  const triggerSignIn = () => { setAuthInitialMode("signin"); setIsAuthModalOpen(true); };
+  const triggerSignUp = () => { setAuthInitialMode("signup"); setIsAuthModalOpen(true); };
 
   // Helper handlers that use standalone Firebase Auth functions
   const onGoogleLogin = async () => {
@@ -133,6 +135,7 @@ const App: React.FC = () => {
           isPaid={isPaid}
           isEnterprise={isEnterprise}
           onSignInClick={triggerSignIn}
+          onSignUpClick={triggerSignUp}
           onLogout={onLogout}
           notificationCount={Object.values(notifications).reduce(
             (a: number, b: number) => a + b,
@@ -193,7 +196,7 @@ const App: React.FC = () => {
               />
               <Route
                 path="/pricing"
-                element={<Pricing user={user} isPaid={isPaid} />}
+                element={<Pricing user={user} isPaid={isPaid} onSignUpClick={triggerSignUp} />}
               />
               <Route
                 path="/unsubscribe"
@@ -269,6 +272,7 @@ const App: React.FC = () => {
           onClose={() => setIsAuthModalOpen(false)}
           onGoogleLogin={onGoogleLogin}
           onEmailLogin={onEmailLogin}
+          initialMode={authInitialMode}
         />
         <Footer />
       </div>

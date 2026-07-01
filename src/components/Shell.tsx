@@ -15,9 +15,10 @@ export const Navigation: React.FC<{
   isPaid: boolean;
   isEnterprise?: boolean;
   onSignInClick: () => void;
+  onSignUpClick: () => void;
   onLogout: () => void;
   notificationCount: number;
-}> = ({ user, isAdmin, isPaid, isEnterprise, onSignInClick, onLogout, notificationCount }) => {
+}> = ({ user, isAdmin, isPaid, isEnterprise, onSignInClick, onSignUpClick, onLogout, notificationCount }) => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -108,9 +109,9 @@ export const Navigation: React.FC<{
               <button onClick={onSignInClick} className="text-sm font-medium text-slate-500 hover:text-slate-900 hidden sm:block">
                 Sign in
               </button>
-              <Link to="/pricing" className="de-btn-accent text-sm">
-                Get Pro →
-              </Link>
+              <button onClick={onSignUpClick} className="de-btn-accent text-sm hidden sm:block">
+                Sign up
+              </button>
             </div>
           )}
 
@@ -155,15 +156,20 @@ export const Navigation: React.FC<{
                 <Icon name="fa-sign-out-alt" size={18} /> Sign out
               </button>
             ) : (
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  onSignInClick();
-                }}
-                className="w-full de-btn-primary text-sm py-3.5"
-              >
-                Sign in
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setIsMenuOpen(false); onSignInClick(); }}
+                  className="flex-1 de-btn-secondary text-sm py-3.5"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => { setIsMenuOpen(false); onSignUpClick(); }}
+                  className="flex-1 de-btn-accent text-sm py-3.5"
+                >
+                  Sign up
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -12,9 +12,10 @@ import { CHROME_EXTENSION_URL } from "../src/constants/dealData";
 interface PricingProps {
   user: MappedUser | null;
   isPaid: boolean;
+  onSignUpClick?: () => void;
 }
 
-const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
+const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
   useSEO({
     title: "DealEcho Pricing - Unlock Advanced B2B Buyer Intelligence & Playbooks",
     description:
@@ -119,7 +120,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
 
   const handleSubscribe = async () => {
     if (!user) {
-      setMessage({ text: "Please sign in to upgrade your account.", type: "info" });
+      onSignUpClick?.();
       return;
     }
     setIsProcessing(true);
@@ -142,7 +143,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
 
   const handleEnterpriseSubscribe = async () => {
     if (!user) {
-      setMessage({ text: "Please sign in to upgrade your account.", type: "info" });
+      onSignUpClick?.();
       return;
     }
     setIsProcessing(true);

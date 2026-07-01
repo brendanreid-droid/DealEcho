@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth } from "../src/firebase/config";
 import Icon from "../src/components/Icon";
@@ -13,6 +13,7 @@ interface AuthModalProps {
     isNewUser: boolean,
     name?: string,
   ) => Promise<void>;
+  initialMode?: AuthMode;
 }
 
 type AuthMode = "signin" | "signup" | "forgot";
@@ -126,8 +127,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onGoogleLogin,
   onEmailLogin,
+  initialMode,
 }) => {
-  const [mode, setMode] = useState<AuthMode>("signin");
+  const [mode, setMode] = useState<AuthMode>(initialMode ?? "signin");
+
+  useEffect(() => {
+    if (isOpen) setMode(initialMode ?? "signin");
+  }, [isOpen, initialMode]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

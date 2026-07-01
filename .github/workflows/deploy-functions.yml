@@ -45,6 +45,9 @@ jobs:
 
       - name: Deploy enterprise functions
         run: firebase deploy --only functions:inviteTeamMember,functions:acceptTeamInvite,functions:updateTeamMemberRole,functions:removeTeamMember,functions:updateTeamSeats,functions:resendTeamInvite,functions:cancelPendingInvite,functions:createEnterpriseCheckout --force
+
+      - name: Deploy admin functions
+        run: firebase deploy --only functions:adminGetUsers,functions:adminSetRole,functions:adminDeleteContent,functions:adminEditContent,functions:adminGetPricing,functions:adminUpdatePricing,functions:adminCreateUser,functions:adminToggleUserSuspension,functions:adminDeleteUser,functions:adminSendNewsletter --force
  
 
 

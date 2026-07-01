@@ -35,16 +35,16 @@ jobs:
         run: npm run build
         working-directory: functions
 
-      # Deploy the extension endpoint first, in isolation, so a failure in the
-      # enterprise batch below can't prevent it from deploying.
+      # Deploy the smaller, isolated function groups FIRST so a 409/queue-jam in
+      # the larger enterprise batch below can't stop them from deploying.
       - name: Deploy extension function
         run: firebase deploy --only functions:lookupCompanyReviews --force
 
-      - name: Deploy enterprise functions
-        run: firebase deploy --only functions:inviteTeamMember,functions:acceptTeamInvite,functions:updateTeamMemberRole,functions:removeTeamMember,functions:updateTeamSeats,functions:resendTeamInvite,functions:cancelPendingInvite,functions:createEnterpriseCheckout --force
-
       - name: Deploy review submission functions
         run: firebase deploy --only functions:submitReview,functions:resubmitReview --force
+
+      - name: Deploy enterprise functions
+        run: firebase deploy --only functions:inviteTeamMember,functions:acceptTeamInvite,functions:updateTeamMemberRole,functions:removeTeamMember,functions:updateTeamSeats,functions:resendTeamInvite,functions:cancelPendingInvite,functions:createEnterpriseCheckout --force
  
 
 

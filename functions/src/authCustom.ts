@@ -53,7 +53,7 @@ export const sendCustomPasswordResetEmail = onCall(
 
       // 3. Generate a secure, standard Firebase password reset link
       const actionCodeSettings = {
-        url: "https://dealecho-io-sales-intel-hub.web.app", // Redirect back to DealEcho home page after resetting password
+        url: process.env.FRONTEND_URL ?? "https://dealecho.io",
       };
       const resetLink = await auth.generatePasswordResetLink(emailTrimmed, actionCodeSettings);
 

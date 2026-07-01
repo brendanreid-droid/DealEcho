@@ -66,7 +66,7 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
     priceId = pricingData?.annualPriceId ?? process.env.STRIPE_ANNUAL_PRICE_ID!;
   }
 
-  const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:3000";
+  const frontendUrl = process.env.FRONTEND_URL ?? "https://dealecho.io";
 
   // 4. Create the Checkout Session
   const session = await stripe.checkout.sessions.create({

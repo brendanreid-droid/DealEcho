@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { doc, setDoc } from "firebase/firestore";
@@ -49,6 +49,18 @@ const MyIntel: React.FC<MyIntelProps> = ({
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tracked' | 'reviews' | 'billing'>('tracked');
+  const [localNotifPrefs, setLocalNotifPrefs] = useState({
+    realTimeAlerts: user?.notificationPreferences?.realTimeAlerts !== false,
+    weeklyDigest: user?.notificationPreferences?.weeklyDigest !== false,
+  });
+
+  useEffect(() => {
+    setLocalNotifPrefs({
+      realTimeAlerts: user?.notificationPreferences?.realTimeAlerts !== false,
+      weeklyDigest: user?.notificationPreferences?.weeklyDigest !== false,
+    });
+  }, [user?.notificationPreferences]);
 
   const handleCancelSubscription = async () => {
     if (
@@ -73,6 +85,24 @@ const MyIntel: React.FC<MyIntelProps> = ({
       );
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleNotificationToggle = async (
+    setting: 'realTimeAlerts' | 'weeklyDigest',
+    value: boolean,
+  ) => {
+    const newPrefs = {
+      realTimeAlerts: setting === 'realTimeAlerts' ? value : localNotifPrefs.realTimeAlerts,
+      weeklyDigest: setting === 'weeklyDigest' ? value : localNotifPrefs.weeklyDigest,
+    };
+
+    try {
+      const userDocRef = doc(db, "users", user.id);
+      await setDoc(userDocRef, { notificationPreferences: newPrefs }, { merge: true });
+      setLocalNotifPrefs(newPrefs);
+    } catch (err) {
+      console.error("Failed to update notification settings", err);
     }
   };
 
@@ -142,384 +172,431 @@ const MyIntel: React.FC<MyIntelProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0f172a] p-10 rounded-[40px] text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-indigo-500/10 blur-[100px] rounded-full"></div>
-        <div className="flex items-center space-x-6 relative z-10">
-          <img
-            src={user.avatar}
-            className="w-20 h-20 rounded-[28px] border-4 border-white/10"
-            alt="avatar"
-          />
-          <div>
-            <h1 className="text-3xl font-black tracking-tight">{user.name}</h1>
-            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
-              {user.email}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-end relative z-10 space-y-2">
-          <div
-            className={`px-6 py-3 rounded-2xl text-center border ${isPaid ? "bg-indigo-600/20 border-indigo-400/30" : "bg-white/10 border-white/10"}`}
-          >
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Plan
-            </div>
-            <div className="text-sm font-black">
-              {isPaid ? "Sales Pro Member" : "Pioneer Plan"}
-            </div>
-          </div>
-          {cancelSuccess && (
-            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
-              Subscription cancelled successfully
-            </span>
-          )}
-          {cancelError && (
-            <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
-              {cancelError}
-            </span>
-          )}
-          {!isPaid && (
-            <Link
-              to="/pricing"
-              className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-900/30 flex items-center space-x-2"
-            >
-              <Icon name="fa-crown" size={10} />
-              <span>Upgrade to Sales Pro</span>
-            </Link>
-          )}
-          {isPaid && (
-            <button
-              onClick={handleCancelSubscription}
-              disabled={cancelling}
-              className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50 justify-center"
-            >
-              {cancelling ? (
-                <>
-                  <Loader2 className="animate-spin text-rose-400" size={10} />
-                  <span>Cancelling…</span>
-                </>
-              ) : (
-                <>
-                  <Icon name="fa-times-circle" size={10} />
-                  <span>Cancel Subscription</span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
+      {/* Tab Navigation */}
+      <div className="flex gap-8 border-b border-slate-200 mb-8 px-6">
+        <button
+          onClick={() => setActiveTab('tracked')}
+          aria-selected={activeTab === 'tracked'}
+          role="tab"
+          className={`pb-4 px-0 font-semibold text-sm transition-colors flex items-center gap-2 border-b-2 ${
+            activeTab === 'tracked'
+              ? 'text-accent border-accent'
+              : 'text-slate-500 border-transparent hover:text-slate-700'
+          }`}
+        >
+          <Icon name="fa-bookmark" size={16} />
+          Tracked Accounts
+        </button>
+        <button
+          onClick={() => setActiveTab('reviews')}
+          aria-selected={activeTab === 'reviews'}
+          role="tab"
+          className={`pb-4 px-0 font-semibold text-sm transition-colors flex items-center gap-2 border-b-2 ${
+            activeTab === 'reviews'
+              ? 'text-accent border-accent'
+              : 'text-slate-500 border-transparent hover:text-slate-700'
+          }`}
+        >
+          <Icon name="fa-history" size={16} />
+          My Reviews
+        </button>
+        <button
+          onClick={() => setActiveTab('billing')}
+          aria-selected={activeTab === 'billing'}
+          role="tab"
+          className={`pb-4 px-0 font-semibold text-sm transition-colors flex items-center gap-2 border-b-2 ${
+            activeTab === 'billing'
+              ? 'text-accent border-accent'
+              : 'text-slate-500 border-transparent hover:text-slate-700'
+          }`}
+        >
+          <Icon name="fa-credit-card" size={16} />
+          Billing & Account
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-1 space-y-8">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold flex items-center">
-              <Icon name="fa-bookmark" className="text-indigo-500 mr-3" size={18} />
-              Tracked Accounts
-            </h3>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              {trackedIds.length} / {isPaid ? "∞" : "3"}
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            {trackedCompanies.length > 0 ? (
-              trackedCompanies.map((c) => (
-                <div
-                  key={c.id}
-                  className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group"
-                >
-                  {notifications[c.id] && (
-                    <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">
-                      NEW
-                    </div>
-                  )}
-                  <div className="flex justify-between items-start mb-4">
-                    <Link
-                      to={`/company/${c.id}`}
-                      className="flex items-center space-x-4 group-hover:text-indigo-600 transition-colors"
-                    >
-                      <CompanyLogo
-                        name={c.name}
-                        logoUrl={c.logoUrl}
-                        size="md"
-                      />
-                      <div>
-                        <h4 className="font-bold text-slate-900">{c.name}</h4>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                          {c.industry}
-                        </p>
-                      </div>
-                    </Link>
-                    <button
-                      onClick={() => onToggleTrack(c.id)}
-                      className="text-slate-200 hover:text-rose-500 flex items-center justify-center"
-                    >
-                      <Icon name="fa-times-circle" size={16} />
-                    </button>
-                  </div>
-                  <div className="pt-4 border-t border-slate-50 flex justify-between">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase">
-                      {c.count} Reports
-                    </div>
-                    <div className="text-[10px] font-bold text-indigo-500 uppercase">
-                      Active tracking
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="bg-white p-12 rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
-                <Icon name="fa-search" className="text-slate-200 mx-auto block" size={40} />
-                <p className="text-slate-400 text-xs font-bold uppercase">
-                  No accounts tracked
-                </p>
-                <Link
-                  to="/"
-                  className="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:underline"
-                >
-                  Start Searching
-                </Link>
-              </div>
-            )}
-
-            {!isPaid && trackedIds.length >= 3 && (
-              <div className="p-6 bg-indigo-50 rounded-[28px] border border-indigo-100 space-y-4">
-                <div className="flex items-center space-x-3 text-indigo-600">
-                  <Icon name="fa-crown" size={14} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">
-                    Limit Reached
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Upgrade to Sales Pro to track unlimited accounts and get
-                  AI-powered persona intelligence.
-                </p>
-                <Link
-                  to="/pricing"
-                  className="block text-center bg-indigo-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
-                >
-                  Upgrade Now
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Email Notification Settings Card */}
-          <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
-            <h3 className="text-lg font-bold flex items-center text-slate-900">
-              <Icon name="fa-envelope-open-text" className="text-indigo-500 mr-3" size={18} />
-              Email Notifications
-            </h3>
-            
-            <p className="text-xs text-slate-400 font-medium leading-relaxed">
-              Customize how and when you receive intelligence reports on your tracked accounts.
-            </p>
-
-            <div className="space-y-4">
-              <label className="flex items-start space-x-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={user.notificationPreferences?.realTimeAlerts !== false}
-                  onChange={async (e) => {
-                    try {
-                      const userDocRef = doc(db, "users", user.id);
-                      await setDoc(
-                        userDocRef,
-                        {
-                          notificationPreferences: {
-                            realTimeAlerts: e.target.checked,
-                            weeklyDigest: user.notificationPreferences?.weeklyDigest !== false,
-                          },
-                        },
-                        { merge: true }
-                      );
-                    } catch (err) {
-                      console.error("Failed to update notification settings", err);
-                    }
-                  }}
-                  className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                />
-                <div>
-                  <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-                    Real-time Alerts
-                  </span>
-                  <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
-                    Instantly receive an email report when a new vetted review is created on any tracked account.
-                  </p>
-                </div>
-              </label>
-
-              <label className="flex items-start space-x-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={user.notificationPreferences?.weeklyDigest !== false}
-                  onChange={async (e) => {
-                    try {
-                      const userDocRef = doc(db, "users", user.id);
-                      await setDoc(
-                        userDocRef,
-                        {
-                          notificationPreferences: {
-                            realTimeAlerts: user.notificationPreferences?.realTimeAlerts !== false,
-                            weeklyDigest: e.target.checked,
-                          },
-                        },
-                        { merge: true }
-                      );
-                    } catch (err) {
-                      console.error("Failed to update notification settings", err);
-                    }
-                  }}
-                  className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                />
-                <div>
-                  <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-                    Weekly Digest
-                  </span>
-                  <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
-                    A summary of the week's key buyer activity, trends, and scorecard movements.
-                  </p>
-                </div>
-              </label>
+      {/* Tab Content */}
+      <div className="max-w-7xl mx-auto px-6 pb-12">
+        {activeTab === 'tracked' && (
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold flex items-center">
+                <Icon name="fa-bookmark" className="text-indigo-500 mr-3" size={18} />
+                Tracked Accounts
+              </h3>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {trackedIds.length} / {isPaid ? "∞" : "3"}
+              </span>
             </div>
-          </div>
-        </div>
 
-        <div className="lg:col-span-2 space-y-8">
-          {user?.id && <MySubmissions userId={user.id} />}
-
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold flex items-center">
-              <Icon name="fa-history" className="text-indigo-500 mr-3" size={18} />
-              Workspace History
-            </h3>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              {userReviews.length} Reviews
-            </span>
-          </div>
-
-          {userReviews.length > 0 ? (
             <div className="space-y-4">
-              {userReviews.map((review) => {
-                const domainGuess = guessDomainFromName(review.companyName);
-                const logoUrl = companyLogoUrl({ name: review.companyName, domain: domainGuess });
-                const avgScore = Math.round(
-                  ((review.communicationRating +
-                    review.negotiationLevel +
-                    review.timeWasterLevel +
-                    (review.clarityOfScope || 3)) /
-                    20) *
-                    100,
-                );
-                const timeAgo = getTimeAgo(review.createdAt);
-
-                return (
+              {trackedCompanies.length > 0 ? (
+                trackedCompanies.map((c) => (
                   <div
-                    key={review.id}
-                    onClick={() =>
-                      navigate(
-                        `/company/${encodeURIComponent(review.companyId)}`,
-                        {
-                          state: {
-                            company: {
-                              id: review.companyId,
-                              name: review.companyName,
-                              industry: review.industry,
-                              country: review.country || review.location,
-                            },
-                          },
-                        },
-                      )
-                    }
-                    className="bg-white p-6 md:p-8 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all cursor-pointer group"
+                    key={c.id}
+                    className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-4">
+                    {notifications[c.id] && (
+                      <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">
+                        NEW
+                      </div>
+                    )}
+                    <div className="flex justify-between items-start mb-4">
+                      <Link
+                        to={`/company/${c.id}`}
+                        className="flex items-center space-x-4 group-hover:text-indigo-600 transition-colors"
+                      >
                         <CompanyLogo
-                          name={review.companyName}
-                          logoUrl={logoUrl}
+                          name={c.name}
+                          logoUrl={c.logoUrl}
                           size="md"
-                          className="group-hover:scale-105 transition"
                         />
                         <div>
-                          <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                            {review.companyName}
-                          </h4>
+                          <h4 className="font-bold text-slate-900">{c.name}</h4>
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            {review.industry} &bull;{" "}
-                            {review.country || review.location}
+                            {c.industry}
                           </p>
                         </div>
+                      </Link>
+                      <button
+                        onClick={() => onToggleTrack(c.id)}
+                        className="text-slate-200 hover:text-rose-500 flex items-center justify-center"
+                      >
+                        <Icon name="fa-times-circle" size={16} />
+                      </button>
+                    </div>
+                    <div className="pt-4 border-t border-slate-50 flex justify-between">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase">
+                        {c.count} Reports
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <span
-                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${
-                            review.status === "Won"
-                              ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                              : review.status === "Lost"
-                                ? "bg-rose-50 text-rose-600 border border-rose-100"
-                                : "bg-amber-50 text-amber-600 border border-amber-100"
-                          }`}
-                        >
-                          {review.status}
-                        </span>
-                        <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-center">
-                          <div className="text-[7px] font-black uppercase tracking-tighter opacity-60">
-                            Score
+                      <div className="text-[10px] font-bold text-indigo-500 uppercase">
+                        Active tracking
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-white p-12 rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
+                  <Icon name="fa-search" className="text-slate-200 mx-auto block" size={40} />
+                  <p className="text-slate-400 text-xs font-bold uppercase">
+                    No accounts tracked
+                  </p>
+                  <Link
+                    to="/"
+                    className="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:underline"
+                  >
+                    Start Searching
+                  </Link>
+                </div>
+              )}
+
+              {!isPaid && trackedIds.length >= 3 && (
+                <div className="p-6 bg-indigo-50 rounded-[28px] border border-indigo-100 space-y-4">
+                  <div className="flex items-center space-x-3 text-indigo-600">
+                    <Icon name="fa-crown" size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      Limit Reached
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Upgrade to Sales Pro to track unlimited accounts and get
+                    AI-powered persona intelligence.
+                  </p>
+                  <Link
+                    to="/pricing"
+                    className="block text-center bg-indigo-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
+                  >
+                    Upgrade Now
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Email Notification Settings Card */}
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold flex items-center text-slate-900">
+                <Icon name="fa-envelope-open-text" className="text-indigo-500 mr-3" size={18} />
+                Email Notifications
+              </h3>
+
+              <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                Customize how and when you receive intelligence reports on your tracked accounts.
+              </p>
+
+              <div className="space-y-4">
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={localNotifPrefs.realTimeAlerts}
+                    onChange={(e) => handleNotificationToggle('realTimeAlerts', e.target.checked)}
+                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                      Real-time Alerts
+                    </span>
+                    <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
+                      Instantly receive an email report when a new vetted review is created on any tracked account.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={localNotifPrefs.weeklyDigest}
+                    onChange={(e) => handleNotificationToggle('weeklyDigest', e.target.checked)}
+                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                      Weekly Digest
+                    </span>
+                    <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
+                      A summary of the week's key buyer activity, trends, and scorecard movements.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'reviews' && (
+          <div className="space-y-8">
+            {user?.id && <MySubmissions userId={user.id} />}
+
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold flex items-center">
+                <Icon name="fa-history" className="text-indigo-500 mr-3" size={18} />
+                Workspace History
+              </h3>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {userReviews.length} Reviews
+              </span>
+            </div>
+
+            {userReviews.length > 0 ? (
+              <div className="space-y-4">
+                {userReviews.map((review) => {
+                  const domainGuess = guessDomainFromName(review.companyName);
+                  const logoUrl = companyLogoUrl({ name: review.companyName, domain: domainGuess });
+                  const avgScore = Math.round(
+                    ((review.communicationRating +
+                      review.negotiationLevel +
+                      review.timeWasterLevel +
+                      (review.clarityOfScope || 3)) /
+                      20) *
+                      100,
+                  );
+                  const timeAgo = getTimeAgo(review.createdAt);
+
+                  return (
+                    <div
+                      key={review.id}
+                      onClick={() =>
+                        navigate(
+                          `/company/${encodeURIComponent(review.companyId)}`,
+                          {
+                            state: {
+                              company: {
+                                id: review.companyId,
+                                name: review.companyName,
+                                industry: review.industry,
+                                country: review.country || review.location,
+                              },
+                            },
+                          },
+                        )
+                      }
+                      className="bg-white p-6 md:p-8 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-4">
+                          <CompanyLogo
+                            name={review.companyName}
+                            logoUrl={logoUrl}
+                            size="md"
+                            className="group-hover:scale-105 transition"
+                          />
+                          <div>
+                            <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                              {review.companyName}
+                            </h4>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                              {review.industry} &bull;{" "}
+                              {review.country || review.location}
+                            </p>
                           </div>
-                          <div className="text-xs font-black text-indigo-400">
-                            {avgScore}%
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span
+                            className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${
+                              review.status === "Won"
+                                ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                : review.status === "Lost"
+                                  ? "bg-rose-50 text-rose-600 border border-rose-100"
+                                  : "bg-amber-50 text-amber-600 border border-amber-100"
+                            }`}
+                          >
+                            {review.status}
+                          </span>
+                          <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-center">
+                            <div className="text-[7px] font-black uppercase tracking-tighter opacity-60">
+                              Score
+                            </div>
+                            <div className="text-xs font-black text-indigo-400">
+                              {avgScore}%
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <p className="text-slate-600 text-sm leading-relaxed line-clamp-2 mb-4 font-medium">
-                      {review.content}
-                    </p>
+                      <p className="text-slate-600 text-sm leading-relaxed line-clamp-2 mb-4 font-medium">
+                        {review.content}
+                      </p>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                      <div className="flex items-center space-x-4">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
-                          <Icon name="fa-dollar-sign" className="mr-1" size={10} />
-                          {review.tcvBracket}
-                        </span>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
-                          <Icon name="fa-clock" className="mr-1" size={10} />
-                          {review.cycleDuration}
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                        <div className="flex items-center space-x-4">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
+                            <Icon name="fa-dollar-sign" className="mr-1" size={10} />
+                            {review.tcvBracket}
+                          </span>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
+                            <Icon name="fa-clock" className="mr-1" size={10} />
+                            {review.cycleDuration}
+                          </span>
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-300">
+                          {timeAgo}
                         </span>
                       </div>
-                      <span className="text-[9px] font-bold text-slate-300">
-                        {timeAgo}
-                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-white rounded-[48px] p-12 border border-slate-100 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
+                <div className="w-16 h-16 bg-slate-50 rounded-2xl shadow-inner flex items-center justify-center text-slate-200 text-3xl">
+                  <Icon name="fa-pen-nib" size={30} />
+                </div>
+                <div>
+                  <h4 className="text-2xl font-black text-slate-900 mb-2">
+                    No Reviews Yet
+                  </h4>
+                  <p className="text-slate-500 text-sm max-w-sm mx-auto font-medium leading-relaxed">
+                    Write your first review to start building your workplace
+                    intelligence history.
+                  </p>
+                </div>
+                <Link
+                  to="/review/new"
+                  className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg flex items-center gap-1.5"
+                >
+                  <Icon name="fa-pen-nib" size={10} />Write Review
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'billing' && (
+          <div className="space-y-8">
+            {/* Profile Section */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-10 rounded-[40px] text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-1/3 h-full bg-indigo-500/10 blur-[100px] rounded-full"></div>
+              <div className="flex items-center space-x-6 relative z-10">
+                <img
+                  src={user.avatar}
+                  className="w-20 h-20 rounded-[28px] border-4 border-white/10"
+                  alt="avatar"
+                />
+                <div>
+                  <h2 className="text-3xl font-black tracking-tight">{user.name}</h2>
+                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Plan & Subscription Section */}
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-slate-900">Subscription & Plan</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                    Current Plan
+                  </p>
+                  <div
+                    className={`px-6 py-3 rounded-2xl text-center border inline-block ${isPaid ? "bg-indigo-600/20 border-indigo-400/30" : "bg-white/10 border-white/10"}`}
+                  >
+                    <div className="text-sm font-black">
+                      {isPaid ? "Sales Pro Member" : "Pioneer Plan"}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="bg-white rounded-[48px] p-12 border border-slate-100 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
-              <div className="w-16 h-16 bg-slate-50 rounded-2xl shadow-inner flex items-center justify-center text-slate-200 text-3xl">
-                <Icon name="fa-pen-nib" size={30} />
+                </div>
+                <div className="flex flex-col items-end gap-3">
+                  {cancelSuccess && (
+                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                      Subscription cancelled successfully
+                    </span>
+                  )}
+                  {cancelError && (
+                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
+                      {cancelError}
+                    </span>
+                  )}
+                  {!isPaid && (
+                    <Link
+                      to="/pricing"
+                      className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-900/30 flex items-center space-x-2"
+                    >
+                      <Icon name="fa-crown" size={10} />
+                      <span>Upgrade to Sales Pro</span>
+                    </Link>
+                  )}
+                  {isPaid && (
+                    <button
+                      onClick={handleCancelSubscription}
+                      disabled={cancelling}
+                      className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50 justify-center"
+                    >
+                      {cancelling ? (
+                        <>
+                          <Loader2 className="animate-spin text-rose-400" size={10} />
+                          <span>Cancelling…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="fa-times-circle" size={10} />
+                          <span>Cancel Subscription</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div>
-                <h4 className="text-2xl font-black text-slate-900 mb-2">
-                  No Reviews Yet
-                </h4>
-                <p className="text-slate-500 text-sm max-w-sm mx-auto font-medium leading-relaxed">
-                  Write your first review to start building your workplace
-                  intelligence history.
-                </p>
-              </div>
-              <Link
-                to="/review/new"
-                className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg flex items-center gap-1.5"
-              >
-                <Icon name="fa-pen-nib" size={10} />Write Review
-              </Link>
             </div>
-          )}
-        </div>
+
+            {/* Payment Details Section (Placeholder) */}
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-slate-900">Payment Details</h3>
+              <p className="text-sm text-slate-500 font-medium">
+                Payment method and billing history will be available here. Integration with Stripe coming soon.
+              </p>
+            </div>
+
+            {/* Account Security Section (Placeholder) */}
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-slate-900">Account Security</h3>
+              <p className="text-sm text-slate-500 font-medium">
+                Password change and advanced account settings are coming soon.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

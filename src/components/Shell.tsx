@@ -21,13 +21,9 @@ export const Navigation: React.FC<{
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // NOTE: Search now points to /search (was "/"), fixing the active-state bug.
   const navLinks = [
-    { name: "Search", path: "/", icon: "fa-search" },
     { name: "Write Review", path: "/review/new", icon: "fa-pen-nib" },
-    { name: "My Intel", path: "/my-intel", icon: "fa-user-circle" },
-    { name: "Analytics", path: "/trends", icon: "fa-chart-line" },
-    { name: "Pricing", path: "/pricing", icon: "fa-tags" },
+    { name: "Control Centre", path: "/my-intel", icon: "fa-user-circle" },
   ];
   if (isEnterprise) {
     navLinks.push({ name: "Team", path: "/settings/team", icon: "fa-users" });

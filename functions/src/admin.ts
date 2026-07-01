@@ -243,8 +243,8 @@ export const adminUpdatePricing = onCall({ cors: true }, async (request) => {
 
   if (!productId) {
     const product = await stripe.products.create({
-      name: "Sales Pro Intel",
-      description: "DealEcho Sales Pro subscription",
+      name: "Dealecho Pro",
+      description: "Dealecho Pro subscription",
     });
     productId = product.id;
   }

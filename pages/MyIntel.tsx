@@ -249,63 +249,74 @@ const MyIntel: React.FC<MyIntelProps> = ({
                           NEW
                         </div>
                       )}
-                      <div className="flex justify-between items-start mb-3">
-                        <Link
-                          to={`/company/${c.id}`}
-                          className="flex items-center space-x-3 group-hover:text-indigo-600 transition-colors flex-1"
-                        >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3 flex-1">
                           <CompanyLogo
                             name={c.name}
                             logoUrl={c.logoUrl}
                             size="md"
                           />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-slate-900 text-sm">{c.name}</h4>
+                          <div>
+                            <Link
+                              to={`/company/${c.id}`}
+                              className="font-bold text-slate-900 text-sm hover:text-indigo-600 transition-colors block"
+                            >
+                              {c.name}
+                            </Link>
                             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                               {c.industry}
                             </p>
                           </div>
-                        </Link>
-                        <button
-                          onClick={() => onToggleTrack(c.id)}
-                          className="text-slate-200 hover:text-rose-500 flex items-center justify-center ml-2 flex-shrink-0"
-                        >
-                          <Icon name="fa-times-circle" size={14} />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-1 mb-2 py-1.5 bg-slate-50 rounded px-1.5">
-                        <div className="text-center">
-                          <div className="text-[6px] text-slate-500 uppercase font-black">Comm</div>
-                          <div className="text-xs font-black text-slate-900">{avgComm}</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-[6px] text-slate-500 uppercase font-black">Neg</div>
-                          <div className="text-xs font-black text-slate-900">{avgNeg}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-[6px] text-slate-500 uppercase font-black">Intent</div>
-                          <div className="text-xs font-black text-slate-900">{avgTime}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-[6px] text-slate-500 uppercase font-black">Scope</div>
-                          <div className="text-xs font-black text-slate-900">{avgClarity}</div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="bg-slate-900 text-white px-2 py-1 rounded-lg text-center">
+                            <div className="text-[6px] font-black uppercase tracking-tighter opacity-60">
+                              Overall
+                            </div>
+                            <div className="text-xs font-black text-indigo-400">
+                              {Math.round((avgComm + avgNeg + avgTime + avgClarity) / 4)}%
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => onToggleTrack(c.id)}
+                            className="text-slate-200 hover:text-rose-500 flex items-center justify-center"
+                          >
+                            <Icon name="fa-times-circle" size={14} />
+                          </button>
                         </div>
                       </div>
 
                       {mostRecent && (
-                        <div className="pt-2 border-t border-slate-50 text-[8px]">
-                          <p className="text-slate-500 font-semibold mb-0.5">Latest: {mostRecent.content.substring(0, 45)}...</p>
-                          <p className="text-slate-400">{getTimeAgo(mostRecent.createdAt)}</p>
-                        </div>
+                        <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 mb-2 font-medium">
+                          {mostRecent.content}
+                        </p>
                       )}
 
-                      <div className="pt-2 border-t border-slate-50 flex justify-between text-[9px]">
-                        <div className="font-bold text-slate-400 uppercase">
-                          {c.count} Reports
+                      <div className="grid grid-cols-4 gap-1.5 mb-3 py-2 bg-slate-50 rounded-lg px-2">
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Communication</div>
+                          <div className="text-sm font-black text-slate-900">{avgComm}</div>
                         </div>
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Negotiation</div>
+                          <div className="text-sm font-black text-slate-900">{avgNeg}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Intent</div>
+                          <div className="text-sm font-black text-slate-900">{avgTime}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[7px] text-slate-500 uppercase font-black">Scope</div>
+                          <div className="text-sm font-black text-slate-900">{avgClarity}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[8px]">
+                        <span className="font-bold text-slate-300">
+                          {mostRecent && getTimeAgo(mostRecent.createdAt)}
+                        </span>
                         <div className="font-bold text-indigo-500 uppercase">
-                          Tracking
+                          {c.count} Reports
                         </div>
                       </div>
                     </div>

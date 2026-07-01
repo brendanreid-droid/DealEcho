@@ -292,7 +292,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
             ))}
           </ul>
           <button className="w-full py-4 rounded-control border-2 border-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed">
-            Current plan
+            FREE
           </button>
         </div>
 
@@ -302,7 +302,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
             Recommended
           </div>
           <div className="mb-8">
-            <h3 className="text-xl font-bold mb-2">Sales Pro Intel</h3>
+            <h3 className="text-xl font-bold mb-2">Pro</h3>
             <div className="flex items-baseline">
               <span className="font-display text-4xl font-bold">
                 {priceCurrency}${isAnnual ? annualAmount : monthlyAmount}

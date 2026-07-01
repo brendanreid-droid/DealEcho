@@ -23,7 +23,7 @@ export const Navigation: React.FC<{
 
   const navLinks = [
     { name: "Write Review", path: "/review/new", icon: "fa-pen-nib" },
-    { name: "Control Centre", path: "/my-intel", icon: "fa-user-circle" },
+    { name: "Control Centre", path: "/control-centre", icon: "fa-user-circle" },
   ];
   if (isEnterprise) {
     navLinks.push({ name: "Team", path: "/settings/team", icon: "fa-users" });
@@ -62,7 +62,7 @@ export const Navigation: React.FC<{
                 }`}
               >
                 {link.name}
-                {link.path === "/my-intel" && notificationCount > 0 && (
+                {link.path === "/control-centre" && notificationCount > 0 && (
                   <span className="absolute -top-2 -right-3.5 bg-signal-risk text-white text-2xs font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white">
                     {notificationCount}
                   </span>
@@ -204,7 +204,7 @@ export const Footer: React.FC = () => (
           </h4>
           <ul className="space-y-2 text-sm">
             <li><Link to="/review/new" className="text-slate-600 hover:text-accent">Write a review</Link></li>
-            <li><Link to="/my-intel" className="text-slate-600 hover:text-accent">My intel</Link></li>
+            <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control Centre</Link></li>
           </ul>
         </div>
 

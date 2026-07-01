@@ -242,7 +242,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                   return (
                     <div
                       key={c.id}
-                      className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm relative group"
+                      className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm relative group hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all cursor-pointer"
                     >
                       {notifications[c.id] && (
                         <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">
@@ -259,21 +259,21 @@ const MyIntel: React.FC<MyIntelProps> = ({
                           <div>
                             <Link
                               to={`/company/${c.id}`}
-                              className="font-bold text-slate-900 text-sm hover:text-indigo-600 transition-colors block"
+                              className="font-bold text-slate-900 text-base group-hover:text-indigo-600 transition-colors block"
                             >
                               {c.name}
                             </Link>
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                               {c.industry}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <div className="bg-slate-900 text-white px-2 py-1 rounded-lg text-center">
-                            <div className="text-[6px] font-black uppercase tracking-tighter opacity-60">
+                            <div className="text-[8px] font-black uppercase tracking-tighter opacity-60">
                               Overall
                             </div>
-                            <div className="text-xs font-black text-indigo-400">
+                            <div className="text-sm font-black text-indigo-400">
                               {Math.round((avgComm + avgNeg + avgTime + avgClarity) / 4)}%
                             </div>
                           </div>
@@ -287,31 +287,31 @@ const MyIntel: React.FC<MyIntelProps> = ({
                       </div>
 
                       {mostRecent && (
-                        <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 mb-2 font-medium">
+                        <p className="text-slate-600 text-sm leading-relaxed line-clamp-2 mb-2 font-medium">
                           {mostRecent.content}
                         </p>
                       )}
 
                       <div className="grid grid-cols-4 gap-1.5 mb-3 py-2 bg-slate-50 rounded-lg px-2">
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Communication</div>
-                          <div className="text-sm font-black text-slate-900">{avgComm}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Communication</div>
+                          <div className="text-base font-black text-slate-900">{avgComm}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Negotiation</div>
-                          <div className="text-sm font-black text-slate-900">{avgNeg}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Negotiation</div>
+                          <div className="text-base font-black text-slate-900">{avgNeg}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Intent</div>
-                          <div className="text-sm font-black text-slate-900">{avgTime}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Intent</div>
+                          <div className="text-base font-black text-slate-900">{avgTime}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Scope</div>
-                          <div className="text-sm font-black text-slate-900">{avgClarity}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Scope</div>
+                          <div className="text-base font-black text-slate-900">{avgClarity}</div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[8px]">
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px]">
                         <span className="font-bold text-slate-300">
                           {mostRecent && getTimeAgo(mostRecent.createdAt)}
                         </span>
@@ -419,10 +419,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
                             className="group-hover:scale-105 transition"
                           />
                           <div>
-                            <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">
+                            <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">
                               {review.companyName}
                             </h4>
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                               {review.industry} &bull;{" "}
                               {review.country || review.location}
                             </p>
@@ -430,7 +430,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                            className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
                               review.status === "Won"
                                 ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                                 : review.status === "Lost"
@@ -441,40 +441,40 @@ const MyIntel: React.FC<MyIntelProps> = ({
                             {review.status}
                           </span>
                           <div className="bg-slate-900 text-white px-2 py-1 rounded-lg text-center">
-                            <div className="text-[6px] font-black uppercase tracking-tighter opacity-60">
+                            <div className="text-[8px] font-black uppercase tracking-tighter opacity-60">
                               Overall
                             </div>
-                            <div className="text-xs font-black text-indigo-400">
+                            <div className="text-sm font-black text-indigo-400">
                               {avgScore}%
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 mb-2 font-medium">
+                      <p className="text-slate-600 text-sm leading-relaxed line-clamp-2 mb-2 font-medium">
                         {review.content}
                       </p>
 
                       <div className="grid grid-cols-4 gap-1.5 mb-3 py-2 bg-slate-50 rounded-lg px-2">
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Communication</div>
-                          <div className="text-sm font-black text-slate-900">{review.communicationRating}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Communication</div>
+                          <div className="text-base font-black text-slate-900">{review.communicationRating}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Negotiation</div>
-                          <div className="text-sm font-black text-slate-900">{review.negotiationLevel}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Negotiation</div>
+                          <div className="text-base font-black text-slate-900">{review.negotiationLevel}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Time Waster</div>
-                          <div className="text-sm font-black text-slate-900">{review.timeWasterLevel}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Time Waster</div>
+                          <div className="text-base font-black text-slate-900">{review.timeWasterLevel}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[7px] text-slate-500 uppercase font-black">Clarity</div>
-                          <div className="text-sm font-black text-slate-900">{review.clarityOfScope || 3}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-black">Clarity</div>
+                          <div className="text-base font-black text-slate-900">{review.clarityOfScope || 3}</div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[8px]">
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px]">
                         <div className="flex items-center gap-2">
                           <span className="font-black text-slate-400 uppercase tracking-widest flex items-center">
                             <Icon name="fa-dollar-sign" className="mr-0.5" size={9} />

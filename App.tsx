@@ -216,7 +216,7 @@ const App: React.FC = () => {
                 }
               />
               <Route
-                path="/my-intel"
+                path="/control-centre"
                 element={
                   <ProtectedRoute requireAuth>
                     <MyIntel

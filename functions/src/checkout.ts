@@ -1,5 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { getStripe, STRIPE_SECRET_KEY } from "./lib/stripe";
+import { getStripe } from "./lib/stripe";
 import { db } from "./lib/firebaseAdmin";
 
 type Plan = "monthly" | "annual";
@@ -8,7 +8,7 @@ type Plan = "monthly" | "annual";
  * Creates a Stripe Checkout Session for the authenticated user.
  * Returns a sessionUrl — the frontend redirects to it.
  */
-export const createCheckoutSession = onCall({ cors: true, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
+export const createCheckoutSession = onCall({ cors: true }, async (request) => {
   const stripe = getStripe();
   // 1. Enforce authentication
   if (!request.auth) {
@@ -91,7 +91,7 @@ export const createCheckoutSession = onCall({ cors: true, secrets: [STRIPE_SECRE
  * Downgrades the user to free role/tier immediately.
  */
 export const cancelSubscription = onCall(
-  { cors: true, invoker: "public", secrets: [STRIPE_SECRET_KEY] },
+  { cors: true, invoker: "public" },
   async (request) => {
     const stripe = getStripe();
 
@@ -167,7 +167,7 @@ export const cancelSubscription = onCall(
  * Creates a Stripe Checkout Session for the Enterprise tier.
  * $13/seat/month, minimum 5 seats, no trial.
  */
-export const createEnterpriseCheckout = onCall({ cors: true, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
+export const createEnterpriseCheckout = onCall({ cors: true }, async (request) => {
   const stripe = getStripe();
 
   if (!request.auth) {

@@ -31,6 +31,9 @@ jobs:
         run: npm ci
         working-directory: functions
 
+      - name: Inject secrets into .env.production
+        run: echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> functions/.env.production
+
       - name: Build functions
         run: npm run build
         working-directory: functions

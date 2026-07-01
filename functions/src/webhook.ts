@@ -1,6 +1,6 @@
 import { onRequest } from "firebase-functions/v2/https";
 import Stripe from "stripe";
-import { getStripe, STRIPE_SECRET_KEY } from "./lib/stripe";
+import { getStripe } from "./lib/stripe";
 import { db, auth } from "./lib/firebaseAdmin";
 
 type UserRole = "free" | "paid" | "admin";
@@ -150,7 +150,7 @@ async function resolveFirebaseUID(
 export const stripeWebhook = onRequest(
   {
     cors: false,
-    secrets: ["STRIPE_WEBHOOK_SECRET", STRIPE_SECRET_KEY],
+    secrets: ["STRIPE_WEBHOOK_SECRET"],
   },
   async (req, res) => {
     res.removeHeader("x-powered-by");

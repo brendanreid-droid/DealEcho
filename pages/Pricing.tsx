@@ -169,7 +169,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
     "Deep-dive MEDDPICC blueprints",
     "Departmental playbooks",
     "Live notification alerts",
-    "Browser extension — intel on any site or CRM",
+    "Browser extension - intel on any site or CRM",
   ];
   const freeFeatures = [
     "Search companies",
@@ -212,7 +212,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid }) => {
             <Icon name="fa-star" size={22} className="text-accent" />
           </div>
           <div className="flex-grow">
-            <h3 className="font-bold text-navy text-lg">One more step — add the browser extension</h3>
+            <h3 className="font-bold text-navy text-lg">One more step - add the browser extension</h3>
             <p className="text-slate-600 text-sm mt-1">
               See DealEcho intel on any prospect site or inside your CRM. Highlight a company name to
               get reviews, scores, and red flags instantly — right where you work.

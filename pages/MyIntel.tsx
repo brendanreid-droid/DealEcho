@@ -347,54 +347,6 @@ const MyIntel: React.FC<MyIntelProps> = ({
                 </div>
               )}
             </div>
-
-            {/* Email Notification Settings Card */}
-            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold flex items-center text-slate-900">
-                <Icon name="fa-envelope-open-text" className="text-indigo-500 mr-3" size={18} />
-                Email Notifications
-              </h3>
-
-              <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                Customize how and when you receive intelligence reports on your tracked accounts.
-              </p>
-
-              <div className="space-y-4">
-                <label className="flex items-start space-x-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={localNotifPrefs.realTimeAlerts}
-                    onChange={(e) => handleNotificationToggle('realTimeAlerts', e.target.checked)}
-                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                  />
-                  <div>
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-                      Real-time Alerts
-                    </span>
-                    <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
-                      Instantly receive an email report when a new vetted review is created on any tracked account.
-                    </p>
-                  </div>
-                </label>
-
-                <label className="flex items-start space-x-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={localNotifPrefs.weeklyDigest}
-                    onChange={(e) => handleNotificationToggle('weeklyDigest', e.target.checked)}
-                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                  />
-                  <div>
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-                      Weekly Digest
-                    </span>
-                    <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
-                      A summary of the week's key buyer activity, trends, and scorecard movements.
-                    </p>
-                  </div>
-                </label>
-              </div>
-            </div>
           </div>
         )}
 
@@ -649,6 +601,54 @@ const MyIntel: React.FC<MyIntelProps> = ({
               <p className="text-sm text-slate-500 font-medium">
                 Password change and advanced account settings are coming soon.
               </p>
+            </div>
+
+            {/* Email Notification Settings Card */}
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+              <h3 className="text-lg font-bold flex items-center text-slate-900">
+                <Icon name="fa-envelope-open-text" className="text-indigo-500 mr-3" size={18} />
+                Email Notifications
+              </h3>
+
+              <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                Customize how and when you receive intelligence reports on your tracked accounts.
+              </p>
+
+              <div className="space-y-4">
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={localNotifPrefs.realTimeAlerts}
+                    onChange={(e) => handleNotificationToggle('realTimeAlerts', e.target.checked)}
+                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                      Real-time Alerts
+                    </span>
+                    <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
+                      Instantly receive an email report when a new vetted review is created on any tracked account.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={localNotifPrefs.weeklyDigest}
+                    onChange={(e) => handleNotificationToggle('weeklyDigest', e.target.checked)}
+                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                      Weekly Digest
+                    </span>
+                    <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
+                      A summary of the week's key buyer activity, trends, and scorecard movements.
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
         )}

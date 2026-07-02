@@ -16,7 +16,7 @@ export default defineManifest({
   background: { service_worker: "src/background.ts", type: "module" },
   // "tabs" lets the worker read the active tab's URL on tab-switch/navigation
   // (domain only, no page injection) so the panel refreshes as the user browses.
-  permissions: ["activeTab", "scripting", "storage", "sidePanel", "tabs", "contextMenus"],
+  permissions: ["activeTab", "scripting", "storage", "sidePanel", "tabs", "contextMenus", "identity"],
   host_permissions: [
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",

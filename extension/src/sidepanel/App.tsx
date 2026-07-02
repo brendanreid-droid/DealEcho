@@ -1,7 +1,7 @@
 import { useEffect, useState, CSSProperties } from "react";
 import type { User } from "firebase/auth";
 import { CONTEXT_STORAGE_KEY, PageContext } from "../shared/messages";
-import { subscribeToAuth, signIn, signOut } from "../lib/authClient";
+import { subscribeToAuth, signIn, signOut, signInWithGoogle } from "../lib/authClient";
 import { buildLookupInput } from "../lib/query";
 import { lookupCompany, LookupResult } from "../lib/api";
 import { LoginForm } from "./LoginForm";
@@ -110,7 +110,7 @@ export function App() {
           <p style={{ fontSize: 13, color: theme.sub, margin: "0 0 14px" }}>
             Sign in to see company intelligence.
           </p>
-          <LoginForm onSignIn={signIn} />
+          <LoginForm onSignIn={signIn} onSignInWithGoogle={signInWithGoogle} />
         </div>
       </div>
     );

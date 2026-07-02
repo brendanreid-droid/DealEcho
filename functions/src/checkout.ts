@@ -5,6 +5,36 @@ import { db } from "./lib/firebaseAdmin";
 type Plan = "monthly" | "annual";
 
 /**
+ * Returns a Stripe customer id valid under the CURRENT Stripe mode, creating a
+ * new one if the stored id is missing/deleted or belongs to the other mode
+ * (happens on the test→live cutover). Persists any newly created id.
+ */
+async function resolveStripeCustomer(
+  stripe: import("stripe").default,
+  uid: string,
+  email: string,
+  storedId: string | undefined,
+): Promise<string> {
+  if (storedId) {
+    try {
+      const existing = await stripe.customers.retrieve(storedId);
+      if (!(existing as any)?.deleted) return storedId;
+    } catch (err: any) {
+      if (err?.code !== "resource_missing") throw err;
+    }
+  }
+  const customer = await stripe.customers.create({
+    email,
+    metadata: { firebaseUID: uid },
+  });
+  await db.collection("users").doc(uid).set(
+    { stripeCustomerId: customer.id },
+    { merge: true },
+  );
+  return customer.id;
+}
+
+/**
  * Creates a Stripe Checkout Session for the authenticated user.
  * Returns a sessionUrl — the frontend redirects to it.
  */
@@ -42,18 +72,13 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
   const userRef = db.collection("users").doc(uid);
   const userSnap = await userRef.get();
   const userData = userSnap.data();
-  let stripeCustomerId: string | undefined = userData?.stripeCustomerId;
   const hasUsedTrial = !!userData?.hasUsedTrial;
-
-  if (!stripeCustomerId) {
-    const customer = await stripe.customers.create({
-      email,
-      metadata: { firebaseUID: uid },
-    });
-    stripeCustomerId = customer.id;
-    // Persist immediately so concurrent calls don't create duplicates
-    await userRef.set({ stripeCustomerId }, { merge: true });
-  }
+  const stripeCustomerId = await resolveStripeCustomer(
+    stripe,
+    uid,
+    email,
+    userData?.stripeCustomerId,
+  );
 
   // 3. Choose the correct price ID (prefer Firestore config, fallback to env vars)
   let priceId: string;
@@ -185,19 +210,14 @@ export const createEnterpriseCheckout = onCall({ cors: true }, async (request) =
     );
   }
 
-  const userRef = db.collection('users').doc(uid);
-  const userSnap = await userRef.get();
+  const userSnap = await db.collection('users').doc(uid).get();
   const userData = userSnap.data();
-  let stripeCustomerId: string | undefined = userData?.stripeCustomerId;
-
-  if (!stripeCustomerId) {
-    const customer = await stripe.customers.create({
-      email,
-      metadata: { firebaseUID: uid },
-    });
-    stripeCustomerId = customer.id;
-    await userRef.set({ stripeCustomerId }, { merge: true });
-  }
+  const stripeCustomerId = await resolveStripeCustomer(
+    stripe,
+    uid,
+    email,
+    userData?.stripeCustomerId,
+  );
 
   const pricingSnap = await db.collection('config').doc('pricing').get();
   const pricingData = pricingSnap.data();
@@ -208,7 +228,7 @@ export const createEnterpriseCheckout = onCall({ cors: true }, async (request) =
     throw new HttpsError('internal', 'Enterprise price not configured.');
   }
 
-  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+  const frontendUrl = process.env.FRONTEND_URL ?? 'https://dealecho.io';
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',

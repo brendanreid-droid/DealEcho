@@ -1,5 +1,5 @@
 import { CSSProperties, ReactNode, useState } from "react";
-import { LookupResult, MetricScores } from "../lib/api";
+import { LookupResult, MetricScores, issueCustomToken } from "../lib/api";
 import { theme, healthColor, statusColor } from "./theme";
 import { buildFlags, FLAG_LABELS } from "./flags";
 
@@ -152,6 +152,34 @@ function MetricBar({ label, value, hint }: { label: string; value: number; hint:
   );
 }
 
+function NoMatchView({ reviewUrl }: { reviewUrl: string }) {
+  const [busy, setBusy] = useState(false);
+
+  async function handleClick() {
+    setBusy(true);
+    try {
+      const token = await issueCustomToken();
+      const sep = reviewUrl.includes("?") ? "&" : "?";
+      window.open(`${reviewUrl}${sep}ct=${encodeURIComponent(token)}`, "_blank");
+    } catch {
+      window.open(reviewUrl, "_blank");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ fontSize: 14, color: theme.ink }}>
+      <p style={{ marginTop: 0, color: theme.sub, fontSize: 13 }}>
+        No reviews yet for this company on dealecho.
+      </p>
+      <button onClick={handleClick} disabled={busy} style={{ ...primaryBtn, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 }}>
+        {busy ? "Opening…" : "Be the first to leave a review →"}
+      </button>
+    </div>
+  );
+}
+
 export function ReviewsView({
   result,
   companyHint,
@@ -160,18 +188,9 @@ export function ReviewsView({
   companyHint?: string;
 }) {
   if (!result.matched) {
-    const reviewUrl =
+    const baseReviewUrl =
       `${CARD_URL}/review/new` + (companyHint ? `?company=${encodeURIComponent(companyHint)}` : "");
-    return (
-      <div style={{ fontSize: 14, color: theme.ink }}>
-        <p style={{ marginTop: 0, color: theme.sub, fontSize: 13 }}>
-          No reviews yet for this company on dealecho.
-        </p>
-        <a href={reviewUrl} target="_blank" rel="noreferrer" style={primaryBtn}>
-          Be the first to leave a review →
-        </a>
-      </div>
-    );
+    return <NoMatchView reviewUrl={baseReviewUrl} />;
   }
 
   const { companyName, summary, persona, isPro, recentReviews, companyId } = result;

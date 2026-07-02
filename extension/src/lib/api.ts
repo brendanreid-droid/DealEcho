@@ -46,8 +46,14 @@ export interface LookupInput {
 }
 
 const callable = httpsCallable<LookupInput, LookupResult>(functions, "lookupCompanyReviews");
+const customTokenCallable = httpsCallable<Record<string, never>, { customToken: string }>(functions, "issueCustomToken");
 
 export async function lookupCompany(input: LookupInput): Promise<LookupResult> {
   const res = await callable(input);
   return res.data;
+}
+
+export async function issueCustomToken(): Promise<string> {
+  const res = await customTokenCallable({});
+  return res.data.customToken;
 }

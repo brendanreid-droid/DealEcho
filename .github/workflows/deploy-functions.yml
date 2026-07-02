@@ -45,7 +45,7 @@ jobs:
       # Deploy the smaller, isolated function groups FIRST so a 409/queue-jam in
       # the larger enterprise batch below can't stop them from deploying.
       - name: Deploy extension function
-        run: firebase deploy --only functions:lookupCompanyReviews --force
+        run: firebase deploy --only functions:lookupCompanyReviews,functions:issueCustomToken --force
 
       - name: Wait
         run: sleep 30

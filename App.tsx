@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-do
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
-  signInWithCustomToken,
   createUserWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -24,6 +23,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
 const TeamSettings = lazy(() => import('./pages/TeamSettings'));
+const AuthBridge = lazy(() => import('./pages/AuthBridge'));
 
 const RouteFallback: React.FC = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -93,20 +93,6 @@ const App: React.FC = () => {
     }
   }, [notifications, user?.id]);
 
-  // Auto sign-in when arriving from the browser extension with a custom token.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const ct = params.get("ct");
-    if (!ct) return;
-    // Clean the token from the URL immediately before sign-in.
-    params.delete("ct");
-    const newSearch = params.toString();
-    const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "") + window.location.hash;
-    window.history.replaceState(null, "", newUrl);
-    signInWithCustomToken(auth, ct).catch((err) =>
-      console.warn("[DealEcho] Extension auto sign-in failed:", err)
-    );
-  }, []);
 
   const triggerSignIn = () => { setAuthInitialMode("signin"); setIsAuthModalOpen(true); };
   const triggerSignUp = () => { setAuthInitialMode("signup"); setIsAuthModalOpen(true); };
@@ -214,6 +200,7 @@ const App: React.FC = () => {
                 path="/pricing"
                 element={<Pricing user={user} isPaid={isPaid} onSignUpClick={triggerSignUp} />}
               />
+              <Route path="/auth-bridge" element={<AuthBridge />} />
               <Route
                 path="/unsubscribe"
                 element={<Unsubscribe />}

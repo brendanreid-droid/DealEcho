@@ -159,8 +159,8 @@ function NoMatchView({ reviewUrl }: { reviewUrl: string }) {
     setBusy(true);
     try {
       const token = await issueCustomToken();
-      const sep = reviewUrl.includes("?") ? "&" : "?";
-      window.open(`${reviewUrl}${sep}ct=${encodeURIComponent(token)}`, "_blank");
+      const bridge = `${CARD_URL}/auth-bridge?ct=${encodeURIComponent(token)}&redirect=${encodeURIComponent(reviewUrl.replace(CARD_URL, ""))}`;
+      window.open(bridge, "_blank");
     } catch {
       window.open(reviewUrl, "_blank");
     } finally {

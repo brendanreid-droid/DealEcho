@@ -32,10 +32,13 @@ const CreateReview: React.FC<CreateReviewProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const locationState = useLocation().state;
+  const { search } = useLocation();
   const errorRef = useRef<HTMLDivElement>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(
+    () => new URLSearchParams(search).get("company") ?? ""
+  );
   const [searchResults, setSearchResults] = useState<Company[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 

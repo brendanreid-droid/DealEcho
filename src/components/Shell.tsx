@@ -41,11 +41,11 @@ export const Navigation: React.FC<{
   return (
     <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-[1000]">
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px]">
-        <div className="flex items-center gap-10">
-          <Link to="/" className="flex items-center">
-            <img src="/logo-lockup.svg" alt="dealecho" className="h-[46px] w-auto" />
-          </Link>
+        <Link to="/" className="flex items-center">
+          <img src="/logo-lockup.svg" alt="dealecho" className="h-[46px] w-auto" />
+        </Link>
 
+        <div className="flex items-center gap-8">
           <nav className="hidden lg:flex items-center gap-7">
             {(user
               ? navLinks
@@ -70,9 +70,8 @@ export const Navigation: React.FC<{
               </Link>
             ))}
           </nav>
-        </div>
 
-        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
           {user ? (
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block leading-tight">
@@ -121,6 +120,7 @@ export const Navigation: React.FC<{
           >
             <Icon name={isMenuOpen ? "fa-times" : "fa-bars"} size={20} />
           </button>
+          </div>
         </div>
       </div>
 

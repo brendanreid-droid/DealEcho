@@ -582,7 +582,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share tactical advice about the deal. Do NOT include individual names, job titles/positions, weblinks, or confidential commercial details — reviews containing these are automatically rejected..."
+              placeholder="Share tactical advice about the deal. Do NOT include individual names, job titles/positions, weblinks, or confidential commercial details..."
               className="w-full h-72 bg-slate-50 border-2 border-slate-100 rounded-[40px] px-12 py-10 focus:bg-white focus:border-indigo-200 outline-none transition resize-none text-slate-700 leading-relaxed text-lg shadow-inner"
             />
             <div className="flex items-center justify-between px-4">

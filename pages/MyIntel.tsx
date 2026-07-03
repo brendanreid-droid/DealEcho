@@ -91,6 +91,31 @@ const MyIntel: React.FC<MyIntelProps> = ({
     }
   };
 
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingError, setBillingError] = useState<string | null>(null);
+
+  const handleManageBilling = async () => {
+    setBillingLoading(true);
+    setBillingError(null);
+    try {
+      const functions = getFunctions(undefined, "australia-southeast1");
+      const portalFn = httpsCallable<
+        Record<string, never>,
+        { portalUrl: string }
+      >(functions, "createBillingPortalSession");
+      const res = await portalFn({});
+      if (res.data?.portalUrl) {
+        window.location.href = res.data.portalUrl;
+      } else {
+        setBillingError("Could not open billing portal. Please try again.");
+      }
+    } catch (err: any) {
+      setBillingError(err.message || "Could not open billing portal.");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   const handleNotificationToggle = async (
     setting: 'realTimeAlerts' | 'weeklyDigest',
     value: boolean,
@@ -601,12 +626,30 @@ const MyIntel: React.FC<MyIntelProps> = ({
               </div>
             </div>
 
-            {/* Payment Details Section (Placeholder) */}
+            {/* Payment Details Section */}
             <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
               <h3 className="text-lg font-bold text-slate-900">Payment Details</h3>
-              <p className="text-sm text-slate-500 font-medium">
-                Payment method and billing history will be available here. Integration with Stripe coming soon.
-              </p>
+              {isPaid ? (
+                <>
+                  <p className="text-sm text-slate-500 font-medium">
+                    Update your card, change how you pay, view invoices, or cancel your plan through Stripe's secure billing portal.
+                  </p>
+                  {billingError && (
+                    <p className="text-sm text-red-500 font-medium">{billingError}</p>
+                  )}
+                  <button
+                    onClick={handleManageBilling}
+                    disabled={billingLoading}
+                    className="px-6 py-3 rounded-2xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition inline-flex items-center gap-2"
+                  >
+                    {billingLoading ? "Opening…" : "Manage Billing & Payment Method"}
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500 font-medium">
+                  You're on the free plan. Upgrade to manage payment methods and billing here.
+                </p>
+              )}
             </div>
 
             {/* Account Security Section */}

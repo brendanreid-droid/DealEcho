@@ -189,6 +189,40 @@ export const cancelSubscription = onCall(
 );
 
 /**
+ * Creates a Stripe Billing Portal session so the user can manage their
+ * payment method, view invoices, and update/cancel their subscription.
+ * Returns a portalUrl — the frontend redirects to it.
+ */
+export const createBillingPortalSession = onCall({ cors: true }, async (request) => {
+  const stripe = getStripe();
+
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'You must be signed in to manage billing.');
+  }
+
+  const uid = request.auth.uid;
+  const email = request.auth.token.email ?? '';
+
+  const userSnap = await db.collection('users').doc(uid).get();
+  const userData = userSnap.data();
+  const stripeCustomerId = await resolveStripeCustomer(
+    stripe,
+    uid,
+    email,
+    userData?.stripeCustomerId,
+  );
+
+  const frontendUrl = process.env.FRONTEND_URL ?? 'https://dealecho.io';
+
+  const portal = await stripe.billingPortal.sessions.create({
+    customer: stripeCustomerId,
+    return_url: `${frontendUrl}/my-intel`,
+  });
+
+  return { portalUrl: portal.url };
+});
+
+/**
  * Creates a Stripe Checkout Session for the Enterprise tier.
  * $13/seat/month, minimum 5 seats, no trial.
  */

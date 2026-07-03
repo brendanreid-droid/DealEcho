@@ -12,7 +12,7 @@ export const backfillUserEmails = onCall({}, async (request) => {
 setGlobalOptions({ region: "australia-southeast1" });
 
 // Re-export all Cloud Functions
-export { createCheckoutSession, cancelSubscription, createEnterpriseCheckout } from "./checkout";
+export { createCheckoutSession, cancelSubscription, createEnterpriseCheckout, createBillingPortalSession } from "./checkout";
 export { stripeWebhook, getWebhookDebugLogs } from "./webhook";
 export {
   adminGetUsers,

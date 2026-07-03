@@ -57,7 +57,7 @@ jobs:
         run: sleep 30
 
       - name: Deploy checkout functions
-        run: firebase deploy --only functions:createCheckoutSession,functions:cancelSubscription,functions:createEnterpriseCheckout --force
+        run: firebase deploy --only functions:createCheckoutSession,functions:cancelSubscription,functions:createEnterpriseCheckout,functions:createBillingPortalSession --force
 
       - name: Wait
         run: sleep 30

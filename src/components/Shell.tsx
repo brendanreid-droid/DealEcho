@@ -43,7 +43,7 @@ export const Navigation: React.FC<{
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center">
-            <img src="/logo-lockup.svg" alt="dealecho" className="h-[38px] w-auto" />
+            <img src="/logo-lockup.svg" alt="dealecho" className="h-[42px] w-auto" />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-7">

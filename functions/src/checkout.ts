@@ -216,7 +216,7 @@ export const createBillingPortalSession = onCall({ cors: true }, async (request)
 
   const portal = await stripe.billingPortal.sessions.create({
     customer: stripeCustomerId,
-    return_url: `${frontendUrl}/my-intel`,
+    return_url: `${frontendUrl}/control-centre`,
   });
 
   return { portalUrl: portal.url };

@@ -172,7 +172,7 @@ const Unsubscribe: React.FC = () => {
 
         <div className="border-t border-white/5 pt-6 text-center">
           <Link
-            to={user ? "/my-intel" : "/"}
+            to={user ? "/control-centre" : "/"}
             className="text-indigo-400 hover:text-indigo-300 text-xs font-black uppercase tracking-widest transition-colors"
           >
             {user ? "Back to Dashboard" : "Return Home"}

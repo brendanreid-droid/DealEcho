@@ -42,9 +42,8 @@ export const Navigation: React.FC<{
     <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-[1000]">
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-10">
-          <Link to="/" className="flex items-center font-display font-bold text-[19px] tracking-tight gap-2">
-            <span className="w-2 h-2 rounded-full bg-signal-healthy shadow-[0_0_8px_rgba(16,185,129,.6)] animate-pulse-soft" />
-            <span>deal<span className="text-accent">echo</span></span>
+          <Link to="/" className="flex items-center">
+            <img src="/logo-lockup.svg" alt="dealecho" className="h-8 w-auto" />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-7">
@@ -184,9 +183,8 @@ export const Footer: React.FC = () => (
     <div className="max-w-7xl mx-auto px-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
         <div className="col-span-2 md:col-span-1">
-          <div className="font-display font-bold text-[17px] tracking-tight flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-signal-healthy" />
-            <span>deal<span className="text-accent">echo</span></span>
+          <div className="mb-3">
+            <img src="/logo-lockup.svg" alt="dealecho" className="h-7 w-auto" />
           </div>
           <p className="text-slate-400 text-xs leading-relaxed">
             B2B buyer intelligence from real enterprise sales cycles.

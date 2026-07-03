@@ -257,7 +257,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               {trackedCompanies.length > 0 ? (
                 trackedCompanies.map((c) => {
                   const companyReviews = reviews.filter((r) => r.companyId === c.id);
@@ -351,7 +351,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                   );
                 })
               ) : (
-                <div className="bg-white p-12 rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
+                <div className="md:col-span-2 bg-white p-12 rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
                   <Icon name="fa-search" className="text-slate-200 mx-auto block" size={40} />
                   <p className="text-slate-400 text-xs font-bold uppercase">
                     No accounts tracked
@@ -366,7 +366,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
               )}
 
               {!isPaid && trackedIds.length >= 3 && (
-                <div className="p-6 bg-indigo-50 rounded-[28px] border border-indigo-100 space-y-4">
+                <div className="md:col-span-2 p-6 bg-indigo-50 rounded-[28px] border border-indigo-100 space-y-4">
                   <div className="flex items-center space-x-3 text-indigo-600">
                     <Icon name="fa-crown" size={14} />
                     <span className="text-[10px] font-black uppercase tracking-widest">
@@ -404,7 +404,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
             </div>
 
             {userReviews.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 {userReviews.map((review) => {
                   const domainGuess = guessDomainFromName(review.companyName);
                   const logoUrl = review.logoUrl || companyLogoUrl({ name: review.companyName, domain: domainGuess });

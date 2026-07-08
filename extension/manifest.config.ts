@@ -22,6 +22,10 @@ export default defineManifest({
     "https://securetoken.googleapis.com/*",
     "https://australia-southeast1-dealecho-io-sales-intel-hub.cloudfunctions.net/*",
   ],
+  content_security_policy: {
+    extension_pages:
+      "script-src 'self'; object-src 'none'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://australia-southeast1-dealecho-io-sales-intel-hub.cloudfunctions.net; frame-src 'none';",
+  },
   side_panel: { default_path: "index.html" },
   icons: {
     "16": "public/icons/icon-16.png",

@@ -32,7 +32,7 @@ const Privacy: React.FC = () => {
             Privacy Policy
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-indigo-400 font-bold">May 22, 2026</span>
+            Last Updated: <span className="text-indigo-400 font-bold">July 8, 2026</span>
           </p>
         </div>
 
@@ -222,10 +222,42 @@ const Privacy: React.FC = () => {
 
           <hr className="border-white/10" />
 
-          {/* Section 8 */}
+          {/* Section 8 - Extension */}
           <section className="space-y-4">
             <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
               <span className="text-indigo-400 font-black">8.</span>
+              <span>Chrome Browser Extension</span>
+            </h2>
+            <div className="space-y-3 text-slate-400">
+              <p>
+                DealEcho offers an optional Chrome browser extension ("Dealecho - Sales Intelligence"). When you use the extension, we collect and process the following additional data:
+              </p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>
+                  <strong className="text-slate-200">Website Hostname:</strong> When you visit a website, the extension reads only the domain name (e.g., <em>acme.com</em>) of the active tab to look up company intelligence. We do not collect full URLs, page content, or browsing history.
+                </li>
+                <li>
+                  <strong className="text-slate-200">Highlighted Text:</strong> If you highlight text on a page and use the extension's right-click "Search Dealecho" feature, that selected text is sent to our servers solely to identify the company you are searching for. It is not stored beyond the duration of the request.
+                </li>
+                <li>
+                  <strong className="text-slate-200">Authentication Credentials:</strong> If you sign in to the extension using Google Single Sign-On or email/password, your credentials are handled by Firebase Authentication. The extension does not store raw passwords or OAuth tokens on your device beyond the active browser session.
+                </li>
+              </ul>
+              <p>
+                The extension does not inject scripts into pages at load time, does not read page content without an explicit user action, and does not transmit data to any third party other than DealEcho's own Firebase backend and Google's authentication services.
+              </p>
+              <p>
+                You can remove the extension at any time via Chrome's extension management page (<em>chrome://extensions</em>). Removal immediately stops all data collection by the extension.
+              </p>
+            </div>
+          </section>
+
+          <hr className="border-white/10" />
+
+          {/* Section 9 */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-indigo-400 font-black">9.</span>
               <span>Privacy Complaints and Contact Information</span>
             </h2>
             <div className="space-y-2 text-slate-400">

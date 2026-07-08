@@ -17,9 +17,6 @@ export async function signInWithGoogle(): Promise<void> {
   if (!clientId) throw new Error("VITE_GOOGLE_CLIENT_ID not set in extension/.env");
 
   const redirectUrl = chrome.identity.getRedirectURL();
-  // Copy this URL from devtools console and add it to your Google OAuth client's
-  // Authorized redirect URIs in Google Cloud Console.
-  console.log("[Dealecho] Google OAuth redirect URL:", redirectUrl);
 
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", clientId);

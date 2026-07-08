@@ -41,7 +41,7 @@ const Privacy: React.FC = () => {
           
           {/* Welcome/Agreement */}
           <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
-            DealEcho Pty Ltd (ACN [Insert ACN]) ("DealEcho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using DealEcho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
+            DealEcho Pty Ltd ("DealEcho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using DealEcho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
           </p>
 
           <hr className="border-white/10" />
@@ -126,7 +126,10 @@ const Privacy: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 space-y-1">
                 <li><strong className="text-slate-200">Firebase (Google Cloud Platform):</strong> For hosting our database (Firestore), user authentication (Firebase Auth), and serverless functions.</li>
+                <li><strong className="text-slate-200">Google Gemini (AI):</strong> We use Google's Gemini AI service server-side to generate company intelligence summaries and analysis from aggregated review data. Review text you submit may be processed by Gemini to produce these insights. We do not deliberately pass personally identifiable information to Gemini; however, review content may indirectly reference individuals.</li>
                 <li><strong className="text-slate-200">Stripe:</strong> For payment processing and subscription billing management.</li>
+                <li><strong className="text-slate-200">Resend:</strong> For sending transactional and marketing emails on our behalf (welcome emails, review notifications, weekly digests). Resend receives your email address and the content of emails sent to you.</li>
+                <li><strong className="text-slate-200">Enterprise Team Administrators:</strong> If you are a member of an Enterprise team account, your email address, display name, and team role are visible to the administrator of your organisation's DealEcho account. This is necessary to manage team access and billing.</li>
                 <li><strong className="text-slate-200">Professional Advisors:</strong> Our legal, accounting, and security auditors if required.</li>
                 <li><strong className="text-slate-200">As Required by Law:</strong> To regulatory bodies, courts, or law enforcement agencies if we are legally obligated to do so.</li>
               </ul>
@@ -181,8 +184,17 @@ const Privacy: React.FC = () => {
                 <li>Utilising Firebase Custom Claims and strict Firestore Security Rules to restrict database access.</li>
                 <li>Encrypting billing and identity tokens.</li>
               </ul>
-              <p className="mt-2">
-                We retain your personal information for as long as your account is active, or as long as necessary to provide the Services and comply with our legal and accounting obligations.
+              <p className="mt-2">We retain your personal information for the following periods:</p>
+              <ul className="list-disc pl-5 space-y-1 mt-2">
+                <li><strong className="text-slate-200">Account and profile data:</strong> Retained while your account is active, then deleted within 90 days of a verified account closure request.</li>
+                <li><strong className="text-slate-200">Financial and billing records:</strong> Retained for 7 years from the date of the transaction, as required by the <em>Corporations Act 2001</em> (Cth).</li>
+                <li><strong className="text-slate-200">Review content:</strong> Retained as part of the platform's aggregated, anonymised dataset. If you request deletion of your account, your personal association with reviews will be severed and your display name replaced with "Anonymous".</li>
+                <li><strong className="text-slate-200">Server and diagnostic logs:</strong> Retained for up to 90 days for security monitoring, then automatically purged.</li>
+              </ul>
+
+              <h3 className="font-bold text-slate-200 mt-6 mb-1">Notifiable Data Breaches</h3>
+              <p>
+                DealEcho is subject to the Notifiable Data Breaches (NDB) scheme under Part IIIC of the <em>Privacy Act 1988</em> (Cth). In the event of an eligible data breach that is likely to result in serious harm to affected individuals, we will notify those individuals and the Office of the Australian Information Commissioner (OAIC) as soon as practicable, and no later than 30 days after we become aware of the breach. Notifications will be sent to the email address associated with your account.
               </p>
             </div>
           </section>
@@ -234,7 +246,7 @@ const Privacy: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>
-                  <strong className="text-slate-200">Website Hostname:</strong> When you visit a website, the extension reads only the domain name (e.g., <em>acme.com</em>) of the active tab to look up company intelligence. We do not collect full URLs, page content, or browsing history.
+                  <strong className="text-slate-200">Active Tab Hostname:</strong> While the extension's Side Panel is open, it automatically reads the domain name (e.g., <em>acme.com</em>) of your current tab each time you switch tabs or navigate to a new page, so the panel can refresh company intelligence without requiring manual input. We do not collect full URLs, page titles, page content, or browsing history — only the hostname.
                 </li>
                 <li>
                   <strong className="text-slate-200">Highlighted Text:</strong> If you highlight text on a page and use the extension's right-click "Search Dealecho" feature, that selected text is sent to our servers solely to identify the company you are searching for. It is not stored beyond the duration of the request.

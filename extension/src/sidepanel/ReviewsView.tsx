@@ -159,7 +159,9 @@ function NoMatchView({ reviewUrl }: { reviewUrl: string }) {
     setBusy(true);
     try {
       const token = await issueCustomToken();
-      const bridge = `${CARD_URL}/auth-bridge?ct=${encodeURIComponent(token)}&redirect=${encodeURIComponent(reviewUrl.replace(CARD_URL, ""))}`;
+      // Token travels in the URL fragment, never the query string: fragments are not
+      // sent to the server, so they can't appear in hosting logs or analytics.
+      const bridge = `${CARD_URL}/auth-bridge#ct=${encodeURIComponent(token)}&redirect=${encodeURIComponent(reviewUrl.replace(CARD_URL, ""))}`;
       window.open(bridge, "_blank");
     } catch {
       window.open(reviewUrl, "_blank");

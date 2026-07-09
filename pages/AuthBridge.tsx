@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../src/firebase/config";
@@ -7,10 +7,24 @@ export default function AuthBridge() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
+  // Token arrives in the URL fragment (never sent to the server). Fall back to
+  // query params for any older extension builds still using ?ct=. Parse once in
+  // the state initializer: the effect below scrubs the URL, and StrictMode
+  // re-runs effects, so a second parse would see an empty URL.
+  const [{ ct, redirect }] = useState(() => {
+    const params = new URLSearchParams(
+      window.location.hash ? window.location.hash.slice(1) : window.location.search
+    );
+    return { ct: params.get("ct"), redirect: params.get("redirect") || "/" };
+  });
+  const started = useRef(false);
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const ct = params.get("ct");
-    const redirect = params.get("redirect") || "/";
+    if (started.current) return;
+    started.current = true;
+
+    // Scrub the token from the address bar and history before the async sign-in.
+    window.history.replaceState(null, "", window.location.pathname);
 
     if (!ct) {
       navigate(redirect, { replace: true });
@@ -23,7 +37,7 @@ export default function AuthBridge() {
         console.error("[DealEcho] Auth bridge sign-in failed:", err);
         setError("Sign-in failed. Please sign in manually.");
       });
-  }, [navigate]);
+  }, [ct, redirect, navigate]);
 
   if (error) {
     return (

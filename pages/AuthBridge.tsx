@@ -34,7 +34,7 @@ export default function AuthBridge() {
     signInWithCustomToken(auth, ct)
       .then(() => navigate(redirect, { replace: true }))
       .catch((err) => {
-        console.error("[DealEcho] Auth bridge sign-in failed:", err);
+        console.error("[Dealecho] Auth bridge sign-in failed:", err);
         setError("Sign-in failed. Please sign in manually.");
       });
   }, [ct, redirect, navigate]);

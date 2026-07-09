@@ -632,7 +632,7 @@ const Admin: React.FC = () => {
             <div>
               <h1 className="text-lg font-black tracking-tight">Admin Panel</h1>
               <p className="text-slate-500 text-[11px] font-semibold uppercase tracking-widest">
-                DealEcho Control Centre
+                Dealecho Control Centre
               </p>
             </div>
           </div>
@@ -1446,7 +1446,7 @@ const Admin: React.FC = () => {
                     value={newsletterSubject}
                     onChange={(e) => setNewsletterSubject(e.target.value)}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-                    placeholder="e.g. DealEcho Monthly Intel: Insights & New Vetted Reports"
+                    placeholder="e.g. Dealecho Monthly Intel: Insights & New Vetted Reports"
                   />
                 </div>
 
@@ -1596,17 +1596,17 @@ const Admin: React.FC = () => {
                   {/* Signoff */}
                   <div className="text-slate-600 text-sm pt-4 text-left">
                     Good selling,<br />
-                    <strong className="text-slate-900">The DealEcho Team</strong>
+                    <strong className="text-slate-900">The Dealecho Team</strong>
                   </div>
                 </div>
 
                 {/* Email Footer */}
                 <div className="bg-slate-50 border-t border-slate-100 py-6 px-8 text-center text-[10px] text-slate-400 space-y-2">
                   <div className="font-bold text-slate-500">
-                    &copy; {new Date().getFullYear()} DealEcho.io. All rights reserved.
+                    &copy; {new Date().getFullYear()} Dealecho.io. All rights reserved.
                   </div>
                   <div>
-                    You received this email because you are a registered member of DealEcho.io.
+                    You received this email because you are a registered member of Dealecho.io.
                   </div>
                   <div className="text-indigo-600 font-bold">
                     Dashboard • Pricing • Unsubscribe / Preferences

@@ -68,7 +68,7 @@ export const sendCustomPasswordResetEmail = onCall(
 
       await sendReactEmail({
         to: emailTrimmed,
-        subject: "Reset your DealEcho password",
+        subject: "Reset your Dealecho password",
         component: resetEmailComponent,
       });
 

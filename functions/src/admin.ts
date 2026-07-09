@@ -417,7 +417,7 @@ export const adminCreateUser = onCall(
 
       await sendReactEmail({
         to: email,
-        subject: "Welcome to DealEcho - Activate your account",
+        subject: "Welcome to Dealecho - Activate your account",
         component: inviteComponent,
       });
 
@@ -620,7 +620,7 @@ export const adminSendNewsletter = onCall(
               subject,
               component: React.createElement(NewsletterEmail, {
                 title,
-                preheaderText: preheaderText || "Latest updates from DealEcho",
+                preheaderText: preheaderText || "Latest updates from Dealecho",
                 paragraphs,
                 email: u.email,
                 uid: u.uid,
@@ -640,7 +640,7 @@ export const adminSendNewsletter = onCall(
       id: newsletterId,
       subject,
       title,
-      preheaderText: preheaderText || "Latest updates from DealEcho",
+      preheaderText: preheaderText || "Latest updates from Dealecho",
       content,
       sentAt: new Date().toISOString(),
       sentCount,

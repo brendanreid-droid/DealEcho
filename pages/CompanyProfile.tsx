@@ -176,7 +176,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   }, [company, companyReviews, statsSummary]);
 
   useSEO({
-    title: company ? `${company.name} B2B Buyer Intelligence & Ratings | DealEcho` : "B2B Target Account Sales Intel | DealEcho",
+    title: company ? `${company.name} B2B Buyer Intelligence & Ratings | Dealecho` : "B2B Target Account Sales Intel | Dealecho",
     description: company 
       ? `Access verified sales reviews, aggregate buyer responsiveness, negotiation scores, and MEDDPICC buying team personas for ${company.name}.`
       : "Access B2B sales cycle insights, buyer personas, and MEDDPICC deal execution ratings for enterprise target accounts.",

@@ -41,7 +41,7 @@ const Privacy: React.FC = () => {
           
           {/* Welcome/Agreement */}
           <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
-            DealEcho (ABN 92 122 197 793) trading as Dealecho.io ("DealEcho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using DealEcho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
+            Dealecho (ABN 92 122 197 793) trading as Dealecho.io ("Dealecho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using Dealecho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
           </p>
 
           <hr className="border-white/10" />
@@ -64,7 +64,7 @@ const Privacy: React.FC = () => {
                   <strong className="text-slate-200">User-Submitted Sales Intelligence (Your Content):</strong> When you submit ratings, company reviews, or buyer report cards, we collect the content of your review, the company rated, transaction metrics, and the timestamp.
                 </li>
                 <li>
-                  <strong className="text-slate-200">Subscription and Billing Information:</strong> Subscriptions are securely processed through our payment gateway, Stripe. We collect transactional metadata such as your Stripe Customer ID, Subscription ID, billing status, and plan details. <em className="text-slate-400">Note: DealEcho does not store or process your raw credit card numbers or financial passwords; this information is captured directly and securely by Stripe under their privacy standards.</em>
+                  <strong className="text-slate-200">Subscription and Billing Information:</strong> Subscriptions are securely processed through our payment gateway, Stripe. We collect transactional metadata such as your Stripe Customer ID, Subscription ID, billing status, and plan details. <em className="text-slate-400">Note: Dealecho does not store or process your raw credit card numbers or financial passwords; this information is captured directly and securely by Stripe under their privacy standards.</em>
                 </li>
                 <li>
                   <strong className="text-slate-200">Notification Preferences and Tracking:</strong> We collect details of the companies you track and your notification settings (e.g., opting in/out of Real-time Buyer Alerts or Weekly Insights Digests) to deliver tailored insights.
@@ -125,7 +125,7 @@ const Privacy: React.FC = () => {
                 <li><strong className="text-slate-200">Google Gemini (AI):</strong> We use Google's Gemini AI service server-side to generate company intelligence summaries and analysis from aggregated review data. Review text you submit may be processed by Gemini to produce these insights. We do not deliberately pass personally identifiable information to Gemini; however, review content may indirectly reference individuals.</li>
                 <li><strong className="text-slate-200">Stripe:</strong> For payment processing and subscription billing management.</li>
                 <li><strong className="text-slate-200">Resend:</strong> For sending transactional and marketing emails on our behalf (welcome emails, review notifications, weekly digests, team invitations). Resend receives your email address and the content of emails sent to you.</li>
-                <li><strong className="text-slate-200">Enterprise Team Managers:</strong> If you are a member of an Enterprise team account, your email address, display name, and team role are visible to the manager of your organisation's DealEcho account. This is necessary to manage team access and billing.</li>
+                <li><strong className="text-slate-200">Enterprise Team Managers:</strong> If you are a member of an Enterprise team account, your email address, display name, and team role are visible to the manager of your organisation's Dealecho account. This is necessary to manage team access and billing.</li>
                 <li><strong className="text-slate-200">Professional Advisors:</strong> Our legal, accounting, and security auditors if required.</li>
                 <li><strong className="text-slate-200">As Required by Law:</strong> To regulatory bodies, courts, or law enforcement agencies if we are legally obligated to do so.</li>
               </ul>
@@ -154,7 +154,7 @@ const Privacy: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Clicking the <strong className="text-slate-200">"unsubscribe"</strong> link at the bottom of any email we send you.</li>
-                <li>Navigating to your Email Preferences page inside DealEcho.io.</li>
+                <li>Navigating to your Email Preferences page inside Dealecho.io.</li>
                 <li>Contacting us directly at <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline">privacy@dealecho.io</a>.</li>
               </ul>
               <p className="mt-2">
@@ -190,7 +190,7 @@ const Privacy: React.FC = () => {
 
               <h3 className="font-bold text-slate-200 mt-6 mb-1">Notifiable Data Breaches</h3>
               <p>
-                DealEcho is subject to the Notifiable Data Breaches (NDB) scheme under Part IIIC of the <em>Privacy Act 1988</em> (Cth). In the event of an eligible data breach that is likely to result in serious harm to affected individuals, we will notify those individuals and the Office of the Australian Information Commissioner (OAIC) as soon as practicable, and no later than 30 days after we become aware of the breach. Notifications will be sent to the email address associated with your account.
+                Dealecho is subject to the Notifiable Data Breaches (NDB) scheme under Part IIIC of the <em>Privacy Act 1988</em> (Cth). In the event of an eligible data breach that is likely to result in serious harm to affected individuals, we will notify those individuals and the Office of the Australian Information Commissioner (OAIC) as soon as practicable, and no later than 30 days after we become aware of the breach. Notifications will be sent to the email address associated with your account.
               </p>
             </div>
           </section>
@@ -238,7 +238,7 @@ const Privacy: React.FC = () => {
             </h2>
             <div className="space-y-3 text-slate-400">
               <p>
-                DealEcho offers an optional Chrome browser extension ("Dealecho - Sales Intelligence"). When you use the extension, we collect and process the following additional data:
+                Dealecho offers an optional Chrome browser extension ("Dealecho - Sales Intelligence"). When you use the extension, we collect and process the following additional data:
               </p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>
@@ -252,7 +252,7 @@ const Privacy: React.FC = () => {
                 </li>
               </ul>
               <p>
-                The extension does not inject scripts into pages at load time, does not read page content without an explicit user action, and does not transmit data to any third party other than DealEcho's own Firebase backend and Google's authentication services.
+                The extension does not inject scripts into pages at load time, does not read page content without an explicit user action, and does not transmit data to any third party other than Dealecho's own Firebase backend and Google's authentication services.
               </p>
               <p>
                 You can remove the extension at any time via Chrome's extension management page (<em>chrome://extensions</em>). Removal immediately stops all data collection by the extension.
@@ -274,7 +274,7 @@ const Privacy: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 my-2 space-y-1">
                 <li><strong className="text-slate-200">Email:</strong> <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline">privacy@dealecho.io</a></li>
-                <li><strong className="text-slate-200">Address:</strong> Privacy Officer, DealEcho, Sydney, NSW, Australia</li>
+                <li><strong className="text-slate-200">Address:</strong> Privacy Officer, Dealecho, Sydney, NSW, Australia</li>
               </ul>
               <p>
                 We take all complaints seriously and will investigate your concerns in a fair and timely manner. If you are not satisfied with our response, you have the right to contact the <strong className="text-slate-200">Office of the Australian Information Commissioner (OAIC)</strong> at <a href="https://www.oaic.gov.au" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline font-bold">www.oaic.gov.au</a>.

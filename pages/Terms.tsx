@@ -41,7 +41,7 @@ const Terms: React.FC = () => {
           
           {/* Welcome Message */}
           <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
-            Welcome to DealEcho.io (the "Services"). These Terms of Use ("Terms") constitute a legally binding agreement between you and DealEcho (ABN 92 122 197 793) trading as Dealecho.io ("DealEcho", "we", "us", or "our") governing your access to and use of our website, mobile application, database, and any related intelligence tools.
+            Welcome to Dealecho.io (the "Services"). These Terms of Use ("Terms") constitute a legally binding agreement between you and Dealecho (ABN 92 122 197 793) trading as Dealecho.io ("Dealecho", "we", "us", or "our") governing your access to and use of our website, mobile application, database, and any related intelligence tools.
           </p>
 
           <hr className="border-white/10" />
@@ -86,7 +86,7 @@ const Terms: React.FC = () => {
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">2.1 Agreement to Receive Communications</h3>
                 <p>
-                  By creating an account, you agree to receive communications from DealEcho. These communications may include service-related notifications, security updates, and marketing or educational insights.
+                  By creating an account, you agree to receive communications from Dealecho. These communications may include service-related notifications, security updates, and marketing or educational insights.
                 </p>
               </div>
               <div>
@@ -119,22 +119,22 @@ const Terms: React.FC = () => {
                   You retain ownership of any content, text, data, ratings, or reviews you submit or authorize for use on the Services (“Your Content”).
                 </p>
                 <p className="mt-2">
-                  By submitting Your Content, you grant DealEcho a worldwide, irrevocable, perpetual, non-exclusive, royalty-free license to use, reproduce, copy, process, modify, publish, translate, transmit, display, and distribute Your Content in connection with the operation, promotion, development, and improvement of the Services. This includes the right to display your profile name or avatar associated with the content.
+                  By submitting Your Content, you grant Dealecho a worldwide, irrevocable, perpetual, non-exclusive, royalty-free license to use, reproduce, copy, process, modify, publish, translate, transmit, display, and distribute Your Content in connection with the operation, promotion, development, and improvement of the Services. This includes the right to display your profile name or avatar associated with the content.
                 </p>
                 <p className="mt-2">
-                  To the extent permitted under Part IX of the Copyright Act 1968 (Cth), you genuinely consent to DealEcho performing any acts or omissions in relation to Your Content that might otherwise infringe your moral rights, provided such acts are reasonably necessary for the operational integrity, formatting, or presentation of the platform.
+                  To the extent permitted under Part IX of the Copyright Act 1968 (Cth), you genuinely consent to Dealecho performing any acts or omissions in relation to Your Content that might otherwise infringe your moral rights, provided such acts are reasonably necessary for the operational integrity, formatting, or presentation of the platform.
                 </p>
               </div>
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">3.2 Feedback and Submissions</h3>
                 <p>
-                  If you submit ideas, suggestions, or proposals (“Submissions”) to DealEcho, you agree that we may use, disclose, and exploit these Submissions to improve our platform without any obligation of confidentiality or financial compensation to you.
+                  If you submit ideas, suggestions, or proposals (“Submissions”) to Dealecho, you agree that we may use, disclose, and exploit these Submissions to improve our platform without any obligation of confidentiality or financial compensation to you.
                 </p>
               </div>
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">3.3 Your Limited Rights to Content</h3>
                 <p>
-                  Excluding Your Content, DealEcho and its licensors retain all proprietary and intellectual property rights in the platform, design, data aggregation models, and platform content. Subject to your compliance with these Terms, we grant you a limited, revocable, non-transferable, non-sublicensable license to access and use the platform content solely for your personal or internal business use.
+                  Excluding Your Content, Dealecho and its licensors retain all proprietary and intellectual property rights in the platform, design, data aggregation models, and platform content. Subject to your compliance with these Terms, we grant you a limited, revocable, non-transferable, non-sublicensable license to access and use the platform content solely for your personal or internal business use.
                 </p>
                 <p className="mt-2">
                   You must not systematically scrape, mine, reproduce, redistribute, or sell access to the platform content without our express prior written consent.
@@ -143,7 +143,7 @@ const Terms: React.FC = () => {
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">3.4 Content Accuracy Disclaimer</h3>
                 <p>
-                  The platform displays crowdsourced reviews, ratings, and third-party sponsored content. While we implement moderation guidelines, DealEcho does not independently verify, endorse, or guarantee the absolute accuracy, currency, or suitability of user-generated content or analytical scores. You should exercise independent judgment when relying on platform data for career or commercial decisions.
+                  The platform displays crowdsourced reviews, ratings, and third-party sponsored content. While we implement moderation guidelines, Dealecho does not independently verify, endorse, or guarantee the absolute accuracy, currency, or suitability of user-generated content or analytical scores. You should exercise independent judgment when relying on platform data for career or commercial decisions.
                 </p>
               </div>
             </div>
@@ -164,7 +164,7 @@ const Terms: React.FC = () => {
                   You warrant that your use of the Services will be lawful and compliant with our Community Guidelines. If you post reviews regarding an employer, company, or staffing firm, you warrant that your content reflects your honest, authentic experience as a full-time, part-time, casual employee, contractor, or freelancer.
                 </p>
                 <p className="mt-2">
-                  If you use the platform to run a promotion or competition, you are solely responsible for ensuring compliance with all state-based trade promotion lottery laws in Australia and must explicitly state that the promotion is not sponsored by DealEcho.
+                  If you use the platform to run a promotion or competition, you are solely responsible for ensuring compliance with all state-based trade promotion lottery laws in Australia and must explicitly state that the promotion is not sponsored by Dealecho.
                 </p>
               </div>
               <div>
@@ -182,7 +182,7 @@ const Terms: React.FC = () => {
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">4.3 Account Management and Suspension</h3>
                 <p>
-                  <strong>For Material Breach or Security Risks:</strong> DealEcho may immediately and without notice suspend or restrict your account if we reasonably believe you have materially breached these Terms, violated our Community Guidelines (such as fraudulent review manipulation), introduced a security threat, or if we are required to do so by law.
+                  <strong>For Material Breach or Security Risks:</strong> Dealecho may immediately and without notice suspend or restrict your account if we reasonably believe you have materially breached these Terms, violated our Community Guidelines (such as fraudulent review manipulation), introduced a security threat, or if we are required to do so by law.
                 </p>
                 <p className="mt-2">
                   <strong>For Convenience / Non-Urgent Actions:</strong> If we wish to discontinue a feature or terminate your account for administrative convenience, we will provide you with at least 30 days' written notice prior to taking action, allowing you a reasonable opportunity to extract Your Content.
@@ -214,10 +214,10 @@ const Terms: React.FC = () => {
                     <strong>Exclusion of Consequential Loss:</strong> Neither party will be liable to the other for any indirect, consequential, special, exemplary, or punitive damages, including loss of profits, lost revenue, or loss of commercial business opportunities arising out of or in connection with these Terms.
                   </li>
                   <li>
-                    <strong>Cap on General Liability:</strong> To the extent permitted by law, each party's maximum aggregate liability to the other for all claims arising under or in connection with these Terms (whether in contract, tort including negligence, or under indemnity) is strictly limited to the greater of: (a) the total fees paid by you to DealEcho in the 12 months preceding the event giving rise to liability, or (b) $100 AUD.
+                    <strong>Cap on General Liability:</strong> To the extent permitted by law, each party's maximum aggregate liability to the other for all claims arising under or in connection with these Terms (whether in contract, tort including negligence, or under indemnity) is strictly limited to the greater of: (a) the total fees paid by you to Dealecho in the 12 months preceding the event giving rise to liability, or (b) $100 AUD.
                   </li>
                   <li>
-                    <strong>Statutory Remedy Limitations:</strong> Where DealEcho breaches a statutory guarantee under the ACL which can legally be limited under Section 64A of the ACL, our liability is strictly limited (at our option) to supplying the services again, or paying the reasonable cost of having the services supplied again.
+                    <strong>Statutory Remedy Limitations:</strong> Where Dealecho breaches a statutory guarantee under the ACL which can legally be limited under Section 64A of the ACL, our liability is strictly limited (at our option) to supplying the services again, or paying the reasonable cost of having the services supplied again.
                   </li>
                   <li>
                     <strong>Carve-outs:</strong> The limitations and exclusions of liability in this Section 5.2 do not apply to a party's liability for fraud, willful misconduct, gross negligence, personal injury, or a breach of third-party intellectual property rights.
@@ -237,14 +237,14 @@ const Terms: React.FC = () => {
             </h2>
             <div className="space-y-2 text-slate-400">
               <p>
-                You agree to indemnify and hold harmless DealEcho, its directors, and employees from and against any direct loss, damage, liability, or reasonable legal expense arising out of a third-party claim against us resulting from:
+                You agree to indemnify and hold harmless Dealecho, its directors, and employees from and against any direct loss, damage, liability, or reasonable legal expense arising out of a third-party claim against us resulting from:
               </p>
               <ul className="list-disc pl-5 my-2 space-y-1">
                 <li>Your Content infringing the intellectual property, privacy, or moral rights of a third party; or</li>
                 <li>Your material breach of the Prohibited Activities outlined in Section 4.2.</li>
               </ul>
               <p>
-                Your liability under this indemnity will be proportionally reduced to the extent that DealEcho’s own negligent acts, omissions, or platform vulnerabilities contributed to the loss.
+                Your liability under this indemnity will be proportionally reduced to the extent that Dealecho’s own negligent acts, omissions, or platform vulnerabilities contributed to the loss.
               </p>
             </div>
           </section>

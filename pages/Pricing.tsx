@@ -17,11 +17,11 @@ interface PricingProps {
 
 const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
   useSEO({
-    title: "DealEcho Pricing - Unlock Advanced B2B Buyer Intelligence & Playbooks",
+    title: "Dealecho Pricing - Unlock Advanced B2B Buyer Intelligence & Playbooks",
     description:
       "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, AI MEDDPICC strategic blueprints, and stakeholder buying team personas.",
     keywords:
-      "Sales Pro pricing, sales intelligence subscription, MEDDPICC trial, B2B deal close rate, DealEcho",
+      "Sales Pro pricing, sales intelligence subscription, MEDDPICC trial, B2B deal close rate, Dealecho",
   });
 
   const [isAnnual, setIsAnnual] = useState(false);
@@ -215,7 +215,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
           <div className="flex-grow">
             <h3 className="font-bold text-navy text-lg">One more step - add the browser extension</h3>
             <p className="text-slate-600 text-sm mt-1">
-              See DealEcho intel on any prospect site or inside your CRM. Highlight a company name to
+              See Dealecho intel on any prospect site or inside your CRM. Highlight a company name to
               get reviews, scores, and red flags instantly — right where you work.
             </p>
           </div>

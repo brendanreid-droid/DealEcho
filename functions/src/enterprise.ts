@@ -89,7 +89,7 @@ export const inviteTeamMember = onCall({ cors: true, secrets: ['RESEND_API_KEY']
   try {
     await sendReactEmail({
       to: email,
-      subject: `${inviterName} invited you to DealEcho Enterprise`,
+      subject: `${inviterName} invited you to Dealecho Enterprise`,
       component: React.createElement(TeamInviteEmail, { inviterName, teamRole, acceptUrl, recipientEmail: email }),
     });
   } catch (e: any) {
@@ -335,7 +335,7 @@ export const resendTeamInvite = onCall({ cors: true, secrets: ['RESEND_API_KEY']
 
   await sendReactEmail({
     to: inviteEmail,
-    subject: `${inviterName} re-sent your DealEcho Enterprise invite`,
+    subject: `${inviterName} re-sent your Dealecho Enterprise invite`,
     component: React.createElement(TeamInviteEmail, {
       inviterName,
       teamRole: memberData.teamRole,

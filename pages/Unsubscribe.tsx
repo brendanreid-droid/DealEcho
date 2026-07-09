@@ -84,7 +84,7 @@ const Unsubscribe: React.FC = () => {
             Email Preferences
           </h1>
           <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto leading-relaxed">
-            Manage your DealEcho intelligence notifications for{" "}
+            Manage your Dealecho intelligence notifications for{" "}
             <span className="text-indigo-400 font-bold block mt-1">{email || "your account"}</span>
           </p>
         </div>

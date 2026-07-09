@@ -33,7 +33,7 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
     title: "dealecho - Sales Intelligence",
     description:
       "Know the buyer before the first call. Verified B2B buyer intelligence, red-flag analysis, and buying-team personas for elite tech accounts.",
-    keywords: "B2B sales intelligence, MEDDPICC, buying teams, account planning, DealEcho",
+    keywords: "B2B sales intelligence, MEDDPICC, buying teams, account planning, Dealecho",
   });
 
   const [search, setSearch] = useState("");

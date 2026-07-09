@@ -16,13 +16,13 @@ export const TeamInviteEmail: React.FC<TeamInviteEmailProps> = ({
   recipientEmail,
 }) => (
   <DealEchoEmailLayout
-    previewTextText={`${inviterName} invited you to join their DealEcho Enterprise team.`}
+    previewTextText={`${inviterName} invited you to join their Dealecho Enterprise team.`}
     userEmail={recipientEmail}
   >
-    <Heading style={h1}>You've been invited to DealEcho Enterprise</Heading>
+    <Heading style={h1}>You've been invited to Dealecho Enterprise</Heading>
 
     <Text style={paragraph}>
-      {inviterName} has invited you to join their DealEcho Enterprise team as a{' '}
+      {inviterName} has invited you to join their Dealecho Enterprise team as a{' '}
       <strong>{teamRole === 'manager' ? 'Team Manager' : 'Team Member'}</strong>.
     </Text>
 

@@ -79,7 +79,7 @@ const AcceptInvite: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4">
-        <h1 className="text-2xl font-bold text-slate-900 text-center">You've been invited to DealEcho Enterprise</h1>
+        <h1 className="text-2xl font-bold text-slate-900 text-center">You've been invited to Dealecho Enterprise</h1>
         <p className="text-slate-500 max-w-md text-center">
           Enter the email this invite was sent to, and choose a password to create your account (or sign in if you already have one).
         </p>

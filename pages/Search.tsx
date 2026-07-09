@@ -77,7 +77,7 @@ const Search: React.FC<SearchProps> = ({
   const [isAiSearching, setIsAiSearching] = useState(false);
 
   useSEO({
-    title: q ? `Search "${q}" - DealEcho` : "Search - DealEcho",
+    title: q ? `Search "${q}" - Dealecho` : "Search - Dealecho",
     description: `Find buyer intelligence and account insights${q ? ` for ${q}` : ""}.`,
     keywords: "B2B sales intelligence, account planning, buyer research",
   });

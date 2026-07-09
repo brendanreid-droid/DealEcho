@@ -17,7 +17,7 @@ export const lookupCompanyReviews = onCall(
   { cors: true, secrets: [GEMINI_API_KEY] },
   async (request) => {
     if (!request.auth) {
-      throw new HttpsError("unauthenticated", "Sign in to use DealEcho.");
+      throw new HttpsError("unauthenticated", "Sign in to use Dealecho.");
     }
     const domain = typeof request.data?.domain === "string" ? request.data.domain : undefined;
     const name = typeof request.data?.name === "string" ? request.data.name : undefined;

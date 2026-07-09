@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import CompanyLogo from "../../components/CompanyLogo";
 import ScoreRing from "./ScoreRing";
 import MetricBar from "./MetricBar";
+import Icon from "./Icon";
 
 export interface CompanyCardData {
   id: string;
@@ -22,11 +23,12 @@ export interface CompanyCardData {
 interface CompanyCardProps {
   company: CompanyCardData;
   isPro: boolean;
+  isLoggedIn?: boolean;
 }
 
 /** The card used on Home and Search. Score ring + inline metric bars +
  *  a Pro gate that never renders gated content for free users. */
-const CompanyCard: React.FC<CompanyCardProps> = ({ company, isPro }) => {
+const CompanyCard: React.FC<CompanyCardProps> = ({ company, isPro, isLoggedIn = true }) => {
   return (
     <Link
       to={`/company/${company.id}`}
@@ -60,12 +62,26 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company, isPro }) => {
         <ScoreRing score={company.healthIndex} />
       </div>
 
-      {/* Metric micro-bars */}
-      <div className="grid grid-cols-2 gap-x-5 gap-y-3 mb-5">
-        <MetricBar label="Responsiveness" value={company.responsiveness} />
-        <MetricBar label="Negotiation" value={company.negotiation} />
-        <MetricBar label="Buyer intent" value={company.buyerIntent} />
-        <MetricBar label="Scope clarity" value={company.scopeClarity} />
+      {/* Metric micro-bars — blurred for signed-out visitors */}
+      <div className="relative mb-5">
+        <div
+          className={`grid grid-cols-2 gap-x-5 gap-y-3 ${
+            isLoggedIn ? "" : "blur-[5px] select-none pointer-events-none"
+          }`}
+        >
+          <MetricBar label="Responsiveness" value={company.responsiveness} />
+          <MetricBar label="Negotiation" value={company.negotiation} />
+          <MetricBar label="Buyer intent" value={company.buyerIntent} />
+          <MetricBar label="Scope clarity" value={company.scopeClarity} />
+        </div>
+        {!isLoggedIn && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="bg-white/95 border border-slate-200 shadow-sm rounded-control px-3 py-1.5 text-2xs font-bold text-slate-500 flex items-center gap-1.5">
+              <Icon name="fa-lock" size={11} />
+              Sign in to view
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Excerpt (public) or Pro gate */}

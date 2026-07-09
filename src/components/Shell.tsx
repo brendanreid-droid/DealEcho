@@ -38,6 +38,13 @@ export const Navigation: React.FC<{
       ? location.pathname.startsWith("/search")
       : location.pathname === path;
 
+  const mobileLinks = user
+    ? navLinks
+    : [
+        { name: "Search", path: "/", icon: "fa-search" },
+        { name: "Pricing", path: "/pricing", icon: "fa-tags" },
+      ];
+
   return (
     <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-[1000]">
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px]">
@@ -127,7 +134,7 @@ export const Navigation: React.FC<{
       {/* Mobile menu — now includes the auth action */}
       {isMenuOpen && (
         <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-2xl p-4 space-y-1.5 z-[999]">
-          {navLinks.map((link) => (
+          {mobileLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
@@ -187,7 +194,7 @@ export const Footer: React.FC = () => (
             <img src="/logo-lockup.svg" alt="dealecho" className="h-7 w-auto" />
           </div>
           <p className="text-slate-400 text-xs leading-relaxed">
-            B2B buyer intelligence from real enterprise sales cycles.
+            Buyer intelligence from enterprise sales cycles.
           </p>
         </div>
 
@@ -197,18 +204,10 @@ export const Footer: React.FC = () => (
           </h4>
           <ul className="space-y-2 text-sm">
             <li><Link to="/search" className="text-slate-600 hover:text-accent">Search accounts</Link></li>
+            <li><Link to="/review/new" className="text-slate-600 hover:text-accent">Write review</Link></li>
+            <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control centre</Link></li>
             <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics</Link></li>
             <li><Link to="/pricing" className="text-slate-600 hover:text-accent">Pricing</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            Contribute
-          </h4>
-          <ul className="space-y-2 text-sm">
-            <li><Link to="/review/new" className="text-slate-600 hover:text-accent">Write a review</Link></li>
-            <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control Centre</Link></li>
           </ul>
         </div>
 

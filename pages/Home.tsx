@@ -28,7 +28,7 @@ const BENEFITS = [
   { Icon: Zap, title: "Win faster", body: "Walk in with the playbook instead of spending a quarter discovering it." },
 ];
 
-const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading, isError }) => {
+const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, isError }) => {
   useSEO({
     title: "dealecho - Sales Intelligence",
     description:
@@ -81,7 +81,7 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading, isError
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 font-mono text-2xs uppercase tracking-[0.16em] text-signal-healthy-bright mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-signal-healthy-bright animate-pulse-soft" />
-            Live deal intelligence
+            Deal intelligence
           </div>
           <h1 className="font-extrabold text-4xl md:text-6xl leading-[1.04] tracking-tight mb-5">
             An intelligence layer
@@ -91,7 +91,7 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading, isError
             Purveyor of intelligence from enterprise sales cycles. See how target accounts actually buy, before you spend a quarter finding out.
           </p>
           <div className="flex justify-center mb-7">
-            <Button variant="primary" to="/pricing">Start 30-day Pro trial</Button>
+            <Button variant="primary" to="/pricing">Start your 30-day trial</Button>
           </div>
           <form onSubmit={handleSearch} className="max-w-xl mx-auto">
             <div className="relative">
@@ -144,7 +144,7 @@ const Home: React.FC<HomeProps> = ({ isPaid, reviewSummaries, isLoading, isError
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {companies.map((c) => (
-              <CompanyCard key={c.id} company={c} isPro={isPaid} />
+              <CompanyCard key={c.id} company={c} isPro={isPaid} isLoggedIn={!!user} />
             ))}
           </div>
         )}

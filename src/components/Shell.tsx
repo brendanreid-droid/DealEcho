@@ -203,9 +203,9 @@ export const Footer: React.FC = () => (
             Product
           </h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/search" className="text-slate-600 hover:text-accent">Search accounts</Link></li>
-            <li><Link to="/review/new" className="text-slate-600 hover:text-accent">Write review</Link></li>
-            <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control centre</Link></li>
+            <li><Link to="/search" className="text-slate-600 hover:text-accent">Search Accounts</Link></li>
+            <li><Link to="/review/new" className="text-slate-600 hover:text-accent">Write Review</Link></li>
+            <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control Centre</Link></li>
             <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics</Link></li>
             <li><Link to="/pricing" className="text-slate-600 hover:text-accent">Pricing</Link></li>
           </ul>
@@ -216,8 +216,8 @@ export const Footer: React.FC = () => (
             Trust &amp; legal
           </h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/privacy" className="text-slate-600 hover:text-accent">Privacy policy</Link></li>
-            <li><Link to="/terms" className="text-slate-600 hover:text-accent">Terms of use</Link></li>
+            <li><Link to="/privacy" className="text-slate-600 hover:text-accent">Privacy Policy</Link></li>
+            <li><Link to="/terms" className="text-slate-600 hover:text-accent">Terms of Use</Link></li>
           </ul>
         </div>
       </div>

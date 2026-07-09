@@ -41,7 +41,7 @@ const Privacy: React.FC = () => {
           
           {/* Welcome/Agreement */}
           <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
-            DealEcho Pty Ltd (ABN 92 122 197 793) trading as Dealecho.io ("DealEcho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using DealEcho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
+            DealEcho (ABN 92 122 197 793) trading as Dealecho.io ("DealEcho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using DealEcho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
           </p>
 
           <hr className="border-white/10" />
@@ -274,7 +274,7 @@ const Privacy: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 my-2 space-y-1">
                 <li><strong className="text-slate-200">Email:</strong> <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline">privacy@dealecho.io</a></li>
-                <li><strong className="text-slate-200">Address:</strong> Privacy Officer, DealEcho Pty Ltd, Sydney, NSW, Australia</li>
+                <li><strong className="text-slate-200">Address:</strong> Privacy Officer, DealEcho, Sydney, NSW, Australia</li>
               </ul>
               <p>
                 We take all complaints seriously and will investigate your concerns in a fair and timely manner. If you are not satisfied with our response, you have the right to contact the <strong className="text-slate-200">Office of the Australian Information Commissioner (OAIC)</strong> at <a href="https://www.oaic.gov.au" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline font-bold">www.oaic.gov.au</a>.

@@ -41,7 +41,7 @@ const Terms: React.FC = () => {
           
           {/* Welcome Message */}
           <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
-            Welcome to DealEcho.io (the "Services"). These Terms of Use ("Terms") constitute a legally binding agreement between you and DealEcho Pty Ltd (ACN [Insert ACN]) ("DealEcho", "we", "us", or "our") governing your access to and use of our website, mobile application, database, and any related intelligence tools.
+            Welcome to DealEcho.io (the "Services"). These Terms of Use ("Terms") constitute a legally binding agreement between you and DealEcho (ABN 92 122 197 793) trading as Dealecho.io ("DealEcho", "we", "us", or "our") governing your access to and use of our website, mobile application, database, and any related intelligence tools.
           </p>
 
           <hr className="border-white/10" />

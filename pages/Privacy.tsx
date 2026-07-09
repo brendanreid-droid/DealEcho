@@ -32,7 +32,7 @@ const Privacy: React.FC = () => {
             Privacy Policy
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-indigo-400 font-bold">July 8, 2026</span>
+            Last Updated: <span className="text-indigo-400 font-bold">July 9, 2026</span>
           </p>
         </div>
 
@@ -41,7 +41,7 @@ const Privacy: React.FC = () => {
           
           {/* Welcome/Agreement */}
           <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
-            DealEcho Pty Ltd (ABN 92 122 197 793) ("DealEcho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using DealEcho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
+            DealEcho Pty Ltd (ABN 92 122 197 793) trading as Dealecho.io ("DealEcho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using DealEcho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
           </p>
 
           <hr className="border-white/10" />
@@ -93,14 +93,10 @@ const Privacy: React.FC = () => {
                   <strong className="text-slate-200">To Provide the Services:</strong> Administering your account, displaying crowdsourced company profiles, tracking company lists, and calculating analytical scores.
                 </li>
                 <li>
-                  <strong className="text-slate-200">To Process Payments:</strong> Facilitating premium Pro Membership billing and renewals through Stripe.
+                  <strong className="text-slate-200">To Process Payments:</strong> Facilitating premium Pro and Enterprise Membership billing and renewals through Stripe.
                 </li>
                 <li>
-                  <strong className="text-slate-200">To Manage Identity and Review Integrity:</strong> 
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>Under our Terms of Use, if you are a Free Member, we automatically anonymise your submissions, displaying your reviews under the name "Anonymous" to protect your workplace identity.</li>
-                    <li>If you upgrade to a Pro Member, we display your registered profile name and avatar alongside your reviews to establish professional credibility.</li>
-                  </ul>
+                  <strong className="text-slate-200">To Manage Identity and Review Integrity:</strong> Your registered name is attached to your review submissions internally, for moderation and quality control. Reviews are not currently displayed with a reviewer name anywhere on the platform. If you cancel or downgrade a paid subscription to a Free plan, or delete your account, your existing reviews are automatically stripped of this internal association and relabelled "Anonymous".
                 </li>
                 <li>
                   <strong className="text-slate-200">To Communicate with You:</strong> Sending necessary operational communications (security alerts, transactional receipts, system updates) and marketing updates (weekly digests, insights digests) strictly in accordance with your preferences and the <em>Spam Act 2003</em> (Cth).
@@ -128,8 +124,8 @@ const Privacy: React.FC = () => {
                 <li><strong className="text-slate-200">Firebase (Google Cloud Platform):</strong> For hosting our database (Firestore), user authentication (Firebase Auth), and serverless functions.</li>
                 <li><strong className="text-slate-200">Google Gemini (AI):</strong> We use Google's Gemini AI service server-side to generate company intelligence summaries and analysis from aggregated review data. Review text you submit may be processed by Gemini to produce these insights. We do not deliberately pass personally identifiable information to Gemini; however, review content may indirectly reference individuals.</li>
                 <li><strong className="text-slate-200">Stripe:</strong> For payment processing and subscription billing management.</li>
-                <li><strong className="text-slate-200">Resend:</strong> For sending transactional and marketing emails on our behalf (welcome emails, review notifications, weekly digests). Resend receives your email address and the content of emails sent to you.</li>
-                <li><strong className="text-slate-200">Enterprise Team Administrators:</strong> If you are a member of an Enterprise team account, your email address, display name, and team role are visible to the administrator of your organisation's DealEcho account. This is necessary to manage team access and billing.</li>
+                <li><strong className="text-slate-200">Resend:</strong> For sending transactional and marketing emails on our behalf (welcome emails, review notifications, weekly digests, team invitations). Resend receives your email address and the content of emails sent to you.</li>
+                <li><strong className="text-slate-200">Enterprise Team Managers:</strong> If you are a member of an Enterprise team account, your email address, display name, and team role are visible to the manager of your organisation's DealEcho account. This is necessary to manage team access and billing.</li>
                 <li><strong className="text-slate-200">Professional Advisors:</strong> Our legal, accounting, and security auditors if required.</li>
                 <li><strong className="text-slate-200">As Required by Law:</strong> To regulatory bodies, courts, or law enforcement agencies if we are legally obligated to do so.</li>
               </ul>
@@ -188,7 +184,7 @@ const Privacy: React.FC = () => {
               <ul className="list-disc pl-5 space-y-1 mt-2">
                 <li><strong className="text-slate-200">Account and profile data:</strong> Retained while your account is active, then deleted within 90 days of a verified account closure request.</li>
                 <li><strong className="text-slate-200">Financial and billing records:</strong> Retained for 7 years from the date of the transaction, as required by the <em>Corporations Act 2001</em> (Cth).</li>
-                <li><strong className="text-slate-200">Review content:</strong> Retained as part of the platform's aggregated, anonymised dataset. If you request deletion of your account, your personal association with reviews will be severed and your display name replaced with "Anonymous".</li>
+                <li><strong className="text-slate-200">Review content:</strong> Retained as part of the platform's aggregated dataset. Your name is associated with your reviews internally until you downgrade a paid subscription to Free or delete your account, at which point that association is severed and replaced with "Anonymous".</li>
                 <li><strong className="text-slate-200">Server and diagnostic logs:</strong> Retained for up to 90 days for security monitoring, then automatically purged.</li>
               </ul>
 
@@ -205,11 +201,11 @@ const Privacy: React.FC = () => {
           <section className="space-y-4">
             <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
               <span className="text-indigo-400 font-black">6.</span>
-              <span>Anonymity and Pseudonymity</span>
+              <span>Anonymity</span>
             </h2>
             <div className="space-y-2 text-slate-400">
               <p>
-                In accordance with APP 2, wherever it is lawful and practicable, you have the option of not identifying yourself or using a pseudonym. DealEcho.io supports this principle by allowing you to sign up with a pseudonymous display name and automatically anonymising the names attached to review submissions for all non-paying members.
+                In accordance with APP 2, wherever it is lawful and practicable, you have the option of not identifying yourself. Reviews are not currently displayed with a reviewer name anywhere on the platform, and the internal association between your account and your reviews is automatically severed if you downgrade a paid subscription to Free or delete your account.
               </p>
             </div>
           </section>

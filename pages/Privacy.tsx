@@ -274,7 +274,6 @@ const Privacy: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 my-2 space-y-1">
                 <li><strong className="text-slate-200">Email:</strong> <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline">privacy@dealecho.io</a></li>
-                <li><strong className="text-slate-200">Address:</strong> Privacy Officer, Dealecho, Sydney, NSW, Australia</li>
               </ul>
               <p>
                 We take all complaints seriously and will investigate your concerns in a fair and timely manner. If you are not satisfied with our response, you have the right to contact the <strong className="text-slate-200">Office of the Australian Information Commissioner (OAIC)</strong> at <a href="https://www.oaic.gov.au" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline font-bold">www.oaic.gov.au</a>.

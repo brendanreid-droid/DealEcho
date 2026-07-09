@@ -32,7 +32,7 @@ const Terms: React.FC = () => {
             Terms of Use
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-indigo-400 font-bold">May 22, 2026</span>
+            Last Updated: <span className="text-indigo-400 font-bold">July 9, 2026</span>
           </p>
         </div>
 
@@ -56,7 +56,7 @@ const Terms: React.FC = () => {
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">1.1 Eligibility and Authorized Use</h3>
                 <p>
-                  To access or use the Services, you must be at least 18 years of age and not prohibited from doing so by applicable law. The Services are provided for your personal use or for your internal business intelligence purposes (such as researching employers, market rates, or workplace metrics). You may not use the Services for external commercial exploitation, resale, or if we have previously terminated your account for a material breach of these Terms.
+                  To access or use the Services, you must be at least 18 years of age and not prohibited from doing so by applicable law. The Services are provided for your personal use or for your internal business intelligence purposes (such as prospect research). You may not use the Services for external commercial exploitation, resale, or if we have previously terminated your account for a material breach of these Terms.
                 </p>
               </div>
               <div>
@@ -119,7 +119,7 @@ const Terms: React.FC = () => {
                   You retain ownership of any content, text, data, ratings, or reviews you submit or authorize for use on the Services (“Your Content”).
                 </p>
                 <p className="mt-2">
-                  By submitting Your Content, you grant Dealecho a worldwide, irrevocable, perpetual, non-exclusive, royalty-free license to use, reproduce, copy, process, modify, publish, translate, transmit, display, and distribute Your Content in connection with the operation, promotion, development, and improvement of the Services. This includes the right to display your profile name or avatar associated with the content.
+                  By submitting Your Content, you grant Dealecho a worldwide, irrevocable, perpetual, non-exclusive, royalty-free license to use, reproduce, copy, process, modify, publish, translate, transmit, display, and distribute Your Content in connection with the operation, promotion, development, and improvement of the Services.
                 </p>
                 <p className="mt-2">
                   To the extent permitted under Part IX of the Copyright Act 1968 (Cth), you genuinely consent to Dealecho performing any acts or omissions in relation to Your Content that might otherwise infringe your moral rights, provided such acts are reasonably necessary for the operational integrity, formatting, or presentation of the platform.
@@ -143,7 +143,7 @@ const Terms: React.FC = () => {
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">3.4 Content Accuracy Disclaimer</h3>
                 <p>
-                  The platform displays crowdsourced reviews, ratings, and third-party sponsored content. While we implement moderation guidelines, Dealecho does not independently verify, endorse, or guarantee the absolute accuracy, currency, or suitability of user-generated content or analytical scores. You should exercise independent judgment when relying on platform data for career or commercial decisions.
+                  The platform displays crowdsourced reviews, ratings, and third-party sponsored content. While we implement moderation guidelines, Dealecho does not independently verify, endorse, or guarantee the absolute accuracy, currency, or suitability of user-generated content or analytical scores. You should exercise independent judgment when relying on platform data for commercial decisions.
                 </p>
               </div>
             </div>
@@ -159,12 +159,9 @@ const Terms: React.FC = () => {
             </h2>
             <div className="space-y-4 text-slate-400">
               <div>
-                <h3 className="font-bold text-slate-200 mb-1">4.1 House Rules and Community Guidelines</h3>
+                <h3 className="font-bold text-slate-200 mb-1">4.1 House Rules</h3>
                 <p>
-                  You warrant that your use of the Services will be lawful and compliant with our Community Guidelines. If you post reviews regarding an employer, company, or staffing firm, you warrant that your content reflects your honest, authentic experience as a full-time, part-time, casual employee, contractor, or freelancer.
-                </p>
-                <p className="mt-2">
-                  If you use the platform to run a promotion or competition, you are solely responsible for ensuring compliance with all state-based trade promotion lottery laws in Australia and must explicitly state that the promotion is not sponsored by Dealecho.
+                  You warrant that your use of the Services will be lawful. If you post reviews regarding a company, you warrant that your content reflects your honest, authentic, personal experience.
                 </p>
               </div>
               <div>
@@ -176,16 +173,15 @@ const Terms: React.FC = () => {
                   <li>Engage in harassing, abusive, or discriminatory behavior within platform communities.</li>
                   <li>Engage in anticompetitive conduct or violate Australian competition laws by sharing commercially sensitive pricing information in restraint of trade.</li>
                   <li>Introduce automated scrapers, bots, viruses, trojans, or malicious software to the platform.</li>
-                  <li>Engage in illegal pyramidal scheme promotion in violation of the Australian Consumer Law.</li>
                 </ul>
               </div>
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">4.3 Account Management and Suspension</h3>
                 <p>
-                  <strong>For Material Breach or Security Risks:</strong> Dealecho may immediately and without notice suspend or restrict your account if we reasonably believe you have materially breached these Terms, violated our Community Guidelines (such as fraudulent review manipulation), introduced a security threat, or if we are required to do so by law.
+                  <strong>For Material Breach or Security Risks:</strong> Dealecho may immediately and without notice suspend or restrict your account if we reasonably believe you have materially breached these Terms (such as fraudulent review manipulation), introduced a security threat, or if we are required to do so by law.
                 </p>
                 <p className="mt-2">
-                  <strong>For Convenience / Non-Urgent Actions:</strong> If we wish to discontinue a feature or terminate your account for administrative convenience, we will provide you with at least 30 days' written notice prior to taking action, allowing you a reasonable opportunity to extract Your Content.
+                  <strong>For Convenience / Non-Urgent Actions:</strong> If we wish to discontinue a feature or terminate your account for administrative convenience, we will provide you with at least 30 days' written notice prior to taking action.
                 </p>
               </div>
             </div>
@@ -237,7 +233,7 @@ const Terms: React.FC = () => {
             </h2>
             <div className="space-y-2 text-slate-400">
               <p>
-                You agree to indemnify and hold harmless Dealecho, its directors, and employees from and against any direct loss, damage, liability, or reasonable legal expense arising out of a third-party claim against us resulting from:
+                You agree to indemnify and hold harmless Dealecho from and against any direct loss, damage, liability, or reasonable legal expense arising out of a third-party claim against us resulting from:
               </p>
               <ul className="list-disc pl-5 my-2 space-y-1">
                 <li>Your Content infringing the intellectual property, privacy, or moral rights of a third party; or</li>

@@ -186,7 +186,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
 
   // Update AI Persona when the filtered set of reviews changes
   useEffect(() => {
-    if (company && filteredReviews.length > 0) {
+    if (isPaid && company && filteredReviews.length > 0) {
       // Synchronously check if cached to avoid loading spinner flash for instant premium experience!
       const reviewsSignature = filteredReviews
         .map((r) => `${r.id}_${r.createdAt}`)
@@ -210,7 +210,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     } else {
       setAiPersona(null);
     }
-  }, [company, filteredReviews]);
+  }, [isPaid, company, filteredReviews]);
 
   useEffect(() => {
     if (company && companyReviews.length > 0) {
@@ -307,7 +307,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
         </Link>
       )}
 
-      {isPro && hasReviews && (
+      {user && hasReviews && (
         <section aria-labelledby="evidence-heading" className="space-y-3">
           <h2 id="evidence-heading" className="text-sm font-semibold text-slate-500">Evidence</h2>
           <div className="flex flex-wrap gap-2">

@@ -39,16 +39,34 @@ function renderPage(isPaid: boolean) {
 }
 
 describe("CompanyProfile spine", () => {
-  it("shows the verdict and flags to free users but gates evidence", async () => {
+  it("shows flags gate and evidence to logged-in free users, but no playbook", async () => {
     renderPage(false);
     expect(await screen.findByText("Snowflake")).toBeInTheDocument();
     expect(screen.getByText(/unlock \d+ flags/i)).toBeInTheDocument();
-    expect(screen.queryByText(/They ghosted us/)).not.toBeInTheDocument();
+    expect(await screen.findByText(/They ghosted us/)).toBeInTheDocument();
+    expect(screen.queryByText("CFO veto")).not.toBeInTheDocument();
   });
 
   it("shows evidence and playbook to Pro users", async () => {
     renderPage(true);
     expect(await screen.findByText(/They ghosted us/)).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("CFO veto")).toBeInTheDocument());
+  });
+
+  it("hides evidence from logged-out visitors", async () => {
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/company/comp-1", state: { company } }]}>
+        <CompanyProfile
+          user={null}
+          isPaid={false}
+          onSignInClick={() => {}}
+          reviews={[review]}
+          allTrackedIds={[]}
+          onToggleTrack={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText("Snowflake")).toBeInTheDocument();
+    expect(screen.queryByText(/They ghosted us/)).not.toBeInTheDocument();
   });
 });

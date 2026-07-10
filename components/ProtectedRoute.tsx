@@ -22,11 +22,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-400 text-sm font-semibold tracking-wide">Verifying access…</p>
-        </div>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-accent animate-spin" />
       </div>
     );
   }

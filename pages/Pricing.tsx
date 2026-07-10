@@ -32,6 +32,8 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
   } | null>(null);
   const [monthlyAmount, setMonthlyAmount] = useState(15);
   const [annualAmount, setAnnualAmount] = useState(144);
+  const [enterpriseAmount, setEnterpriseAmount] = useState(65);
+  const [enterpriseSeatAmount, setEnterpriseSeatAmount] = useState(13);
   const [priceCurrency, setPriceCurrency] = useState("AUD");
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
   const [showExtPrompt, setShowExtPrompt] = useState(false);
@@ -50,6 +52,8 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
           if (data.monthlyAmount) setMonthlyAmount(data.monthlyAmount / 100);
           if (data.annualAmount) setAnnualAmount(data.annualAmount / 100);
           if (data.currency) setPriceCurrency(data.currency.toUpperCase());
+          if (data.enterpriseAmount) setEnterpriseAmount(data.enterpriseAmount / 100);
+          if (data.enterpriseSeatAmount) setEnterpriseSeatAmount(data.enterpriseSeatAmount / 100);
         }
       } catch {
         /* defaults */
@@ -292,9 +296,18 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
               </li>
             ))}
           </ul>
-          <button className="w-full py-4 rounded-control border-2 border-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed">
-            FREE
-          </button>
+          {!user ? (
+            <button
+              onClick={onSignUpClick}
+              className="w-full py-4 rounded-control border-2 border-navy text-navy font-bold text-sm hover:bg-navy hover:text-white transition-colors"
+            >
+              Sign up free
+            </button>
+          ) : (
+            <button className="w-full py-4 rounded-control border-2 border-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed">
+              {isPaid ? "Free tier" : "Current plan"}
+            </button>
+          )}
         </div>
 
         {/* Pro */}
@@ -312,7 +325,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
             </div>
             <p className="text-accent-soft text-2xs font-semibold uppercase tracking-wider mt-2">
               {isAnnual
-                ? `Billed annually ($${(annualAmount / 12).toFixed(0)}/mo) (${priceCurrency})`
+                ? `Billed annually (${priceCurrency}$${(annualAmount / 12).toFixed(0)}/mo)`
                 : `Billed monthly (${priceCurrency})`}
             </p>
             {!isPaid && !hasUsedTrial && (
@@ -361,11 +374,11 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
           <div className="mb-8">
             <h3 className="text-xl font-bold text-slate-900 mb-2">Enterprise</h3>
             <div className="flex items-baseline">
-              <span className="font-display text-4xl font-bold text-slate-900">$65</span>
+              <span className="font-display text-4xl font-bold text-slate-900">{priceCurrency}${enterpriseAmount}</span>
               <span className="text-slate-400 text-sm ml-2">/mo</span>
             </div>
             <p className="text-slate-400 text-2xs font-semibold uppercase tracking-wider mt-2">
-              5 seats included · $13/mo per additional user
+              5 seats included · {priceCurrency}${enterpriseSeatAmount}/mo per additional user
             </p>
           </div>
           <ul className="space-y-3.5 mb-10 flex-grow">
@@ -380,10 +393,22 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
             <button className="w-full py-4 rounded-control border-2 border-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed">
               Active plan
             </button>
+          ) : isPaid ? (
+            <div className="space-y-2">
+              <button
+                disabled
+                className="w-full py-4 rounded-control border-2 border-slate-100 text-slate-400 font-semibold text-sm cursor-not-allowed"
+              >
+                Get Enterprise
+              </button>
+              <p className="text-2xs text-slate-400 text-center leading-normal">
+                On Pro? Cancel your Pro plan via the Control Centre billing portal first, then upgrade to Enterprise here.
+              </p>
+            </div>
           ) : (
             <button
               onClick={handleEnterpriseSubscribe}
-              disabled={isProcessing || isPaid}
+              disabled={isProcessing}
               className="w-full py-4 rounded-control bg-accent hover:bg-accent-700 text-white font-bold text-sm uppercase tracking-wider transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? "Processing…" : "Get Enterprise"}
@@ -396,7 +421,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
           headline="Ready to stop guessing?"
           subtext="Start your 30-day Pro trial. Cancel anytime."
           ctaLabel="Start free trial"
-          to="/pricing"
+          onClick={handleSubscribe}
         />
       </div>
     </div>

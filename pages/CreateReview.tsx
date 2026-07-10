@@ -167,14 +167,14 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
   if (!user) {
     return (
-      <div className="bg-[#101426] min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 blur-[120px] rounded-full"></div>
-        <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[48px] p-10 md:p-16 text-center space-y-10 relative z-10 shadow-2xl">
-          <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl border-b-4 border-indigo-700">
+      <div className="bg-navy min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/5 blur-[120px] rounded-full"></div>
+        <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-card p-10 md:p-16 text-center space-y-10 relative z-10 shadow-2xl">
+          <div className="w-20 h-20 bg-accent text-white rounded-card flex items-center justify-center mx-auto shadow-2xl">
             <Icon name="fa-pen-nib" size={30} />
           </div>
           <div className="space-y-4">
-            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight uppercase tracking-widest">
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight uppercase tracking-widest">
               Write Review
             </h1>
             <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">
@@ -184,7 +184,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
           </div>
           <button
             onClick={onSignInClick}
-            className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-900/40 hover:bg-indigo-500 transition-all flex items-center justify-center space-x-3"
+            className="w-full bg-accent text-white py-5 rounded-control font-bold uppercase tracking-widest shadow-xl hover:bg-accent-700 transition-all flex items-center justify-center space-x-3"
           >
             <Icon name="fa-lock" className="opacity-50" size={12} />
             <span>Sign In to Contribute</span>
@@ -196,19 +196,19 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto py-6 md:py-12 px-4 md:px-6">
-      <div className="bg-white rounded-[32px] md:rounded-[40px] border border-slate-100 shadow-[0_20px_80px_rgba(0,0,0,0.04)] overflow-hidden">
-        <div className="bg-[#0f172a] p-8 md:p-12 text-white relative">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-indigo-500/10 blur-[120px] rounded-full -mr-20 -mt-20"></div>
+      <div className="bg-white rounded-card border border-slate-100 shadow-[0_20px_80px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="bg-navy p-8 md:p-12 text-white relative">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-accent/10 blur-[120px] rounded-full -mr-20 -mt-20"></div>
           <div className="relative z-10">
             <div className="flex items-center space-x-3 mb-4">
-              <span className="bg-indigo-600/30 text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-indigo-500/20 backdrop-blur-md flex items-center w-fit">
+              <span className="bg-accent/30 text-accent-soft text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-accent/20 backdrop-blur-md flex items-center w-fit">
                 <Icon name="fa-user-check" className="mr-2" size={10} />
                 {user.isPro
                   ? "Sales Pro Verified"
                   : "Verified Community Member"}
               </span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight leading-tight">
               Write Review
             </h2>
             <p className="text-slate-400 text-base md:text-lg mt-4 font-medium max-w-2xl opacity-80 leading-relaxed">
@@ -219,7 +219,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
         <div ref={errorRef}>
           {error && (
-            <div className="mx-6 md:mx-12 mt-6 p-6 bg-rose-50 border border-rose-100 rounded-[28px] text-rose-600 text-sm font-bold flex items-center shadow-sm">
+            <div className="mx-6 md:mx-12 mt-6 p-6 bg-rose-50 border border-rose-100 rounded-card text-rose-600 text-sm font-bold flex items-center shadow-sm">
               <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center mr-5 shrink-0 text-rose-600">
                 <Icon name="fa-exclamation-triangle" size={18} />
               </div>
@@ -235,10 +235,10 @@ const CreateReview: React.FC<CreateReviewProps> = ({
           {/* Section 1: Target Account with AI Search */}
           <section className="space-y-8">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-indigo-500 shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-accent/30 shadow-md">
                 1
               </div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">
                 Target Account
               </h3>
             </div>
@@ -254,23 +254,23 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for a company (e.g., Snowflake, Palantir)..."
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-[32px] pl-16 pr-8 py-6 focus:bg-white focus:border-indigo-100 outline-none transition text-slate-700 text-xl font-medium shadow-inner"
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-card pl-16 pr-8 py-6 focus:bg-white focus:border-accent/30 outline-none transition text-slate-700 text-xl font-medium shadow-inner"
                   />
                   {isSearching && (
                     <div className="absolute right-8 top-1/2 -translate-y-1/2">
-                      <Loader2 className="animate-spin text-indigo-500" size={20} />
+                      <Loader2 className="animate-spin text-accent" size={20} />
                     </div>
                   )}
                 </div>
 
                 {/* AI Search Result Dropdown */}
                 {searchResults.length > 0 && !isSearching && (
-                  <div className="bg-white border-2 border-slate-100 rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in slide-in-from-top-2">
+                  <div className="bg-white border-2 border-slate-100 rounded-card overflow-hidden shadow-2xl animate-in fade-in slide-in-from-top-2">
                     <div className="bg-slate-50 px-8 py-3 border-b border-slate-100 flex justify-between items-center">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         Select Verified Entity
                       </span>
-                      <span className="text-[9px] font-black text-indigo-500 uppercase flex items-center">
+                      <span className="text-[9px] font-bold text-accent uppercase flex items-center">
                         <Icon name="fa-magic" className="mr-1.5" size={12} /> Google Search
                         Grounding Active
                       </span>
@@ -281,7 +281,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                           key={company.id}
                           type="button"
                           onClick={() => setSelectedCompany(company)}
-                          className="w-full text-left px-8 py-5 hover:bg-indigo-50/50 flex items-center space-x-5 transition-colors group"
+                          className="w-full text-left px-8 py-5 hover:bg-accent-50/50 flex items-center space-x-5 transition-colors group"
                         >
                           <CompanyLogo
                             name={company.name}
@@ -290,14 +290,14 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                             className="group-hover:scale-105 transition"
                           />
                           <div className="flex-grow">
-                            <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                            <div className="font-bold text-slate-900 group-hover:text-accent transition-colors">
                               {company.name}
                             </div>
                             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                               {company.industry} &bull; {company.country}
                             </div>
                           </div>
-                          <Icon name="fa-plus" className="text-slate-200 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all" size={16} />
+                          <Icon name="fa-plus" className="text-slate-200 group-hover:text-accent-soft opacity-0 group-hover:opacity-100 transition-all" size={16} />
                         </button>
                       ))}
                     </div>
@@ -306,7 +306,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
                 {isSearching && (
                   <div className="text-center py-10 space-y-3">
-                    <div className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] animate-pulse">
+                    <div className="text-[10px] font-bold text-accent uppercase tracking-[0.3em] animate-pulse">
                       Querying Google AI...
                     </div>
                   </div>
@@ -316,7 +316,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                 {!isSearching &&
                   searchResults.length === 0 &&
                   searchQuery.length > 2 && (
-                    <div className="text-center py-8 bg-slate-50 rounded-[24px] border-2 border-dashed border-slate-100 p-6">
+                    <div className="text-center py-8 bg-slate-50 rounded-control border-2 border-dashed border-slate-100 p-6">
                       <p className="text-slate-600 font-bold text-sm">
                         No validated companies found matching “{searchQuery}”
                       </p>
@@ -327,7 +327,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   )}
               </div>
             ) : (
-              <div className="flex items-center justify-between p-10 bg-indigo-50/20 border-2 border-indigo-100 rounded-[40px] group transition-all hover:bg-indigo-50/40 shadow-sm">
+              <div className="flex items-center justify-between p-10 bg-accent-50/20 border-2 border-accent/30 rounded-card group transition-all hover:bg-accent-50/40 shadow-sm">
                 <div className="flex items-center space-x-8">
                   <CompanyLogo
                     name={selectedCompany.name}
@@ -337,14 +337,14 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   />
                   <div>
                     <div className="flex items-center space-x-3">
-                      <div className="font-black text-3xl text-slate-900 leading-tight tracking-tight">
+                      <div className="font-bold text-3xl text-slate-900 leading-tight tracking-tight">
                         {selectedCompany.name}
                       </div>
-                      <span className="bg-indigo-100 text-indigo-600 text-[8px] font-black px-2 py-1 rounded-md uppercase tracking-widest border border-indigo-200">
+                      <span className="bg-accent-100 text-accent text-[8px] font-bold px-2 py-1 rounded-md uppercase tracking-widest border border-accent/30">
                         Verified Account
                       </span>
                     </div>
-                    <span className="text-[10px] text-indigo-500 uppercase tracking-widest font-black bg-white px-2 py-1 rounded-md border border-indigo-100 mt-2 inline-block">
+                    <span className="text-[10px] text-accent uppercase tracking-widest font-bold bg-white px-2 py-1 rounded-md border border-accent/30 mt-2 inline-block">
                       {selectedCompany.industry}
                     </span>
                   </div>
@@ -366,16 +366,16 @@ const CreateReview: React.FC<CreateReviewProps> = ({
           {/* Section 2: Deal Logistics */}
           <section className="space-y-8">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-indigo-500 shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-accent/30 shadow-md">
                 2
               </div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">
                 Deal Logistics
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-[32px] space-y-4 shadow-sm">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-card space-y-4 shadow-sm">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                   Outcome
                 </label>
                 <select
@@ -383,21 +383,21 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   onChange={(e) =>
                     setStatus(e.target.value as "Won" | "Lost" | "Ongoing")
                   }
-                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-indigo-200 transition-colors"
+                  className="w-full bg-white border border-slate-200 rounded-control px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-accent/30 transition-colors"
                 >
                   <option value="Won">Won</option>
                   <option value="Lost">Lost</option>
                   <option value="Ongoing">Ongoing</option>
                 </select>
               </div>
-              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-[32px] space-y-4 shadow-sm">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-card space-y-4 shadow-sm">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                   TCV Range
                 </label>
                 <select
                   value={tcvBracket}
                   onChange={(e) => setTcvBracket(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-indigo-200"
+                  className="w-full bg-white border border-slate-200 rounded-control px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-accent/30"
                 >
                   {TCV_BRACKETS.map((b) => (
                     <option key={b} value={b}>
@@ -406,14 +406,14 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   ))}
                 </select>
               </div>
-              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-[32px] space-y-4 shadow-sm">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-card space-y-4 shadow-sm">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                   Cycle Time
                 </label>
                 <select
                   value={cycleDuration}
                   onChange={(e) => setCycleDuration(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-indigo-200"
+                  className="w-full bg-white border border-slate-200 rounded-control px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-accent/30"
                 >
                   {DURATION_BRACKETS.map((b) => (
                     <option key={b} value={b}>
@@ -422,22 +422,22 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   ))}
                 </select>
               </div>
-              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-[32px] flex flex-col space-y-4 shadow-sm">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-card flex flex-col space-y-4 shadow-sm">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                   RFx / Tender
                 </label>
-                <div className="grid grid-cols-2 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="grid grid-cols-2 bg-white p-1.5 rounded-control border border-slate-200 shadow-sm">
                   <button
                     type="button"
                     onClick={() => setIsTender(true)}
-                    className={`py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${isTender ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
+                    className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${isTender ? "bg-accent text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
                   >
                     Yes
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsTender(false)}
-                    className={`py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${!isTender ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
+                    className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${!isTender ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
                   >
                     No
                   </button>
@@ -445,17 +445,17 @@ const CreateReview: React.FC<CreateReviewProps> = ({
               </div>
             </div>
 
-            <div className="p-10 bg-slate-50/50 border border-slate-200 rounded-[40px] space-y-8 shadow-inner">
+            <div className="p-10 bg-slate-50/50 border border-slate-200 rounded-card space-y-8 shadow-inner">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <label className="text-[11px] font-black text-slate-900 uppercase tracking-widest block mb-1">
+                  <label className="text-[11px] font-bold text-slate-900 uppercase tracking-widest block mb-1">
                     Buying Team Map
                   </label>
                   <p className="text-slate-400 text-[10px] font-medium uppercase tracking-wider">
                     Select departments involved in the deal evaluation
                   </p>
                 </div>
-                <div className="bg-white px-5 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-indigo-600 uppercase tracking-widest shadow-sm">
+                <div className="bg-white px-5 py-2 rounded-xl border border-slate-200 text-[10px] font-bold text-accent uppercase tracking-widest shadow-sm">
                   {buyingTeam.length} Stakeholders Identified
                 </div>
               </div>
@@ -463,7 +463,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
               <div className="max-w-xl">
                 <select
                   onChange={handleDeptAdd}
-                  className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm hover:border-indigo-200 transition-colors cursor-pointer"
+                  className="w-full bg-white border-2 border-slate-100 rounded-control px-6 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm hover:border-accent/30 transition-colors cursor-pointer"
                   defaultValue=""
                 >
                   <option value="" disabled>
@@ -486,13 +486,13 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   {buyingTeam.map((dept) => (
                     <div
                       key={dept}
-                      className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 flex items-center space-x-3 group"
+                      className="bg-accent text-white px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest shadow-lg flex items-center space-x-3 group"
                     >
                       <span>{dept}</span>
                       <button
                         type="button"
                         onClick={() => removeDept(dept)}
-                        className="w-4 h-4 rounded-full bg-indigo-700 flex items-center justify-center hover:bg-rose-500 transition-colors text-white"
+                        className="w-4 h-4 rounded-full bg-accent-700 flex items-center justify-center hover:bg-rose-500 transition-colors text-white"
                       >
                         <Icon name="fa-times" size={8} />
                       </button>
@@ -506,14 +506,14 @@ const CreateReview: React.FC<CreateReviewProps> = ({
           {/* Section 3: Scorecard */}
           <section className="space-y-8">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-indigo-500 shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-accent/30 shadow-md">
                 3
               </div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">
                 Scorecard
               </h3>
             </div>
-            <div className="bg-slate-50/50 p-10 rounded-[40px] border border-slate-100 shadow-inner">
+            <div className="bg-slate-50/50 p-10 rounded-card border border-slate-100 shadow-inner">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <ScorecardCard
                   label="Responsiveness"
@@ -574,10 +574,10 @@ const CreateReview: React.FC<CreateReviewProps> = ({
           {/* Section 4: Strategic Context */}
           <section className="space-y-8">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-indigo-500 shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm border-2 border-accent/30 shadow-md">
                 4
               </div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">
                 Strategic Context
               </h3>
             </div>
@@ -585,7 +585,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Share tactical advice about the deal. Do NOT include individual names, job titles/positions, weblinks, or confidential commercial details..."
-              className="w-full h-72 bg-slate-50 border-2 border-slate-100 rounded-[40px] px-12 py-10 focus:bg-white focus:border-indigo-200 outline-none transition resize-none text-slate-700 leading-relaxed text-lg shadow-inner"
+              className="w-full h-72 bg-slate-50 border-2 border-slate-100 rounded-card px-12 py-10 focus:bg-white focus:border-accent/30 outline-none transition resize-none text-slate-700 leading-relaxed text-lg shadow-inner"
             />
             <div className="flex items-center justify-between px-4">
               <p className="text-sm text-slate-500 font-medium">
@@ -603,10 +603,10 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
           {/* Review guidelines + required acknowledgement */}
           <section className="space-y-5">
-            <div className="p-8 bg-amber-50/60 border border-amber-100 rounded-[32px] space-y-4">
+            <div className="p-8 bg-amber-50/60 border border-amber-100 rounded-card space-y-4">
               <div className="flex items-center space-x-3 text-amber-700">
                 <Icon name="fa-shield-halved" size={16} />
-                <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.2em]">
                   Before you submit
                 </h4>
               </div>
@@ -629,7 +629,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                 type="checkbox"
                 checked={acknowledged}
                 onChange={(e) => setAcknowledged(e.target.checked)}
-                className="mt-1 h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
+                className="mt-1 h-5 w-5 rounded border-slate-300 text-accent focus:ring-accent cursor-pointer shrink-0"
               />
               <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors leading-relaxed">
                 I confirm this review is honest and based on my own experience, and
@@ -652,7 +652,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
               buyingTeam.length === 0 ||
               !acknowledged
             }
-            className="w-full bg-[#0f172a] text-white py-10 rounded-[40px] font-black text-2xl hover:bg-black transition-all disabled:bg-slate-100 disabled:text-slate-300 shadow-xl shadow-slate-200/50"
+            className="w-full bg-navy text-white py-10 rounded-card font-bold text-2xl hover:bg-black transition-all disabled:bg-slate-100 disabled:text-slate-300 shadow-xl shadow-slate-200/50"
           >
             {isSubmitting
               ? "Publishing Review..."
@@ -675,14 +675,14 @@ const ScorecardCard: React.FC<{
   const current = hoveredStar || value;
   return (
     <div
-      className={`p-8 rounded-[32px] border-2 transition-all flex flex-col items-center text-center group hover:scale-[1.02] ${value > 0 ? "bg-white border-indigo-600 shadow-lg ring-4 ring-indigo-50" : "bg-slate-50/50 border-slate-200 shadow-sm"}`}
+      className={`p-8 rounded-card border-2 transition-all flex flex-col items-center text-center group hover:scale-[1.02] ${value > 0 ? "bg-white border-accent shadow-lg ring-4 ring-accent-50" : "bg-slate-50/50 border-slate-200 shadow-sm"}`}
     >
       <div
-        className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-4 transition-colors ${current > 0 ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-400"}`}
+        className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-4 transition-colors ${current > 0 ? "bg-accent text-white" : "bg-slate-200 text-slate-400"}`}
       >
         <Icon name={icon} size={24} />
       </div>
-      <h4 className="font-black text-slate-900 text-[12px] uppercase tracking-[0.15em] mb-4">
+      <h4 className="font-bold text-slate-900 text-[12px] uppercase tracking-[0.15em] mb-4">
         {label}
       </h4>
       <div className="flex space-x-2.5">
@@ -693,13 +693,13 @@ const ScorecardCard: React.FC<{
             onClick={() => onChange(s)}
             onMouseEnter={() => setHoveredStar(s)}
             onMouseLeave={() => setHoveredStar(null)}
-            className={`text-2xl transition-all flex items-center justify-center ${s <= (hoveredStar || value) ? "text-indigo-600" : "text-slate-200"}`}
+            className={`text-2xl transition-all flex items-center justify-center ${s <= (hoveredStar || value) ? "text-accent" : "text-slate-200"}`}
           >
             <Icon name="fa-star" size={24} />
           </button>
         ))}
       </div>
-      <div className="h-4 mt-4 text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+      <div className="h-4 mt-4 text-[10px] font-bold text-accent uppercase tracking-widest">
         {current > 0 ? starTooltips[current - 1] : ""}
       </div>
     </div>

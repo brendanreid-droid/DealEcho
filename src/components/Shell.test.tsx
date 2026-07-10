@@ -6,23 +6,23 @@ import { Navigation } from "./Shell";
 const noop = () => {};
 
 describe("Navigation", () => {
-  it("shows Get Pro CTA for logged-out visitors", () => {
+  it("shows Sign up and Pricing for logged-out visitors", () => {
     render(
       <MemoryRouter>
-        <Navigation user={null} isAdmin={false} isPaid={false} onSignInClick={noop} onLogout={noop} notificationCount={0} />
+        <Navigation user={null} isAdmin={false} isPaid={false} onSignInClick={noop} onSignUpClick={noop} onLogout={noop} notificationCount={0} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("link", { name: /Get Pro/ })).toHaveAttribute("href", "/pricing");
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing");
+    expect(screen.getByRole("button", { name: "Sign up" })).toBeInTheDocument();
   });
 
   it("shows the app nav for logged-in users", () => {
     render(
       <MemoryRouter>
-        <Navigation user={{ name: "Sam", avatar: "" } as any} isAdmin={false} isPaid={true} onSignInClick={noop} onLogout={noop} notificationCount={0} />
+        <Navigation user={{ name: "Sam", avatar: "" } as any} isAdmin={false} isPaid={true} onSignInClick={noop} onSignUpClick={noop} onLogout={noop} notificationCount={0} />
       </MemoryRouter>,
     );
-    expect(screen.getByText("My Intel")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Get Pro/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Control Centre")).toBeInTheDocument();
+    expect(screen.getByText("Write Review")).toBeInTheDocument();
   });
 });

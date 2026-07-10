@@ -176,7 +176,17 @@ const App: React.FC = () => {
               />
               <Route
                 path="/search"
-                element={<Search reviewSummaries={reviewSummaries} isLoading={summariesLoading} />}
+                element={
+                  <Search
+                    user={user}
+                    isPaid={isPaid}
+                    onSignInClick={triggerSignIn}
+                    reviewSummaries={reviewSummaries}
+                    isLoading={summariesLoading}
+                    trackedIds={trackedCompanies}
+                    onToggleTrack={toggleTrackCompany}
+                  />
+                }
               />
               <Route
                 path="/review/new"

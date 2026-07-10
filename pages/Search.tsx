@@ -8,6 +8,7 @@ import { CardGridSkeleton } from "../src/components/Skeleton";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 import { searchCompanies } from "../services/geminiService";
 import { Company } from "../types";
+import Button from "../src/components/ui/Button";
 
 interface SearchProps {
   user: any;
@@ -64,6 +65,7 @@ const AiCompanyCard: React.FC<{ company: Company }> = ({ company }) => {
 };
 
 const Search: React.FC<SearchProps> = ({
+  user,
   isPaid,
   reviewSummaries,
   isLoading,
@@ -257,7 +259,7 @@ const Search: React.FC<SearchProps> = ({
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {results.map((c) => (
-                      <CompanyCard key={c.id} company={c} isPro={isPaid} />
+                      <CompanyCard key={c.id} company={c} isPro={isPaid} isLoggedIn={!!user} />
                     ))}
                   </div>
                 </div>
@@ -294,6 +296,9 @@ const Search: React.FC<SearchProps> = ({
                     Try a broader term, or be the first to add intel on this
                     account.
                   </p>
+                  <div className="mt-5 flex justify-center">
+                    <Button variant="primary" to="/review/new">Share intel on this account</Button>
+                  </div>
                 </div>
               )}
             </div>

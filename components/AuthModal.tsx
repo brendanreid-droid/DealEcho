@@ -259,9 +259,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="bg-white w-full max-w-md rounded-card shadow-2xl relative z-10 overflow-hidden my-8">
         {/* ── Header ── */}
-        <div className="bg-[#0f172a] px-10 pt-10 pb-6 text-white relative">
+        <div className="bg-navy px-10 pt-10 pb-6 text-white relative">
           <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/25 blur-[80px] rounded-full -mr-10 -mt-10"></div>
-          <h2 className="text-3xl font-black tracking-tight mb-4 relative z-10">
+          <h2 className="text-3xl font-bold tracking-tight mb-4 relative z-10">
             {mode === "signin"
               ? "Welcome Back"
               : mode === "signup"
@@ -277,7 +277,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             <div className="relative z-10 flex bg-white/10 rounded-control p-1 w-fit">
               <button
                 onClick={() => switchMode("signin")}
-                className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${
+                className={`px-5 py-2 rounded-control text-[13px] font-bold transition-all ${
                   mode === "signin"
                     ? "bg-white text-slate-900 shadow"
                     : "text-white/60 hover:text-white"
@@ -287,7 +287,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
               </button>
               <button
                 onClick={() => switchMode("signup")}
-                className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${
+                className={`px-5 py-2 rounded-control text-[13px] font-bold transition-all ${
                   mode === "signup"
                     ? "bg-white text-slate-900 shadow"
                     : "text-white/60 hover:text-white"
@@ -370,7 +370,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
             {/* Success Alert Banner */}
             {isResetSuccess && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex items-start gap-1.5">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-control px-4 py-3 flex items-start gap-1.5">
                 <Icon name="fa-check-circle" className="text-emerald-700 mt-0.5" size={14} />
                 <p className="text-emerald-700 text-[12px] font-semibold leading-snug">
                   Reset link sent successfully! Check your email inbox.
@@ -389,7 +389,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={() => switchMode("signin")}
-                    className="mt-1.5 text-accent text-[12px] font-black underline underline-offset-2"
+                    className="mt-1.5 text-accent text-[12px] font-bold underline underline-offset-2"
                   >
                     Sign in instead →
                   </button>
@@ -449,7 +449,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-100"></div>
                 </div>
-                <div className="relative flex justify-center text-[10px] uppercase font-black tracking-[0.2em] text-slate-300">
+                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-[0.2em] text-slate-300">
                   <span className="bg-white px-4">or continue with</span>
                 </div>
               </div>

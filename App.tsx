@@ -9,6 +9,7 @@ import {
   getAdditionalUserInfo,
 } from "firebase/auth";
 import { auth, googleProvider } from "./src/firebase/config";
+import { track } from "./src/utils/analytics";
 
 const Home = lazy(() => import("./pages/Home"));
 const Search = lazy(() => import("./pages/Search"));
@@ -47,6 +48,7 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
+    track("page_view", { page_path: pathname, page_location: window.location.href });
   }, [pathname]);
   return null;
 };
@@ -105,7 +107,9 @@ const App: React.FC = () => {
   const onGoogleLogin = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
-      if (getAdditionalUserInfo(res)?.isNewUser) setPostAuthPath("/search");
+      const isNew = getAdditionalUserInfo(res)?.isNewUser;
+      if (isNew) setPostAuthPath("/search");
+      track(isNew ? "sign_up" : "login", { method: "google" });
     } catch (err: any) {
       if (err?.code !== "auth/popup-closed-by-user")
         console.error("Login error:", err);
@@ -123,8 +127,10 @@ const App: React.FC = () => {
       const res = await createUserWithEmailAndPassword(auth, email, pass);
       if (name) await updateProfile(res.user, { displayName: name });
       setPostAuthPath("/search");
+      track("sign_up", { method: "password" });
     } else {
       await signInWithEmailAndPassword(auth, email, pass);
+      track("login", { method: "password" });
     }
     setIsAuthModalOpen(false);
   };

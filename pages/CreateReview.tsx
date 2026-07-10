@@ -10,6 +10,7 @@ import { companyLogoUrl } from "../src/utils/companyLogo";
 import { DEPARTMENTS, TCV_BRACKETS, DURATION_BRACKETS } from "../src/constants/dealData";
 import { MappedUser } from "../src/hooks/useAuth";
 import { ReviewCooldownError } from "../src/hooks/useReviews";
+import { track } from "../src/utils/analytics";
 
 const formatDate = (iso: string): string =>
   new Date(iso).toLocaleDateString(undefined, {
@@ -142,6 +143,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       setIsSubmitting(false);
       if (success) {
         toast.success("Review submitted for moderation.");
+        track("review_submitted", { company: selectedCompany.name });
         navigate("/");
       } else {
         toast.error("Failed to save review. Please try again.");

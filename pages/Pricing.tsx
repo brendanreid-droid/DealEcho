@@ -8,6 +8,7 @@ import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
 import CtaBand from "../src/components/ui/CtaBand";
 import { CHROME_EXTENSION_URL } from "../src/constants/dealData";
+import { track } from "../src/utils/analytics";
 
 interface PricingProps {
   user: MappedUser | null;
@@ -102,6 +103,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
               type: "success",
             });
             setShowExtPrompt(true);
+            track("checkout_success", { plan: "pro" });
             return;
           }
         }
@@ -127,6 +129,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
       onSignUpClick?.();
       return;
     }
+    track("begin_checkout", { plan: isAnnual ? "annual" : "monthly" });
     setIsProcessing(true);
     try {
       const createSession = httpsCallable<
@@ -150,6 +153,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
       onSignUpClick?.();
       return;
     }
+    track("begin_checkout", { plan: "enterprise" });
     setIsProcessing(true);
     try {
       const createEnterpriseCheckout = httpsCallable<

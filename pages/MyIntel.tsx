@@ -171,14 +171,14 @@ const MyIntel: React.FC<MyIntelProps> = ({
   // Unauthenticated "Vault" Screen (Unified Template)
   if (!user) {
     return (
-      <div className="bg-[#101426] min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 blur-[120px] rounded-full"></div>
-        <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[48px] p-10 md:p-16 text-center space-y-10 relative z-10 shadow-2xl">
-          <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl border-b-4 border-indigo-700">
+      <div className="bg-navy min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/5 blur-[120px] rounded-full"></div>
+        <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-card p-10 md:p-16 text-center space-y-10 relative z-10 shadow-2xl">
+          <div className="w-20 h-20 bg-accent text-white rounded-card flex items-center justify-center mx-auto shadow-2xl">
             <Icon name="fa-fingerprint" size={30} />
           </div>
           <div className="space-y-4">
-            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight uppercase tracking-widest">
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight uppercase tracking-widest">
               My Intel
             </h1>
             <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed">
@@ -188,7 +188,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
           </div>
           <button
             onClick={onSignInClick}
-            className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-900/40 hover:bg-indigo-500 transition-all flex items-center justify-center space-x-3"
+            className="w-full bg-accent text-white py-5 rounded-control font-bold uppercase tracking-widest shadow-xl hover:bg-accent-700 transition-all flex items-center justify-center space-x-3"
           >
             <Icon name="fa-lock" className="opacity-50" size={12} />
             <span>Sign In to Access</span>
@@ -249,10 +249,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
           <div className="space-y-8">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold flex items-center">
-                <Icon name="fa-bookmark" className="text-indigo-500 mr-3" size={18} />
+                <Icon name="fa-bookmark" className="text-accent mr-3" size={18} />
                 Tracked Accounts
               </h3>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 {trackedIds.length} / {isPaid ? "∞" : "3"}
               </span>
             </div>
@@ -270,10 +270,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
                   return (
                     <div
                       key={c.id}
-                      className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm relative group hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all cursor-pointer"
+                      className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm relative group hover:shadow-lg hover:border-accent/30 hover:-translate-y-0.5 transition-all cursor-pointer"
                     >
                       {notifications[c.id] && (
-                        <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">
+                        <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-bold px-2 py-1 rounded-lg">
                           NEW
                         </div>
                       )}
@@ -287,21 +287,21 @@ const MyIntel: React.FC<MyIntelProps> = ({
                           <div>
                             <Link
                               to={`/company/${c.id}`}
-                              className="font-bold text-slate-900 text-base group-hover:text-indigo-600 transition-colors block"
+                              className="font-bold text-slate-900 text-base group-hover:text-accent transition-colors block"
                             >
                               {c.name}
                             </Link>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                               {c.industry}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <div className="bg-slate-900 text-white px-2 py-1 rounded-lg text-center">
-                            <div className="text-[8px] font-black uppercase tracking-tighter opacity-60">
+                            <div className="text-[8px] font-bold uppercase tracking-tighter opacity-60">
                               Overall
                             </div>
-                            <div className="text-sm font-black text-indigo-400">
+                            <div className="text-sm font-bold text-accent-soft">
                               {Math.round((avgComm + avgNeg + avgTime + avgClarity) / 4)}%
                             </div>
                           </div>
@@ -322,20 +322,20 @@ const MyIntel: React.FC<MyIntelProps> = ({
 
                       <div className="grid grid-cols-4 gap-1.5 mb-3 py-2 bg-slate-50 rounded-lg px-2">
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Communication</div>
-                          <div className="text-base font-black text-slate-900">{avgComm}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Communication</div>
+                          <div className="text-base font-bold text-slate-900">{avgComm}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Negotiation</div>
-                          <div className="text-base font-black text-slate-900">{avgNeg}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Negotiation</div>
+                          <div className="text-base font-bold text-slate-900">{avgNeg}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Intent</div>
-                          <div className="text-base font-black text-slate-900">{avgTime}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Intent</div>
+                          <div className="text-base font-bold text-slate-900">{avgTime}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Scope</div>
-                          <div className="text-base font-black text-slate-900">{avgClarity}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Scope</div>
+                          <div className="text-base font-bold text-slate-900">{avgClarity}</div>
                         </div>
                       </div>
 
@@ -343,7 +343,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                         <span className="font-bold text-slate-300">
                           {mostRecent && getTimeAgo(mostRecent.createdAt)}
                         </span>
-                        <div className="font-bold text-indigo-500 uppercase">
+                        <div className="font-bold text-accent uppercase">
                           {c.count} Reports
                         </div>
                       </div>
@@ -351,14 +351,14 @@ const MyIntel: React.FC<MyIntelProps> = ({
                   );
                 })
               ) : (
-                <div className="md:col-span-2 bg-white p-12 rounded-[32px] border border-dashed border-slate-200 text-center space-y-4">
+                <div className="md:col-span-2 bg-white p-12 rounded-card border border-dashed border-slate-200 text-center space-y-4">
                   <Icon name="fa-search" className="text-slate-200 mx-auto block" size={40} />
                   <p className="text-slate-400 text-xs font-bold uppercase">
                     No accounts tracked
                   </p>
                   <Link
                     to="/"
-                    className="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:underline"
+                    className="text-accent text-[10px] font-bold uppercase tracking-widest hover:underline"
                   >
                     Start Searching
                   </Link>
@@ -366,10 +366,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
               )}
 
               {!isPaid && trackedIds.length >= 3 && (
-                <div className="md:col-span-2 p-6 bg-indigo-50 rounded-[28px] border border-indigo-100 space-y-4">
-                  <div className="flex items-center space-x-3 text-indigo-600">
+                <div className="md:col-span-2 p-6 bg-accent-50 rounded-card border border-accent/30 space-y-4">
+                  <div className="flex items-center space-x-3 text-accent">
                     <Icon name="fa-crown" size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
                       Limit Reached
                     </span>
                   </div>
@@ -379,7 +379,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                   </p>
                   <Link
                     to="/pricing"
-                    className="block text-center bg-indigo-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
+                    className="block text-center bg-accent text-white py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all"
                   >
                     Upgrade Now
                   </Link>
@@ -395,10 +395,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
 
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold flex items-center">
-                <Icon name="fa-history" className="text-indigo-500 mr-3" size={18} />
+                <Icon name="fa-history" className="text-accent mr-3" size={18} />
                 Workspace History
               </h3>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 {userReviews.length} Reviews
               </span>
             </div>
@@ -436,7 +436,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                           },
                         )
                       }
-                      className="bg-white p-4 md:p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all cursor-pointer group"
+                      className="bg-white p-4 md:p-5 rounded-card border border-slate-100 shadow-sm hover:shadow-lg hover:border-accent/30 hover:-translate-y-0.5 transition-all cursor-pointer group"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center space-x-3">
@@ -447,10 +447,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
                             className="group-hover:scale-105 transition"
                           />
                           <div>
-                            <h4 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-base">
+                            <h4 className="font-bold text-slate-900 group-hover:text-accent transition-colors text-base">
                               {review.companyName}
                             </h4>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                               {review.industry} &bull;{" "}
                               {review.country || review.location}
                             </p>
@@ -458,7 +458,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${
                               review.status === "Won"
                                 ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                                 : review.status === "Lost"
@@ -469,10 +469,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
                             {review.status}
                           </span>
                           <div className="bg-slate-900 text-white px-2 py-1 rounded-lg text-center">
-                            <div className="text-[8px] font-black uppercase tracking-tighter opacity-60">
+                            <div className="text-[8px] font-bold uppercase tracking-tighter opacity-60">
                               Overall
                             </div>
-                            <div className="text-sm font-black text-indigo-400">
+                            <div className="text-sm font-bold text-accent-soft">
                               {avgScore}%
                             </div>
                           </div>
@@ -485,30 +485,30 @@ const MyIntel: React.FC<MyIntelProps> = ({
 
                       <div className="grid grid-cols-4 gap-1.5 mb-3 py-2 bg-slate-50 rounded-lg px-2">
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Communication</div>
-                          <div className="text-base font-black text-slate-900">{review.communicationRating}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Communication</div>
+                          <div className="text-base font-bold text-slate-900">{review.communicationRating}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Negotiation</div>
-                          <div className="text-base font-black text-slate-900">{review.negotiationLevel}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Negotiation</div>
+                          <div className="text-base font-bold text-slate-900">{review.negotiationLevel}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Time Waster</div>
-                          <div className="text-base font-black text-slate-900">{review.timeWasterLevel}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Time Waster</div>
+                          <div className="text-base font-bold text-slate-900">{review.timeWasterLevel}</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-[9px] text-slate-500 uppercase font-black">Clarity</div>
-                          <div className="text-base font-black text-slate-900">{review.clarityOfScope || 3}</div>
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Clarity</div>
+                          <div className="text-base font-bold text-slate-900">{review.clarityOfScope || 3}</div>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px]">
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-slate-400 uppercase tracking-widest flex items-center">
+                          <span className="font-bold text-slate-400 uppercase tracking-widest flex items-center">
                             <Icon name="fa-dollar-sign" className="mr-0.5" size={9} />
                             {review.tcvBracket}
                           </span>
-                          <span className="font-black text-slate-400 uppercase tracking-widest flex items-center">
+                          <span className="font-bold text-slate-400 uppercase tracking-widest flex items-center">
                             <Icon name="fa-clock" className="mr-0.5" size={9} />
                             {review.cycleDuration}
                           </span>
@@ -522,12 +522,12 @@ const MyIntel: React.FC<MyIntelProps> = ({
                 })}
               </div>
             ) : (
-              <div className="bg-white rounded-[48px] p-12 border border-slate-100 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
+              <div className="bg-white rounded-card p-12 border border-slate-100 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
                 <div className="w-16 h-16 bg-slate-50 rounded-2xl shadow-inner flex items-center justify-center text-slate-200 text-3xl">
                   <Icon name="fa-pen-nib" size={30} />
                 </div>
                 <div>
-                  <h4 className="text-2xl font-black text-slate-900 mb-2">
+                  <h4 className="text-2xl font-bold text-slate-900 mb-2">
                     No Reviews Yet
                   </h4>
                   <p className="text-slate-500 text-sm max-w-sm mx-auto font-medium leading-relaxed">
@@ -537,7 +537,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                 </div>
                 <Link
                   to="/review/new"
-                  className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg flex items-center gap-1.5"
+                  className="bg-accent text-white px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all shadow-lg flex items-center gap-1.5"
                 >
                   <Icon name="fa-pen-nib" size={10} />Write Review
                 </Link>
@@ -549,16 +549,16 @@ const MyIntel: React.FC<MyIntelProps> = ({
         {activeTab === 'billing' && (
           <div className="space-y-8">
             {/* Profile Section */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-10 rounded-[40px] text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-1/3 h-full bg-indigo-500/10 blur-[100px] rounded-full"></div>
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-10 rounded-card text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-1/3 h-full bg-accent/10 blur-[100px] rounded-full"></div>
               <div className="flex items-center space-x-6 relative z-10">
                 <img
                   src={user.avatar}
-                  className="w-20 h-20 rounded-[28px] border-4 border-white/10"
+                  className="w-20 h-20 rounded-card border-4 border-white/10"
                   alt="avatar"
                 />
                 <div>
-                  <h2 className="text-3xl font-black tracking-tight">{user.name}</h2>
+                  <h2 className="text-3xl font-bold tracking-tight">{user.name}</h2>
                   <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
                     {user.email}
                   </p>
@@ -567,37 +567,37 @@ const MyIntel: React.FC<MyIntelProps> = ({
             </div>
 
             {/* Plan & Subscription Section */}
-            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+            <div className="bg-white p-8 rounded-card border border-slate-100 shadow-sm space-y-6">
               <h3 className="text-lg font-bold text-slate-900">Subscription & Plan</h3>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                     Current Plan
                   </p>
                   <div
-                    className={`px-6 py-3 rounded-2xl text-center border inline-block ${isPaid ? "bg-indigo-600/20 border-indigo-400/30" : "bg-white/10 border-white/10"}`}
+                    className={`px-6 py-3 rounded-control text-center border inline-block ${isPaid ? "bg-accent/20 border-accent-soft/30" : "bg-white/10 border-white/10"}`}
                   >
-                    <div className="text-sm font-black">
+                    <div className="text-sm font-bold">
                       {isPaid ? "Sales Pro Member" : "Pioneer Plan"}
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-3">
                   {cancelSuccess && (
-                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
                       Subscription cancelled successfully
                     </span>
                   )}
                   {cancelError && (
-                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">
                       {cancelError}
                     </span>
                   )}
                   {!isPaid && (
                     <Link
                       to="/pricing"
-                      className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-900/30 flex items-center space-x-2"
+                      className="px-6 py-3 bg-accent text-white rounded-control text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all shadow-lg flex items-center space-x-2"
                     >
                       <Icon name="fa-crown" size={10} />
                       <span>Upgrade to Sales Pro</span>
@@ -607,7 +607,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                     <button
                       onClick={handleCancelSubscription}
                       disabled={cancelling}
-                      className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50 justify-center"
+                      className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-control text-[10px] font-bold uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50 justify-center"
                     >
                       {cancelling ? (
                         <>
@@ -627,7 +627,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
             </div>
 
             {/* Payment Details Section */}
-            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+            <div className="bg-white p-8 rounded-card border border-slate-100 shadow-sm space-y-6">
               <h3 className="text-lg font-bold text-slate-900">Payment Details</h3>
               {isPaid ? (
                 <>
@@ -653,9 +653,9 @@ const MyIntel: React.FC<MyIntelProps> = ({
             </div>
 
             {/* Account Security Section */}
-            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+            <div className="bg-white p-8 rounded-card border border-slate-100 shadow-sm space-y-6">
               <h3 className="text-lg font-bold flex items-center text-slate-900">
-                <Icon name="fa-shield-alt" className="text-indigo-500 mr-3" size={18} />
+                <Icon name="fa-shield-alt" className="text-accent mr-3" size={18} />
                 Account Security
               </h3>
               {(() => {
@@ -679,7 +679,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                             href="https://myaccount.google.com/security"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-indigo-600 hover:underline"
+                            className="text-accent hover:underline"
                           >
                             myaccount.google.com/security
                           </a>
@@ -715,7 +715,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
                           }
                         }}
                         disabled={resetSending}
-                        className="px-4 py-2 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-colors disabled:opacity-50"
+                        className="px-4 py-2 bg-slate-900 text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-colors disabled:opacity-50"
                       >
                         {resetSending ? "Sending..." : "Send Reset Email"}
                       </button>
@@ -726,9 +726,9 @@ const MyIntel: React.FC<MyIntelProps> = ({
             </div>
 
             {/* Email Notification Settings Card */}
-            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+            <div className="bg-white p-8 rounded-card border border-slate-100 shadow-sm space-y-6">
               <h3 className="text-lg font-bold flex items-center text-slate-900">
-                <Icon name="fa-envelope-open-text" className="text-indigo-500 mr-3" size={18} />
+                <Icon name="fa-envelope-open-text" className="text-accent mr-3" size={18} />
                 Email Notifications
               </h3>
 
@@ -742,10 +742,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
                     type="checkbox"
                     checked={localNotifPrefs.realTimeAlerts}
                     onChange={(e) => handleNotificationToggle('realTimeAlerts', e.target.checked)}
-                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-accent focus:ring-accent cursor-pointer"
                   />
                   <div>
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">
                       Real-time Alerts
                     </span>
                     <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">
@@ -759,10 +759,10 @@ const MyIntel: React.FC<MyIntelProps> = ({
                     type="checkbox"
                     checked={localNotifPrefs.weeklyDigest}
                     onChange={(e) => handleNotificationToggle('weeklyDigest', e.target.checked)}
-                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    className="mt-1 h-4.5 w-4.5 rounded border-slate-300 text-accent focus:ring-accent cursor-pointer"
                   />
                   <div>
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">
                       Weekly Digest
                     </span>
                     <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">

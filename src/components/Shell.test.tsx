@@ -25,4 +25,23 @@ describe("Navigation", () => {
     expect(screen.getByText("Control Centre")).toBeInTheDocument();
     expect(screen.getByText("Write Review")).toBeInTheDocument();
   });
+
+  it("gives logged-in users Search, and Pricing when not paid", () => {
+    render(
+      <MemoryRouter>
+        <Navigation user={{ name: "Sam", avatar: "" } as any} isAdmin={false} isPaid={false} onSignInClick={noop} onSignUpClick={noop} onLogout={noop} notificationCount={0} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
+    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing");
+  });
+
+  it("points the logged-out Search link at /search", () => {
+    render(
+      <MemoryRouter>
+        <Navigation user={null} isAdmin={false} isPaid={false} onSignInClick={noop} onSignUpClick={noop} onLogout={noop} notificationCount={0} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
+  });
 });

@@ -23,9 +23,13 @@ export const Navigation: React.FC<{
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
+    { name: "Search", path: "/search", icon: "fa-search" },
     { name: "Write Review", path: "/review/new", icon: "fa-pen-nib" },
     { name: "Control Centre", path: "/control-centre", icon: "fa-user-circle" },
   ];
+  if (!isPaid) {
+    navLinks.push({ name: "Pricing", path: "/pricing", icon: "fa-tags" });
+  }
   if (isEnterprise) {
     navLinks.push({ name: "Team", path: "/settings/team", icon: "fa-users" });
   }
@@ -41,7 +45,7 @@ export const Navigation: React.FC<{
   const mobileLinks = user
     ? navLinks
     : [
-        { name: "Search", path: "/", icon: "fa-search" },
+        { name: "Search", path: "/search", icon: "fa-search" },
         { name: "Pricing", path: "/pricing", icon: "fa-tags" },
       ];
 
@@ -57,7 +61,7 @@ export const Navigation: React.FC<{
             {(user
               ? navLinks
               : [
-                  { name: "Search", path: "/", icon: "fa-search" },
+                  { name: "Search", path: "/search", icon: "fa-search" },
                   { name: "Pricing", path: "/pricing", icon: "fa-tags" },
                 ]
             ).map((link) => (

@@ -24,6 +24,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
 const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 const AuthBridge = lazy(() => import('./pages/AuthBridge'));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const RouteFallback: React.FC = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -266,6 +267,7 @@ const App: React.FC = () => {
                   />
                 }
               />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </main>

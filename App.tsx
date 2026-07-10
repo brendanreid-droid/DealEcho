@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   updateProfile,
+  getAdditionalUserInfo,
 } from "firebase/auth";
 import { auth, googleProvider } from "./src/firebase/config";
 
@@ -33,6 +34,7 @@ const RouteFallback: React.FC = () => (
 );
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AuthRedirectBridge from "./src/components/AuthRedirectBridge";
 import { Navigation, Footer } from "./src/components/Shell";
 
 import { useAuth } from "./src/hooks/useAuth";
@@ -70,6 +72,7 @@ const App: React.FC = () => {
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
+  const [postAuthPath, setPostAuthPath] = useState<string | null>(null);
 
   const [notifications, setNotifications] = useState<Record<string, number>>(
     {},
@@ -101,7 +104,8 @@ const App: React.FC = () => {
   // Helper handlers that use standalone Firebase Auth functions
   const onGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const res = await signInWithPopup(auth, googleProvider);
+      if (getAdditionalUserInfo(res)?.isNewUser) setPostAuthPath("/search");
     } catch (err: any) {
       if (err?.code !== "auth/popup-closed-by-user")
         console.error("Login error:", err);
@@ -118,6 +122,7 @@ const App: React.FC = () => {
     if (isNew) {
       const res = await createUserWithEmailAndPassword(auth, email, pass);
       if (name) await updateProfile(res.user, { displayName: name });
+      setPostAuthPath("/search");
     } else {
       await signInWithEmailAndPassword(auth, email, pass);
     }
@@ -131,6 +136,11 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <AuthRedirectBridge
+        onOpenSignIn={triggerSignIn}
+        postAuthPath={postAuthPath}
+        onConsumePostAuth={() => setPostAuthPath(null)}
+      />
       <div className="min-h-screen flex flex-col bg-slate-100">
         <Navigation
           user={user}

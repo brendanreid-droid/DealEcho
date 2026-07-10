@@ -32,7 +32,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requireAuth && !user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace state={{ openSignIn: true }} />;
   }
 
   if (requireAdmin && !isAdmin) {

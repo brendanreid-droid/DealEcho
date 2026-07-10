@@ -85,10 +85,10 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
           </div>
           <h1 className="font-extrabold text-4xl md:text-6xl leading-[1.04] tracking-tight mb-5">
             An intelligence layer
-            <br className="hidden sm:block" /> to your <span className="text-accent-soft">sales cycle</span>
+            <br className="hidden sm:block" /> for your <span className="text-accent-soft">sales cycle</span>
           </h1>
           <p className="text-lg text-slate-300 max-w-xl mx-auto mb-9 leading-relaxed">
-            Purveyor of intelligence from enterprise sales cycles. See how target accounts actually buy, before you spend a quarter finding out.
+            Real intelligence from enterprise sales cycles. See how target accounts actually buy, before you spend a quarter finding out.
           </p>
           <div className="flex justify-center mb-7">
             <Button variant="primary" to="/pricing">Start your 30-day trial</Button>

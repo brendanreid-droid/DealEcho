@@ -29,4 +29,18 @@ describe("Home", () => {
     expect(screen.getAllByRole("link", { name: /Start your 30-day trial/ }).length).toBeGreaterThan(0);
     expect(screen.getByText("Snowflake")).toBeInTheDocument();
   });
+
+  it("uses the corrected hero copy", () => {
+    render(
+      <MemoryRouter>
+        <Home user={null} isPaid={false} onSignInClick={() => {}} reviewSummaries={[summary]} trackedIds={[]} onToggleTrack={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "An intelligence layer for your sales cycle",
+    );
+    expect(
+      screen.getByText(/Real intelligence from enterprise sales cycles/),
+    ).toBeInTheDocument();
+  });
 });

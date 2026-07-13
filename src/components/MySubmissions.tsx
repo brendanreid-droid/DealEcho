@@ -63,7 +63,7 @@ const MySubmissions: React.FC<{ userId: string }> = ({ userId }) => {
           <Icon name="fa-inbox" className="text-amber-500 mr-3" size={18} />
           My Submissions
         </h3>
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           {rejected.length} Needs Action &bull; {pending.length} In Review
         </span>
       </div>
@@ -74,24 +74,24 @@ const MySubmissions: React.FC<{ userId: string }> = ({ userId }) => {
         return (
           <div
             key={r.id}
-            className="bg-white p-6 md:p-8 rounded-[28px] border-2 border-rose-100 shadow-sm space-y-5"
+            className="bg-white p-6 md:p-8 rounded-card border-2 border-rose-100 shadow-sm space-y-5"
           >
             <div className="flex items-start justify-between">
               <div>
                 <h4 className="font-bold text-slate-900">{r.companyName}</h4>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                   {r.industry} &bull; {r.country || r.location}
                 </p>
               </div>
-              <span className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100">
+              <span className="px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100">
                 Rejected
               </span>
             </div>
 
-            <div className="flex items-start space-x-3 bg-rose-50/60 border border-rose-100 rounded-2xl p-4">
+            <div className="flex items-start space-x-3 bg-rose-50/60 border border-rose-100 rounded-card p-4">
               <Icon name="fa-exclamation-triangle" className="text-rose-500 mt-0.5 shrink-0" size={14} />
               <div>
-                <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mb-1">
                   Why this was rejected
                 </p>
                 <p className="text-sm text-slate-600 leading-relaxed">
@@ -107,7 +107,7 @@ const MySubmissions: React.FC<{ userId: string }> = ({ userId }) => {
                   onChange={(e) =>
                     setEditing((prev) => ({ ...prev, [r.id]: e.target.value }))
                   }
-                  className="w-full h-40 bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 focus:bg-white focus:border-indigo-200 outline-none transition resize-none text-slate-700 leading-relaxed"
+                  className="w-full h-40 bg-slate-50 border-2 border-slate-100 rounded-control px-5 py-4 focus:bg-white focus:border-accent/30 outline-none transition resize-none text-slate-700 leading-relaxed"
                 />
                 {errorId?.id === r.id && (
                   <p className="text-xs font-bold text-rose-600">{errorId.msg}</p>
@@ -116,7 +116,7 @@ const MySubmissions: React.FC<{ userId: string }> = ({ userId }) => {
                   <button
                     onClick={() => handleResubmit(r.id, draft)}
                     disabled={savingId === r.id}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all disabled:opacity-50 flex items-center space-x-2"
+                    className="px-6 py-3 bg-accent text-white rounded-control text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all disabled:opacity-50 flex items-center space-x-2"
                   >
                     {savingId === r.id ? (
                       <>
@@ -135,7 +135,7 @@ const MySubmissions: React.FC<{ userId: string }> = ({ userId }) => {
                         return next;
                       })
                     }
-                    className="px-6 py-3 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-slate-600 transition-all"
+                    className="px-6 py-3 text-slate-400 rounded-control text-[10px] font-bold uppercase tracking-widest hover:text-slate-600 transition-all"
                   >
                     Cancel
                   </button>
@@ -144,7 +144,7 @@ const MySubmissions: React.FC<{ userId: string }> = ({ userId }) => {
             ) : (
               <button
                 onClick={() => setEditing((prev) => ({ ...prev, [r.id]: r.content }))}
-                className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center space-x-2"
+                className="px-6 py-3 bg-slate-900 text-white rounded-control text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all flex items-center space-x-2"
               >
                 <Icon name="fa-pen" size={10} />
                 <span>Edit &amp; Resubmit</span>
@@ -157,15 +157,15 @@ const MySubmissions: React.FC<{ userId: string }> = ({ userId }) => {
       {pending.map((r) => (
         <div
           key={r.id}
-          className="bg-white p-6 rounded-[28px] border border-amber-100 shadow-sm flex items-center justify-between"
+          className="bg-white p-6 rounded-card border border-amber-100 shadow-sm flex items-center justify-between"
         >
           <div>
             <h4 className="font-bold text-slate-900">{r.companyName}</h4>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
               {r.industry} &bull; {r.country || r.location}
             </p>
           </div>
-          <span className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 flex items-center space-x-2">
+          <span className="px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 flex items-center space-x-2">
             <Loader2 className="animate-spin" size={10} />
             <span>Under Review</span>
           </span>

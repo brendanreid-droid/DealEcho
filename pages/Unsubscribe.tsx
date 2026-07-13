@@ -68,53 +68,53 @@ const Unsubscribe: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#0f172a] min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="bg-navy min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
       {/* Premium ambient light filters */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 blur-[120px] rounded-full"></div>
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-indigo-600/5 blur-[100px] rounded-full"></div>
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/5 blur-[120px] rounded-full"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-accent/5 blur-[100px] rounded-full"></div>
 
-      <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[48px] p-8 md:p-12 text-center space-y-8 relative z-10 shadow-2xl">
+      <div className="max-w-xl w-full bg-white/5 border border-white/10 backdrop-blur-3xl rounded-card p-8 md:p-12 text-center space-y-8 relative z-10 shadow-2xl">
         {/* Animated Brand Emblem */}
-        <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl border-b-4 border-indigo-700 hover:scale-105 transition-transform duration-300">
+        <div className="w-20 h-20 bg-accent text-white rounded-card flex items-center justify-center mx-auto shadow-2xl hover:scale-105 transition-transform duration-300">
           <Icon name="fa-envelope-open-text" size={30} />
         </div>
 
         <div className="space-y-3">
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase tracking-widest">
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight uppercase tracking-widest">
             Email Preferences
           </h1>
           <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto leading-relaxed">
             Manage your Dealecho intelligence notifications for{" "}
-            <span className="text-indigo-400 font-bold block mt-1">{email || "your account"}</span>
+            <span className="text-accent-soft font-bold block mt-1">{email || "your account"}</span>
           </p>
         </div>
 
         {isSuccess && (
-          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 animate-pulse">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-card text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 animate-pulse">
             <Icon name="fa-check-circle" size={14} />
             <span>Preferences updated successfully!</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2">
+          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-card text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2">
             <Icon name="fa-exclamation-triangle" size={14} />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* Custom form controls */}
-        <div className="text-left bg-slate-950/40 border border-white/5 rounded-3xl p-6 space-y-6">
+        <div className="text-left bg-slate-950/40 border border-white/5 rounded-card p-6 space-y-6">
           <div className="space-y-4">
             <label className="flex items-start space-x-4 cursor-pointer group">
               <input
                 type="checkbox"
                 checked={realTimeAlerts}
                 onChange={(e) => setRealTimeAlerts(e.target.checked)}
-                className="mt-1 h-5 w-5 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                className="mt-1 h-5 w-5 rounded border-white/10 bg-white/5 text-accent focus:ring-accent cursor-pointer"
               />
               <div>
-                <span className="text-sm font-bold text-slate-200 group-hover:text-indigo-400 transition-colors">
+                <span className="text-sm font-bold text-slate-200 group-hover:text-accent-soft transition-colors">
                   Real-time Buyer Alerts
                 </span>
                 <p className="text-xs text-slate-400 font-medium leading-relaxed mt-1">
@@ -130,10 +130,10 @@ const Unsubscribe: React.FC = () => {
                 type="checkbox"
                 checked={weeklyDigest}
                 onChange={(e) => setWeeklyDigest(e.target.checked)}
-                className="mt-1 h-5 w-5 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                className="mt-1 h-5 w-5 rounded border-white/10 bg-white/5 text-accent focus:ring-accent cursor-pointer"
               />
               <div>
-                <span className="text-sm font-bold text-slate-200 group-hover:text-indigo-400 transition-colors">
+                <span className="text-sm font-bold text-slate-200 group-hover:text-accent-soft transition-colors">
                   Weekly Insights Digest
                 </span>
                 <p className="text-xs text-slate-400 font-medium leading-relaxed mt-1">
@@ -149,7 +149,7 @@ const Unsubscribe: React.FC = () => {
           <button
             onClick={() => handleSavePreferences(false)}
             disabled={isLoading}
-            className="w-full bg-indigo-600 text-white py-4.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-950/50 hover:bg-indigo-500 hover:shadow-indigo-900/50 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+            className="w-full bg-accent text-white py-4.5 rounded-control font-bold uppercase tracking-widest shadow-xl hover:bg-accent-700 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
           >
             {isLoading ? (
               <>
@@ -164,7 +164,7 @@ const Unsubscribe: React.FC = () => {
           <button
             onClick={() => handleSavePreferences(true)}
             disabled={isLoading}
-            className="w-full bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white py-4.5 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all"
+            className="w-full bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white py-4.5 rounded-control font-bold uppercase tracking-widest text-xs transition-all"
           >
             Unsubscribe from all alerts
           </button>
@@ -173,7 +173,7 @@ const Unsubscribe: React.FC = () => {
         <div className="border-t border-white/5 pt-6 text-center">
           <Link
             to={user ? "/control-centre" : "/"}
-            className="text-indigo-400 hover:text-indigo-300 text-xs font-black uppercase tracking-widest transition-colors"
+            className="text-accent-soft hover:text-accent-soft text-xs font-bold uppercase tracking-widest transition-colors"
           >
             {user ? "Back to Dashboard" : "Return Home"}
           </Link>

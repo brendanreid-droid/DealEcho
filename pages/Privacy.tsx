@@ -4,23 +4,23 @@ import Icon from "../src/components/Icon";
 
 const Privacy: React.FC = () => {
   return (
-    <div className="bg-[#0f172a] min-h-screen py-16 px-6 relative overflow-hidden text-slate-300">
+    <div className="bg-navy min-h-screen py-16 px-6 relative overflow-hidden text-slate-300">
       {/* Premium ambient light filters */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-indigo-600/5 blur-[100px] rounded-full pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/5 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-accent/5 blur-[100px] rounded-full pointer-events-none"></div>
 
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Navigation / Header */}
         <div className="flex items-center justify-between mb-12 border-b border-white/10 pb-6">
           <Link
             to="/"
-            className="flex items-center text-indigo-400 hover:text-indigo-300 text-sm font-bold uppercase tracking-widest transition-colors space-x-2"
+            className="flex items-center text-accent-soft hover:text-accent-soft text-sm font-bold uppercase tracking-widest transition-colors space-x-2"
           >
             <Icon name="fa-arrow-left" size={14} />
             <span>Back to Home</span>
           </Link>
           <div className="text-right">
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-accent-soft uppercase tracking-widest">
               Legal Documents
             </span>
           </div>
@@ -28,19 +28,19 @@ const Privacy: React.FC = () => {
 
         {/* Title Block */}
         <div className="space-y-4 mb-12">
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase tracking-wide">
+          <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight uppercase tracking-wide">
             Privacy Policy
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-indigo-400 font-bold">July 9, 2026</span>
+            Last Updated: <span className="text-accent-soft font-bold">July 9, 2026</span>
           </p>
         </div>
 
         {/* Privacy Policy Container */}
-        <div className="bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[32px] p-8 md:p-12 shadow-2xl space-y-10 leading-relaxed text-sm md:text-base font-normal">
+        <div className="bg-white/5 border border-white/10 backdrop-blur-3xl rounded-card p-8 md:p-12 shadow-2xl space-y-10 leading-relaxed text-sm md:text-base font-normal">
           
           {/* Welcome/Agreement */}
-          <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
+          <p className="text-slate-300 italic border-l-4 border-accent/30 pl-4 py-1">
             Dealecho (ABN 92 122 197 793) trading as Dealecho.io ("Dealecho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using Dealecho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
           </p>
 
@@ -48,8 +48,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 1 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">1.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">1.</span>
               <span>Personal Information We Collect</span>
             </h2>
             <div className="space-y-3 text-slate-400">
@@ -80,8 +80,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 2 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">2.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">2.</span>
               <span>How We Use Your Personal Information</span>
             </h2>
             <div className="space-y-3 text-slate-400">
@@ -112,8 +112,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 3 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">3.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">3.</span>
               <span>Disclosure of Personal Information</span>
             </h2>
             <div className="space-y-3 text-slate-400">
@@ -141,8 +141,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 4 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">4.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">4.</span>
               <span>Direct Marketing & Communications</span>
             </h2>
             <div className="space-y-3 text-slate-400">
@@ -155,7 +155,7 @@ const Privacy: React.FC = () => {
               <ul className="list-disc pl-5 space-y-1">
                 <li>Clicking the <strong className="text-slate-200">"unsubscribe"</strong> link at the bottom of any email we send you.</li>
                 <li>Navigating to your Email Preferences page inside Dealecho.io.</li>
-                <li>Contacting us directly at <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline">privacy@dealecho.io</a>.</li>
+                <li>Contacting us directly at <a href="mailto:privacy@dealecho.io" className="text-accent-soft hover:underline">privacy@dealecho.io</a>.</li>
               </ul>
               <p className="mt-2">
                 We will not charge you for opting out, and we will process your request promptly. You cannot opt out of administrative or security emails that are essential for the management of your active account.
@@ -167,8 +167,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 5 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">5.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">5.</span>
               <span>Data Security and Retention</span>
             </h2>
             <div className="space-y-3 text-slate-400">
@@ -199,8 +199,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 6 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">6.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">6.</span>
               <span>Anonymity</span>
             </h2>
             <div className="space-y-2 text-slate-400">
@@ -214,8 +214,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 7 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">7.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">7.</span>
               <span>Accessing, Correcting, or Deleting Your Information</span>
             </h2>
             <div className="space-y-2 text-slate-400">
@@ -223,7 +223,7 @@ const Privacy: React.FC = () => {
                 You have a right to access the personal information we hold about you, request corrections if it is inaccurate or out of date, or request the deletion of your account and personal data.
               </p>
               <p>
-                To make a request, please email us at <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline font-bold">privacy@dealecho.io</a>. We will respond to your request within 30 days. We may need to verify your identity before processing access or deletion requests.
+                To make a request, please email us at <a href="mailto:privacy@dealecho.io" className="text-accent-soft hover:underline font-bold">privacy@dealecho.io</a>. We will respond to your request within 30 days. We may need to verify your identity before processing access or deletion requests.
               </p>
             </div>
           </section>
@@ -232,8 +232,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 8 - Extension */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">8.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">8.</span>
               <span>Chrome Browser Extension</span>
             </h2>
             <div className="space-y-3 text-slate-400">
@@ -264,8 +264,8 @@ const Privacy: React.FC = () => {
 
           {/* Section 9 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">9.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">9.</span>
               <span>Privacy Complaints and Contact Information</span>
             </h2>
             <div className="space-y-2 text-slate-400">
@@ -273,10 +273,10 @@ const Privacy: React.FC = () => {
                 If you have any questions about this Privacy Policy, or if you wish to make a complaint about a breach of the Australian Privacy Principles, please contact our Privacy Officer at:
               </p>
               <ul className="list-disc pl-5 my-2 space-y-1">
-                <li><strong className="text-slate-200">Email:</strong> <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline">privacy@dealecho.io</a></li>
+                <li><strong className="text-slate-200">Email:</strong> <a href="mailto:privacy@dealecho.io" className="text-accent-soft hover:underline">privacy@dealecho.io</a></li>
               </ul>
               <p>
-                We take all complaints seriously and will investigate your concerns in a fair and timely manner. If you are not satisfied with our response, you have the right to contact the <strong className="text-slate-200">Office of the Australian Information Commissioner (OAIC)</strong> at <a href="https://www.oaic.gov.au" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline font-bold">www.oaic.gov.au</a>.
+                We take all complaints seriously and will investigate your concerns in a fair and timely manner. If you are not satisfied with our response, you have the right to contact the <strong className="text-slate-200">Office of the Australian Information Commissioner (OAIC)</strong> at <a href="https://www.oaic.gov.au" target="_blank" rel="noopener noreferrer" className="text-accent-soft hover:underline font-bold">www.oaic.gov.au</a>.
               </p>
             </div>
           </section>
@@ -285,7 +285,7 @@ const Privacy: React.FC = () => {
 
         {/* Footer info link */}
         <div className="mt-12 text-center text-slate-500 text-xs font-semibold">
-          <p>If you have any questions regarding these Policies, contact us at <a href="mailto:privacy@dealecho.io" className="text-indigo-400 hover:underline font-bold">privacy@dealecho.io</a></p>
+          <p>If you have any questions regarding these Policies, contact us at <a href="mailto:privacy@dealecho.io" className="text-accent-soft hover:underline font-bold">privacy@dealecho.io</a></p>
         </div>
       </div>
     </div>

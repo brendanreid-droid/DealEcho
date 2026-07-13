@@ -111,7 +111,7 @@ const AcceptInvite: React.FC = () => {
           </button>
         </form>
         <p className="text-xs text-slate-400 max-w-sm text-center">
-          Use the exact email address your invite was sent to — the invite is tied to that address.
+          Use the exact email address your invite was sent to - the invite is tied to that address.
         </p>
       </div>
     );

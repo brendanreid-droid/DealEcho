@@ -224,7 +224,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
             <h3 className="font-bold text-navy text-lg">One more step - add the browser extension</h3>
             <p className="text-slate-600 text-sm mt-1">
               See Dealecho intel on any prospect site or inside your CRM. Highlight a company name to
-              get reviews, scores, and red flags instantly — right where you work.
+              get reviews, scores, and red flags instantly - right where you work.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -287,7 +287,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
         <div className="de-card p-10 flex flex-col h-full">
           <div className="mb-8">
             <h3 className="text-xl font-bold text-slate-900 mb-2">Pioneer</h3>
-            <div className="font-display text-4xl font-bold text-slate-900">A$0</div>
+            <div className="font-display text-4xl font-bold text-slate-900">AUD$0</div>
             <p className="text-slate-400 text-2xs font-semibold uppercase tracking-wider mt-2">
               Free forever
             </p>
@@ -334,7 +334,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
             </p>
             {!isPaid && !hasUsedTrial && (
               <div className="mt-3 bg-emerald-500/10 border border-emerald-500/20 rounded-control px-4 py-2 flex items-center gap-2 text-signal-healthy-bright text-xs font-semibold w-fit">
-                <Icon name="fa-gift" size={14} /> First month $0 — 30-day free trial
+                <Icon name="fa-gift" size={14} /> First month $0 - 30-day free trial
               </div>
             )}
           </div>

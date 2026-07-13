@@ -242,7 +242,7 @@ const Privacy: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>
-                  <strong className="text-slate-200">Active Tab Hostname:</strong> While the extension's Side Panel is open, it automatically reads the domain name (e.g., <em>acme.com</em>) of your current tab each time you switch tabs or navigate to a new page, so the panel can refresh company intelligence without requiring manual input. We do not collect full URLs, page titles, page content, or browsing history — only the hostname.
+                  <strong className="text-slate-200">Active Tab Hostname:</strong> While the extension's Side Panel is open, it automatically reads the domain name (e.g., <em>acme.com</em>) of your current tab each time you switch tabs or navigate to a new page, so the panel can refresh company intelligence without requiring manual input. We do not collect full URLs, page titles, page content, or browsing history - only the hostname.
                 </li>
                 <li>
                   <strong className="text-slate-200">Highlighted Text:</strong> If you highlight text on a page and use the extension's right-click "Search Dealecho" feature, that selected text is sent to our servers solely to identify the company you are searching for. It is not stored beyond the duration of the request.

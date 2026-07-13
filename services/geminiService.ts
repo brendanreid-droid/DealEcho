@@ -46,7 +46,7 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
     const formattedResults = rawResults.map((r: any, index: number) => ({
       ...r,
       id: `ai-${index}-${Date.now()}`,
-      logoUrl: r.logoUrl || companyLogoUrl({ domain: r.domain || guessDomainFromName(r.name) }),
+      logoUrl: r.logoUrl || companyLogoUrl({ name: r.name, domain: r.domain || guessDomainFromName(r.name) }),
     }));
 
     setSessionCache(cacheKey, formattedResults);

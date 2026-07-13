@@ -41,7 +41,7 @@ type Tab = "users" | "content" | "flagged" | "pricing" | "newsletter";
 
 // ── Role badge UI ─────────────────────────────────────────────────────────────
 const ROLE_STYLES: Record<UserRole, string> = {
-  admin: "bg-indigo-100 text-indigo-700 border border-indigo-200",
+  admin: "bg-accent-100 text-accent-700 border border-accent/30",
   paid: "bg-emerald-100 text-emerald-700 border border-emerald-200",
   free_full: "bg-sky-100 text-sky-700 border border-sky-200",
   free: "bg-slate-100 text-slate-500 border border-slate-200",
@@ -50,7 +50,7 @@ const ROLE_STYLES: Record<UserRole, string> = {
 
 const RoleBadge: React.FC<{ role: UserRole }> = ({ role }) => (
   <span
-    className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-widest ${ROLE_STYLES[role]}`}
+    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-widest ${ROLE_STYLES[role]}`}
   >
     {role === "free_full" ? "free full" : role}
   </span>
@@ -563,8 +563,8 @@ const Admin: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
-        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-navy">
+        <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -600,7 +600,7 @@ const Admin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] text-white">
+    <div className="min-h-screen bg-navy-950 text-white">
       {/* Toast notifications */}
       <div className="fixed top-24 right-6 z-50 flex flex-col gap-2">
         {toasts.map((t) => (
@@ -623,21 +623,21 @@ const Admin: React.FC = () => {
       </div>
 
       {/* Header */}
-      <div className="border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-sm sticky top-0 z-40">
+      <div className="border-b border-white/5 bg-navy/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
               <Icon name="fa-shield-alt" className="text-white text-sm" size={14} />
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tight">Admin Panel</h1>
+              <h1 className="text-lg font-bold tracking-tight">Admin Panel</h1>
               <p className="text-slate-500 text-[11px] font-semibold uppercase tracking-widest">
                 Dealecho Control Centre
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-400">
-            <Icon name="fa-user-shield" className="text-indigo-400" size={14} />
+            <Icon name="fa-user-shield" className="text-accent-soft" size={14} />
             <span className="font-semibold">{auth.currentUser?.email}</span>
           </div>
         </div>
@@ -651,7 +651,7 @@ const Admin: React.FC = () => {
               label: "Total Users",
               value: stats.total,
               icon: "fa-users",
-              color: "text-indigo-400",
+              color: "text-accent-soft",
             },
             {
               label: "Paid Users",
@@ -679,7 +679,7 @@ const Admin: React.FC = () => {
               <div className={`text-2xl mb-1 ${s.color}`}>
                 <Icon name={s.icon} size={24} />
               </div>
-              <div className="text-3xl font-black">{s.value}</div>
+              <div className="text-3xl font-bold">{s.value}</div>
               <div className="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-1">
                 {s.label}
               </div>
@@ -688,14 +688,14 @@ const Admin: React.FC = () => {
         </div>
 
         {/* Tab bar */}
-        <div className="flex flex-wrap bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
+        <div className="flex flex-wrap bg-white/5 border border-white/10 rounded-control p-1 w-fit mb-6">
           {(["users", "content", "flagged", "pricing", "newsletter"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-6 py-2.5 rounded-xl text-sm font-black capitalize transition-all relative ${
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold capitalize transition-all relative ${
                 tab === t
-                  ? "bg-indigo-600 text-white shadow-lg"
+                  ? "bg-accent text-white shadow-lg"
                   : "text-slate-400 hover:text-white"
               }`}
             >
@@ -724,7 +724,7 @@ const Admin: React.FC = () => {
                       ? "Pricing"
                       : "Newsletter"}
               {t === "flagged" && stats.flagged > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0a0f1e]">
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-navy-950">
                   {stats.flagged}
                 </span>
               )}
@@ -743,12 +743,12 @@ const Admin: React.FC = () => {
                   placeholder="Search by email or name…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-control text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-accent transition-colors"
                 />
               </div>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/10"
+                className="px-5 py-3 rounded-control bg-accent hover:bg-accent-700 text-white text-sm font-bold transition-all flex items-center gap-2 shadow-lg"
               >
                 <Icon name="fa-user-plus" size={12} />
                 Create User
@@ -757,7 +757,7 @@ const Admin: React.FC = () => {
 
             {usersLoading ? (
               <div className="flex items-center justify-center h-48">
-                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <div className="overflow-x-auto rounded-3xl border border-white/10">
@@ -775,7 +775,7 @@ const Admin: React.FC = () => {
                       ].map((h) => (
                         <th
                           key={h}
-                          className="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-slate-500"
+                          className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-widest text-slate-500"
                         >
                           {h}
                         </th>
@@ -792,10 +792,10 @@ const Admin: React.FC = () => {
                       >
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                               u.suspended 
                                 ? "bg-rose-950/40 text-rose-400 border border-rose-500/20" 
-                                : "bg-indigo-600/30 text-indigo-400"
+                                : "bg-accent/30 text-accent-soft"
                             }`}>
                               {u.suspended ? (
                                 <Icon name="fa-lock" size={12} />
@@ -807,7 +807,7 @@ const Admin: React.FC = () => {
                               <div className={`font-semibold text-sm flex items-center gap-2 ${u.suspended ? "text-slate-500 line-through" : "text-white"}`}>
                                 {u.displayName || "—"}
                                 {u.suspended && (
-                                  <span className="bg-rose-900/40 border border-rose-500/30 text-rose-300 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md">
+                                  <span className="bg-rose-900/40 border border-rose-500/30 text-rose-300 text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md">
                                     Locked
                                   </span>
                                 )}
@@ -865,30 +865,30 @@ const Admin: React.FC = () => {
                                   e.target.value as UserRole,
                                 )
                               }
-                              className="bg-white/10 border border-white/20 text-white text-xs font-bold rounded-xl px-3 py-2 cursor-pointer focus:outline-none focus:border-indigo-500 transition-colors"
+                              className="bg-white/10 border border-white/20 text-white text-xs font-bold rounded-xl px-3 py-2 cursor-pointer focus:outline-none focus:border-accent transition-colors"
                               style={{ colorScheme: "dark" }}
                             >
                               <option
                                 value="free"
-                                className="bg-[#0f172a] text-white"
+                                className="bg-navy text-white"
                               >
                                 Free
                               </option>
                               <option
                                 value="paid"
-                                className="bg-[#0f172a] text-white"
+                                className="bg-navy text-white"
                               >
                                 Paid
                               </option>
                               <option
                                 value="free_full"
-                                className="bg-[#0f172a] text-white"
+                                className="bg-navy text-white"
                               >
                                 Free Full
                               </option>
                               <option
                                 value="admin"
-                                className="bg-[#0f172a] text-white"
+                                className="bg-navy text-white"
                               >
                                 Admin
                               </option>
@@ -898,7 +898,7 @@ const Admin: React.FC = () => {
                                 setContentUserFilter(u.uid);
                                 setTab("content");
                               }}
-                              className="px-3 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold hover:bg-indigo-600/40 transition-colors flex items-center gap-1"
+                              className="px-3 py-2 rounded-xl bg-accent/20 border border-accent/30 text-accent-soft text-xs font-bold hover:bg-accent/40 transition-colors flex items-center gap-1"
                               title="View user posts"
                             >
                               <Icon name="fa-eye" size={12} />
@@ -950,19 +950,19 @@ const Admin: React.FC = () => {
                   placeholder="Search reviews or UID…"
                   value={contentSearchQuery}
                   onChange={(e) => setContentSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-control text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-accent transition-colors"
                 />
               </div>
 
               {contentUserFilter && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl">
-                  <span className="text-xs font-bold text-indigo-400 flex items-center">
+                <div className="flex items-center gap-2 px-4 py-2 bg-accent/20 border border-accent/30 rounded-2xl">
+                  <span className="text-xs font-bold text-accent-soft flex items-center">
                     <Icon name="fa-filter" className="mr-2" size={12} />
                     Filtering by User ID: {contentUserFilter.slice(0, 8)}…
                   </span>
                   <button
                     onClick={() => setContentUserFilter(null)}
-                    className="text-indigo-400 hover:text-white transition-colors flex items-center"
+                    className="text-accent-soft hover:text-white transition-colors flex items-center"
                   >
                     <Icon name="fa-times-circle" size={14} />
                   </button>
@@ -972,7 +972,7 @@ const Admin: React.FC = () => {
 
             {reviewsLoading ? (
               <div className="flex items-center justify-center h-48">
-                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <div className="overflow-x-auto rounded-3xl border border-white/10">
@@ -989,7 +989,7 @@ const Admin: React.FC = () => {
                       ].map((h) => (
                         <th
                           key={h}
-                          className="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-slate-500"
+                          className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-widest text-slate-500"
                         >
                           {h}
                         </th>
@@ -1056,7 +1056,7 @@ const Admin: React.FC = () => {
                                 setEditReview(r);
                                 setEditContent(r.content ?? "");
                               }}
-                              className="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/40 transition-colors flex items-center justify-center"
+                              className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/30 text-accent-soft hover:bg-accent/40 transition-colors flex items-center justify-center"
                               title="Edit"
                             >
                               <Icon name="fa-pen" size={12} />
@@ -1096,7 +1096,7 @@ const Admin: React.FC = () => {
                   <Icon name="fa-shield-alt" className="text-rose-400 text-sm" size={14} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black">Flagged Reviews</h2>
+                  <h2 className="text-lg font-bold">Flagged Reviews</h2>
                   <p className="text-slate-500 text-[11px] font-semibold uppercase tracking-widest">
                     Reviews caught by server-side moderation
                   </p>
@@ -1106,14 +1106,14 @@ const Admin: React.FC = () => {
 
             {flaggedLoading ? (
               <div className="flex items-center justify-center h-48">
-                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
               </div>
             ) : flaggedReviews.length === 0 ? (
               <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center">
                 <div className="w-16 h-16 bg-emerald-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Icon name="fa-check-circle" className="text-emerald-400 text-2xl" size={24} />
                 </div>
-                <h3 className="text-lg font-black text-white mb-2">All Clear</h3>
+                <h3 className="text-lg font-bold text-white mb-2">All Clear</h3>
                 <p className="text-slate-500 text-sm">No flagged reviews requiring attention.</p>
               </div>
             ) : (
@@ -1129,7 +1129,7 @@ const Admin: React.FC = () => {
                           <span className="text-white font-bold text-sm">
                             {r.companyName ?? "Unknown Company"}
                           </span>
-                          <span className="bg-rose-900/40 text-rose-400 text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest">
+                          <span className="bg-rose-900/40 text-rose-400 text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-widest">
                             Flagged
                           </span>
                           {r.status && (
@@ -1179,7 +1179,7 @@ const Admin: React.FC = () => {
 
                     {/* Flagged reason */}
                     <div className="bg-rose-950/30 border border-rose-500/10 rounded-2xl p-4">
-                      <div className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2 flex items-center">
+                      <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-2 flex items-center">
                         <Icon name="fa-exclamation-triangle" className="mr-1.5" size={12} />
                         Moderation Reason
                       </div>
@@ -1202,7 +1202,7 @@ const Admin: React.FC = () => {
 
                     {/* Review content */}
                     <div className="bg-white/5 rounded-2xl p-4">
-                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                         Review Content
                       </div>
                       <p className="text-slate-300 text-sm leading-relaxed">
@@ -1221,23 +1221,23 @@ const Admin: React.FC = () => {
           <div className="max-w-2xl">
             {pricingLoading ? (
               <div className="flex items-center justify-center h-48">
-                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <div className="space-y-6">
                 {/* Current Pricing Info */}
                 {currentPricing && (
                   <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center">
-                      <Icon name="fa-info-circle" className="text-indigo-400 mr-2" size={14} />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center">
+                      <Icon name="fa-info-circle" className="text-accent-soft mr-2" size={14} />
                       Current Active Prices
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-white/5 rounded-2xl p-4">
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
                           Monthly
                         </div>
-                        <div className="text-2xl font-black text-white">
+                        <div className="text-2xl font-bold text-white">
                           {currentPricing.currency?.toUpperCase() ?? "AUD"} $
                           {((currentPricing.monthlyAmount ?? 0) / 100).toFixed(
                             2,
@@ -1248,10 +1248,10 @@ const Admin: React.FC = () => {
                         </div>
                       </div>
                       <div className="bg-white/5 rounded-2xl p-4">
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
                           Annual
                         </div>
-                        <div className="text-2xl font-black text-white">
+                        <div className="text-2xl font-bold text-white">
                           {currentPricing.currency?.toUpperCase() ?? "AUD"} $
                           {((currentPricing.annualAmount ?? 0) / 100).toFixed(
                             2,
@@ -1273,39 +1273,39 @@ const Admin: React.FC = () => {
 
                 {/* Update Form */}
                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center">
-                    <Icon name="fa-edit" className="text-indigo-400 mr-2" size={14} />
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                    <Icon name="fa-edit" className="text-accent-soft mr-2" size={14} />
                     Update Subscription Prices
                   </h3>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                         Currency
                       </label>
                       <select
                         value={pricingCurrency}
                         onChange={(e) => setPricingCurrency(e.target.value)}
-                        className="w-full bg-white/10 border border-white/20 text-white text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="w-full bg-white/10 border border-white/20 text-white text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors"
                         style={{ colorScheme: "dark" }}
                       >
-                        <option value="aud" className="bg-[#0f172a]">
+                        <option value="aud" className="bg-navy">
                           AUD (Australian Dollar)
                         </option>
-                        <option value="usd" className="bg-[#0f172a]">
+                        <option value="usd" className="bg-navy">
                           USD (US Dollar)
                         </option>
-                        <option value="gbp" className="bg-[#0f172a]">
+                        <option value="gbp" className="bg-navy">
                           GBP (British Pound)
                         </option>
-                        <option value="eur" className="bg-[#0f172a]">
+                        <option value="eur" className="bg-navy">
                           EUR (Euro)
                         </option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                         Monthly Price ({pricingCurrency.toUpperCase()})
                       </label>
                       <div className="relative">
@@ -1318,14 +1318,14 @@ const Admin: React.FC = () => {
                           min="1"
                           value={monthlyPrice}
                           onChange={(e) => setMonthlyPrice(e.target.value)}
-                          className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                          className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-accent transition-colors"
                           placeholder="15.00"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                         Annual Price ({pricingCurrency.toUpperCase()})
                       </label>
                       <div className="relative">
@@ -1338,12 +1338,12 @@ const Admin: React.FC = () => {
                           min="1"
                           value={annualPrice}
                           onChange={(e) => setAnnualPrice(e.target.value)}
-                          className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                          className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-accent transition-colors"
                           placeholder="144.00"
                         />
                       </div>
                       {monthlyPrice && annualPrice && (
-                        <div className="text-[10px] text-indigo-400 font-bold mt-2">
+                        <div className="text-[10px] text-accent-soft font-bold mt-2">
                           That's ${(parseFloat(annualPrice) / 12).toFixed(2)}/mo
                           —{" "}
                           {Math.round(
@@ -1361,7 +1361,7 @@ const Admin: React.FC = () => {
                     <button
                       onClick={handleUpdatePricing}
                       disabled={pricingSaving}
-                      className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-colors disabled:opacity-60 mt-4"
+                      className="w-full py-4 bg-accent hover:bg-accent-700 text-white font-bold text-sm uppercase tracking-widest rounded-control transition-colors disabled:opacity-60 mt-4"
                     >
                       {pricingSaving ? (
                         <>
@@ -1392,12 +1392,12 @@ const Admin: React.FC = () => {
         {tab === "newsletter" && (
           <div>
             {/* Newsletter Sub-navigation */}
-            <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
+            <div className="flex bg-white/5 border border-white/10 rounded-control p-1 w-fit mb-6">
               <button
                 onClick={() => setNewsletterSubTab("compose")}
-                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all flex items-center gap-1.5 ${
+                className={`px-5 py-2 rounded-xl text-xs font-bold capitalize transition-all flex items-center gap-1.5 ${
                   newsletterSubTab === "compose"
-                    ? "bg-indigo-600 text-white shadow-lg"
+                    ? "bg-accent text-white shadow-lg"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -1409,9 +1409,9 @@ const Admin: React.FC = () => {
                   setNewsletterSubTab("history");
                   loadCampaigns();
                 }}
-                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all flex items-center gap-1.5 ${
+                className={`px-5 py-2 rounded-xl text-xs font-bold capitalize transition-all flex items-center gap-1.5 ${
                   newsletterSubTab === "history"
-                    ? "bg-indigo-600 text-white shadow-lg"
+                    ? "bg-accent text-white shadow-lg"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -1424,11 +1424,11 @@ const Admin: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-fade-in text-white">
             {/* Left side: Composer Form */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-5 relative">
-              <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none"></div>
+              <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-accent/5 blur-[60px] rounded-full pointer-events-none"></div>
               
               <div>
-                <h3 className="text-base font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
-                  <Icon name="fa-edit" className="text-indigo-400" size={14} />
+                <h3 className="text-base font-bold uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
+                  <Icon name="fa-edit" className="text-accent-soft" size={14} />
                   Newsletter Composer
                 </h3>
                 <p className="text-slate-500 text-xs font-semibold leading-relaxed">
@@ -1438,53 +1438,53 @@ const Admin: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Email Subject Line
                   </label>
                   <input
                     type="text"
                     value={newsletterSubject}
                     onChange={(e) => setNewsletterSubject(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-accent transition-colors"
                     placeholder="e.g. Dealecho Monthly Intel: Insights & New Vetted Reports"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Preheader Text (Email Preview Snippet)
                   </label>
                   <input
                     type="text"
                     value={newsletterPreheader}
                     onChange={(e) => setNewsletterPreheader(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-accent transition-colors"
                     placeholder="e.g. Discover this month's top enterprise buying patterns and deal reviews."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Newsletter Title (Header/Headline)
                   </label>
                   <input
                     type="text"
                     value={newsletterTitle}
                     onChange={(e) => setNewsletterTitle(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-accent transition-colors"
                     placeholder="e.g. May Intel Report: What's Shifting?"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Newsletter Body Content (Double newlines segment paragraphs)
                   </label>
                   <textarea
                     value={newsletterContent}
                     onChange={(e) => setNewsletterContent(e.target.value)}
                     rows={8}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors resize-none leading-relaxed"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-accent transition-colors resize-none leading-relaxed"
                     placeholder={`Write your newsletter content here...\n\nUse double newlines to separate paragraphs cleanly.\n\nE.g. We have added 50+ new vetted deal reviews this month!`}
                   />
                 </div>
@@ -1492,7 +1492,7 @@ const Admin: React.FC = () => {
 
               {/* Test send widget */}
               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-3">
-                <div className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">
+                <div className="text-[11px] font-bold text-accent-soft uppercase tracking-widest">
                   🧪 Test Delivery System
                 </div>
                 <div className="flex gap-2">
@@ -1501,12 +1501,12 @@ const Admin: React.FC = () => {
                     value={newsletterTestEmail}
                     onChange={(e) => setNewsletterTestEmail(e.target.value)}
                     placeholder="E.g. admin@dealecho.io"
-                    className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500 transition-colors text-white"
+                    className="flex-grow px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-semibold focus:outline-none focus:border-accent transition-colors text-white"
                   />
                   <button
                     onClick={() => handleSendNewsletter(true)}
                     disabled={newsletterSending}
-                    className="px-4 py-2 bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-black rounded-xl hover:bg-indigo-600/40 transition-colors disabled:opacity-50 whitespace-nowrap"
+                    className="px-4 py-2 bg-accent/20 border border-accent/30 text-accent-soft text-xs font-bold rounded-xl hover:bg-accent/40 transition-colors disabled:opacity-50 whitespace-nowrap"
                   >
                     Send Test
                   </button>
@@ -1517,7 +1517,7 @@ const Admin: React.FC = () => {
               <button
                 onClick={() => handleSendNewsletter(false)}
                 disabled={newsletterSending || !newsletterSubject || !newsletterTitle || !newsletterContent}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-widest rounded-2xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/10"
+                className="w-full py-4 bg-accent hover:bg-accent-700 text-white font-bold text-sm uppercase tracking-widest rounded-control transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg"
               >
                 {newsletterSending ? (
                   <>
@@ -1535,7 +1535,7 @@ const Admin: React.FC = () => {
             {/* Right side: Real-time Live Preview */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4 sticky top-24">
               <div>
-                <h3 className="text-base font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
+                <h3 className="text-base font-bold uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
                   <Icon name="fa-eye" className="text-sky-400" size={14} />
                   Live Client Preview
                 </h3>
@@ -1559,9 +1559,9 @@ const Admin: React.FC = () => {
               {/* Mockup Client Viewport */}
               <div className="border border-white/10 rounded-2xl overflow-hidden bg-white text-slate-900 shadow-xl max-h-[500px] overflow-y-auto scrollbar-thin">
                 {/* Email Header */}
-                <div className="bg-[#101426] py-6 px-8 text-center">
-                  <h1 className="text-white text-lg font-black tracking-widest uppercase m-0">
-                    DEAL<span className="text-indigo-400">ECHO</span>
+                <div className="bg-navy py-6 px-8 text-center">
+                  <h1 className="text-white text-lg font-bold tracking-widest uppercase m-0">
+                    DEAL<span className="text-accent-soft">ECHO</span>
                   </h1>
                   <span className="text-slate-400 font-bold uppercase text-[9px] tracking-widest mt-1 block">
                     Sales Intelligence Hub
@@ -1570,7 +1570,7 @@ const Admin: React.FC = () => {
 
                 {/* Email Body */}
                 <div className="p-8 space-y-4">
-                  <h2 className="text-[#0f172a] text-xl font-black tracking-tight leading-tight mb-4 border-b pb-2 border-slate-100">
+                  <h2 className="text-navy text-xl font-bold tracking-tight leading-tight mb-4 border-b pb-2 border-slate-100">
                     {newsletterTitle || "Headline Title"}
                   </h2>
 
@@ -1588,7 +1588,7 @@ const Admin: React.FC = () => {
 
                   {/* CTA Button */}
                   <div className="text-center pt-4">
-                    <span className="inline-block px-8 py-3 bg-[#4f46e5] text-white text-xs font-black uppercase tracking-wider rounded-xl cursor-default">
+                    <span className="inline-block px-8 py-3 bg-accent text-white text-xs font-bold uppercase tracking-wider rounded-xl cursor-default">
                       Explore Intel Dashboard
                     </span>
                   </div>
@@ -1608,7 +1608,7 @@ const Admin: React.FC = () => {
                   <div>
                     You received this email because you are a registered member of Dealecho.io.
                   </div>
-                  <div className="text-indigo-600 font-bold">
+                  <div className="text-accent font-bold">
                     Dashboard • Pricing • Unsubscribe / Preferences
                   </div>
                 </div>
@@ -1620,14 +1620,14 @@ const Admin: React.FC = () => {
           <div>
             {newslettersLoading ? (
               <div className="flex items-center justify-center h-48">
-                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
               </div>
             ) : newsletters.length === 0 ? (
               <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center text-white">
-                <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Icon name="fa-paper-plane" className="text-indigo-400 text-2xl" size={24} />
+                <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Icon name="fa-paper-plane" className="text-accent-soft text-2xl" size={24} />
                 </div>
-                <h3 className="text-lg font-black text-white mb-2">No Campaigns Yet</h3>
+                <h3 className="text-lg font-bold text-white mb-2">No Campaigns Yet</h3>
                 <p className="text-slate-500 text-sm">You haven't broadcasted any newsletters to active users yet.</p>
               </div>
             ) : (
@@ -1636,7 +1636,7 @@ const Admin: React.FC = () => {
                   <thead>
                     <tr className="border-b border-white/10 bg-white/5">
                       {["Date Sent", "Subject Line", "Headline", "Recipients", "Opens", "Open Rate", "Actions"].map((h) => (
-                        <th key={h} className="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-slate-500">
+                        <th key={h} className="px-5 py-4 text-left text-[11px] font-bold uppercase tracking-widest text-slate-500">
                           {h}
                         </th>
                       ))}
@@ -1663,9 +1663,9 @@ const Admin: React.FC = () => {
                             {n.opens}
                           </td>
                           <td className="px-5 py-4">
-                            <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${
                               openRate >= 50 ? "bg-emerald-950/40 text-emerald-400 border border-emerald-500/20" :
-                              openRate >= 20 ? "bg-indigo-950/40 text-indigo-400 border border-indigo-500/20" :
+                              openRate >= 20 ? "bg-accent/10 text-accent-soft border border-accent/20" :
                               "bg-slate-900 text-slate-400 border border-slate-700/30"
                             }`}>
                               {openRate}%
@@ -1674,7 +1674,7 @@ const Admin: React.FC = () => {
                           <td className="px-5 py-4">
                             <button
                               onClick={() => setSelectedHistoryNewsletter(n)}
-                              className="px-3 py-1.5 bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-black rounded-xl hover:bg-indigo-600/40 transition-colors flex items-center gap-1"
+                              className="px-3 py-1.5 bg-accent/20 border border-accent/30 text-accent-soft text-xs font-bold rounded-xl hover:bg-accent/40 transition-colors flex items-center gap-1"
                             >
                               <Icon name="fa-eye" size={12} />
                               Inspect Copy
@@ -1696,11 +1696,11 @@ const Admin: React.FC = () => {
       {/* Edit Modal */}
       {editReview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl">
-            <h3 className="text-lg font-black mb-2">Edit Review</h3>
+          <div className="bg-navy border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+            <h3 className="text-lg font-bold mb-2">Edit Review</h3>
             <p className="text-slate-500 text-sm mb-5">
               Review by{" "}
-              <span className="text-indigo-400 font-mono">
+              <span className="text-accent-soft font-mono">
                 {editReview.userId?.slice(0, 12)}…
               </span>{" "}
               for{" "}
@@ -1712,14 +1712,14 @@ const Admin: React.FC = () => {
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               rows={6}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-control px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-accent transition-colors resize-none"
               placeholder="Review content…"
             />
             <div className="flex gap-3 mt-5">
               <button
                 onClick={handleSaveEdit}
                 disabled={editSaving}
-                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-colors disabled:opacity-60"
+                className="flex-1 py-3 bg-accent hover:bg-accent-700 text-white font-bold text-sm rounded-control transition-colors disabled:opacity-60"
               >
                 {editSaving ? (
                   <Loader2 className="animate-spin mx-auto" size={14} />
@@ -1729,7 +1729,7 @@ const Admin: React.FC = () => {
               </button>
               <button
                 onClick={() => setEditReview(null)}
-                className="flex-1 py-3 bg-white/5 border border-white/10 text-slate-400 font-black text-sm rounded-2xl hover:bg-white/10 transition-colors"
+                className="flex-1 py-3 bg-white/5 border border-white/10 text-slate-400 font-bold text-sm rounded-control hover:bg-white/10 transition-colors"
               >
                 Cancel
               </button>
@@ -1741,36 +1741,36 @@ const Admin: React.FC = () => {
       {/* Create User Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative">
-            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/10 blur-[80px] rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+          <div className="bg-navy border border-white/10 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative">
+            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-accent/10 blur-[80px] rounded-full -mr-10 -mt-10 pointer-events-none"></div>
             
             {isCreateSuccess ? (
               <div className="text-center py-6 relative z-10 flex flex-col items-center">
                 <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/10 animate-pulse">
                   <Icon name="fa-check" size={24} />
                 </div>
-                <h3 className="text-xl font-black mb-2 text-white">Invitation Dispatched!</h3>
+                <h3 className="text-xl font-bold mb-2 text-white">Invitation Dispatched!</h3>
                 <p className="text-slate-400 text-sm mb-8 leading-relaxed max-w-sm text-center">
                   An account has been successfully provisioned. A branded welcome activation email containing a secure password setup link was sent via Resend.
                 </p>
                 <button
                   type="button"
                   onClick={closeCreateModal}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl transition-colors shadow-lg shadow-emerald-600/20 cursor-pointer"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-control transition-colors shadow-lg shadow-emerald-600/20 cursor-pointer"
                 >
                   Done
                 </button>
               </div>
             ) : (
               <>
-                <h3 className="text-xl font-black mb-1 relative z-10">Create New User Manually</h3>
+                <h3 className="text-xl font-bold mb-1 relative z-10">Create New User Manually</h3>
                 <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-6 relative z-10 max-w-sm">
                   Enter user details to manually provision their account. They will automatically receive a secure activation link via email to select their password.
                 </p>
 
                 <form onSubmit={handleCreateUser} className="space-y-4 relative z-10">
                   <div>
-                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                    <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                       Full Name
                     </label>
                     <input
@@ -1779,12 +1779,12 @@ const Admin: React.FC = () => {
                       placeholder="e.g. John Doe"
                       value={createDisplayName}
                       onChange={(e) => setCreateDisplayName(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-control px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-accent transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                    <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                       Email Address
                     </label>
                     <input
@@ -1793,33 +1793,33 @@ const Admin: React.FC = () => {
                       placeholder="e.g. john@company.com"
                       value={createEmail}
                       onChange={(e) => setCreateEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-control px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-accent transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                    <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                       Membership Type
                     </label>
                     <select
                       value={createRole}
                       onChange={(e) => setCreateRole(e.target.value as UserRole)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                      className="w-full bg-white/5 border border-white/10 rounded-control px-4 py-3 text-sm text-white focus:outline-none focus:border-accent transition-colors cursor-pointer"
                       style={{ colorScheme: "dark" }}
                     >
-                      <option value="free" className="bg-[#0f172a] text-white">
+                      <option value="free" className="bg-navy text-white">
                         Free (Pioneer Plan)
                       </option>
-                      <option value="paid" className="bg-[#0f172a] text-white">
+                      <option value="paid" className="bg-navy text-white">
                         Paid (Sales Pro Plan)
                       </option>
-                      <option value="free_full" className="bg-[#0f172a] text-white">
+                      <option value="free_full" className="bg-navy text-white">
                         Free Full (Complimentary Full Access)
                       </option>
-                      <option value="admin" className="bg-[#0f172a] text-white">
+                      <option value="admin" className="bg-navy text-white">
                         Administrator
                       </option>
-                      <option value="enterprise" className="bg-[#0f172a] text-white">
+                      <option value="enterprise" className="bg-navy text-white">
                         Enterprise (Team Manager)
                       </option>
                     </select>
@@ -1829,7 +1829,7 @@ const Admin: React.FC = () => {
                     <button
                       type="submit"
                       disabled={isCreatingUser}
-                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 cursor-pointer"
+                      className="flex-1 py-3 bg-accent hover:bg-accent-700 text-white font-bold text-sm rounded-control transition-colors disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                     >
                       {isCreatingUser ? (
                         <>
@@ -1846,7 +1846,7 @@ const Admin: React.FC = () => {
                     <button
                       type="button"
                       onClick={closeCreateModal}
-                      className="flex-1 py-3 bg-white/5 border border-white/10 text-slate-400 font-black text-sm rounded-2xl hover:bg-white/10 transition-colors cursor-pointer"
+                      className="flex-1 py-3 bg-white/5 border border-white/10 text-slate-400 font-bold text-sm rounded-control hover:bg-white/10 transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -1861,12 +1861,12 @@ const Admin: React.FC = () => {
       {/* Campaign Inspector Modal */}
       {selectedHistoryNewsletter && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/75 backdrop-blur-sm animate-fade-in text-white">
-          <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-thin">
-            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none"></div>
+          <div className="bg-navy border border-white/10 rounded-3xl p-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-thin">
+            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-accent/5 blur-[80px] rounded-full pointer-events-none"></div>
 
             <div className="flex justify-between items-start mb-4 relative z-10">
               <div>
-                <h3 className="text-xl font-black mb-1">Campaign Details</h3>
+                <h3 className="text-xl font-bold mb-1">Campaign Details</h3>
                 <p className="text-slate-500 text-xs font-semibold">
                   Sent on {new Date(selectedHistoryNewsletter.sentAt).toLocaleString()}
                 </p>
@@ -1882,26 +1882,26 @@ const Admin: React.FC = () => {
             {/* Campaign Metrics row */}
             <div className="grid grid-cols-3 gap-4 mb-6 relative z-10">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
                   Recipients
                 </div>
-                <div className="text-xl font-black text-white">
+                <div className="text-xl font-bold text-white">
                   {selectedHistoryNewsletter.sentCount}
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
                   Unique Opens
                 </div>
-                <div className="text-xl font-black text-emerald-400">
+                <div className="text-xl font-bold text-emerald-400">
                   {selectedHistoryNewsletter.opens}
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
                   Open Rate
                 </div>
-                <div className="text-xl font-black text-indigo-400">
+                <div className="text-xl font-bold text-accent-soft">
                   {selectedHistoryNewsletter.sentCount > 0
                     ? Math.round((selectedHistoryNewsletter.opens / selectedHistoryNewsletter.sentCount) * 100)
                     : 0}%
@@ -1925,7 +1925,7 @@ const Admin: React.FC = () => {
 
             {/* Campaign Copy Preview */}
             <div className="bg-white rounded-2xl p-6 text-slate-900 max-h-[300px] overflow-y-auto scrollbar-thin relative z-10 shadow-inner">
-              <h2 className="text-[#0f172a] text-lg font-black tracking-tight mb-4 border-b pb-2 border-slate-100">
+              <h2 className="text-navy text-lg font-bold tracking-tight mb-4 border-b pb-2 border-slate-100">
                 {selectedHistoryNewsletter.title}
               </h2>
               {selectedHistoryNewsletter.content ? (
@@ -1942,7 +1942,7 @@ const Admin: React.FC = () => {
             <div className="mt-6 flex justify-end relative z-10">
               <button
                 onClick={() => setSelectedHistoryNewsletter(null)}
-                className="px-6 py-3 bg-white/5 border border-white/10 text-slate-400 font-black text-xs rounded-2xl hover:bg-white/10 transition-colors"
+                className="px-6 py-3 bg-white/5 border border-white/10 text-slate-400 font-bold text-xs rounded-control hover:bg-white/10 transition-colors"
               >
                 Close Inspector
               </button>

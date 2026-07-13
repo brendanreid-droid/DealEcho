@@ -14,7 +14,7 @@ const CompanyLogo: React.FC<CompanyLogoProps> = ({ name, logoUrl, className = ''
   // Deterministic colors based on name
   const getGradient = (str: string) => {
     const gradients = [
-      'from-indigo-500 to-blue-600',
+      'from-accent-500 to-blue-600',
       'from-emerald-500 to-teal-600',
       'from-rose-500 to-pink-600',
       'from-amber-500 to-orange-600',

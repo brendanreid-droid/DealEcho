@@ -60,9 +60,9 @@ export const useReviewSummaries = () => {
           .map(doc => ({
             reviewId: doc.id,
             ...doc.data()
-          }))
+          }) as ReviewSummary)
           .filter(doc => doc.excerpt) // Only summaries with content
-          .slice(0, 200) as ReviewSummary[];
+          .slice(0, 200);
 
         setSummaries(fetched);
         setIsLoading(false);

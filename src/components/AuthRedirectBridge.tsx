@@ -9,11 +9,11 @@ interface AuthRedirectBridgeProps {
   onConsumePostAuth: () => void;
 }
 
-const AuthRedirectBridge: React.FC<AuthRedirectBridgeProps> = ({
+const AuthRedirectBridge = ({
   onOpenSignIn,
   postAuthPath,
   onConsumePostAuth,
-}) => {
+}: AuthRedirectBridgeProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   // useNavigate()'s returned function is not referentially stable across the

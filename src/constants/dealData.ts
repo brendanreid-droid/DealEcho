@@ -3,7 +3,7 @@
 export const CHROME_EXTENSION_URL =
   "https://chrome.google.com/webstore/detail/dealecho-sales-intelligence/PLACEHOLDER_EXTENSION_ID";
 
-export const DEPARTMENTS = [
+const DEPARTMENT_VALUES = [
   "IT / Engineering",
   "Security / InfoSec",
   "Data Privacy / DPO",
@@ -25,7 +25,9 @@ export const DEPARTMENTS = [
   "Regulatory / Gov Affairs",
   "External Consultants / Advisors",
   "Board of Directors",
-].sort() as const;
+] as const;
+
+export const DEPARTMENTS = [...DEPARTMENT_VALUES].sort();
 
 export type Department = (typeof DEPARTMENTS)[number];
 

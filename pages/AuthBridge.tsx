@@ -41,19 +41,19 @@ export default function AuthBridge() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
+      <div className="min-h-screen flex items-center justify-center bg-navy">
         <div className="text-center space-y-4">
           <p className="text-red-400 text-sm">{error}</p>
-          <a href="/" className="text-indigo-400 hover:underline text-sm">Go to home</a>
+          <a href="/" className="text-accent-soft hover:underline text-sm">Go to home</a>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
+    <div className="min-h-screen flex items-center justify-center bg-navy">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
         <p className="text-slate-400 text-sm font-semibold tracking-wide">Signing you in…</p>
       </div>
     </div>

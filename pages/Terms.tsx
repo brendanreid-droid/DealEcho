@@ -4,23 +4,23 @@ import Icon from "../src/components/Icon";
 
 const Terms: React.FC = () => {
   return (
-    <div className="bg-[#0f172a] min-h-screen py-16 px-6 relative overflow-hidden text-slate-300">
+    <div className="bg-navy min-h-screen py-16 px-6 relative overflow-hidden text-slate-300">
       {/* Premium ambient light filters */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-indigo-600/5 blur-[100px] rounded-full pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-accent/5 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-accent/5 blur-[100px] rounded-full pointer-events-none"></div>
 
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Navigation / Header */}
         <div className="flex items-center justify-between mb-12 border-b border-white/10 pb-6">
           <Link
             to="/"
-            className="flex items-center text-indigo-400 hover:text-indigo-300 text-sm font-bold uppercase tracking-widest transition-colors space-x-2"
+            className="flex items-center text-accent-soft hover:text-accent-soft text-sm font-bold uppercase tracking-widest transition-colors space-x-2"
           >
             <Icon name="fa-arrow-left" size={14} />
             <span>Back to Home</span>
           </Link>
           <div className="text-right">
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-accent-soft uppercase tracking-widest">
               Legal Documents
             </span>
           </div>
@@ -28,19 +28,19 @@ const Terms: React.FC = () => {
 
         {/* Title Block */}
         <div className="space-y-4 mb-12">
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase tracking-wide">
+          <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight uppercase tracking-wide">
             Terms of Use
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-indigo-400 font-bold">July 9, 2026</span>
+            Last Updated: <span className="text-accent-soft font-bold">July 9, 2026</span>
           </p>
         </div>
 
         {/* Terms Container */}
-        <div className="bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[32px] p-8 md:p-12 shadow-2xl space-y-10 leading-relaxed text-sm md:text-base font-normal">
+        <div className="bg-white/5 border border-white/10 backdrop-blur-3xl rounded-card p-8 md:p-12 shadow-2xl space-y-10 leading-relaxed text-sm md:text-base font-normal">
           
           {/* Welcome Message */}
-          <p className="text-slate-300 italic border-l-4 border-indigo-500 pl-4 py-1">
+          <p className="text-slate-300 italic border-l-4 border-accent/30 pl-4 py-1">
             Welcome to Dealecho.io (the "Services"). These Terms of Use ("Terms") constitute a legally binding agreement between you and Dealecho (ABN 92 122 197 793) trading as Dealecho.io ("Dealecho", "we", "us", or "our") governing your access to and use of our website, mobile application, database, and any related intelligence tools.
           </p>
 
@@ -48,8 +48,8 @@ const Terms: React.FC = () => {
 
           {/* Section 1 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">1.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">1.</span>
               <span>Eligibility, Account Safeguards and Commercial Scope</span>
             </h2>
             <div className="space-y-4 text-slate-400">
@@ -68,7 +68,7 @@ const Terms: React.FC = () => {
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">1.3 Safeguarding and Responsibility</h3>
                 <p>
-                  You are responsible for maintaining the confidentiality of your account details (including your password) and for taking reasonable steps to prevent unauthorized access. You must notify us immediately at <a href="mailto:security@dealecho.io" className="text-indigo-400 hover:underline">security@dealecho.io</a> if you suspect or become aware of any unauthorized use of your account.
+                  You are responsible for maintaining the confidentiality of your account details (including your password) and for taking reasonable steps to prevent unauthorized access. You must notify us immediately at <a href="mailto:security@dealecho.io" className="text-accent-soft hover:underline">security@dealecho.io</a> if you suspect or become aware of any unauthorized use of your account.
                 </p>
               </div>
             </div>
@@ -78,8 +78,8 @@ const Terms: React.FC = () => {
 
           {/* Section 2 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">2.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">2.</span>
               <span>Communications</span>
             </h2>
             <div className="space-y-4 text-slate-400">
@@ -108,8 +108,8 @@ const Terms: React.FC = () => {
 
           {/* Section 3 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">3.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">3.</span>
               <span>Intellectual Property and Content Rights</span>
             </h2>
             <div className="space-y-4 text-slate-400">
@@ -153,8 +153,8 @@ const Terms: React.FC = () => {
 
           {/* Section 4 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">4.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">4.</span>
               <span>House Rules and Account Management Actions</span>
             </h2>
             <div className="space-y-4 text-slate-400">
@@ -191,14 +191,14 @@ const Terms: React.FC = () => {
 
           {/* Section 5 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">5.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">5.</span>
               <span>Consumer Guarantees, Warranties, and Limitation of Liability</span>
             </h2>
             <div className="space-y-4 text-slate-400">
               <div>
                 <h3 className="font-bold text-slate-200 mb-1">5.1 Australian Consumer Law (ACL) Safeguards</h3>
-                <p className="text-slate-200 bg-white/5 border border-white/5 rounded-2xl p-4 italic">
+                <p className="text-slate-200 bg-white/5 border border-white/5 rounded-card p-4 italic">
                   Our services come with statutory guarantees that cannot be excluded, restricted, or modified under Schedule 2 of the Competition and Consumer Act 2010 (Cth) ("Australian Consumer Law"). These include guarantees that our services will be provided with due care and skill, be fit for purpose, and be supplied within a reasonable time. Nothing in these Terms operates to exclude, restrict, or modify those non-excludable consumer protections.
                 </p>
               </div>
@@ -227,8 +227,8 @@ const Terms: React.FC = () => {
 
           {/* Section 6 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">6.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">6.</span>
               <span>Indemnity</span>
             </h2>
             <div className="space-y-2 text-slate-400">
@@ -249,8 +249,8 @@ const Terms: React.FC = () => {
 
           {/* Section 7 */}
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center space-x-3">
-              <span className="text-indigo-400 font-black">7.</span>
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">7.</span>
               <span>Miscellaneous</span>
             </h2>
             <div className="space-y-4 text-slate-400">
@@ -279,7 +279,7 @@ const Terms: React.FC = () => {
 
         {/* Footer info link */}
         <div className="mt-12 text-center text-slate-500 text-xs font-semibold">
-          <p>If you have any questions regarding these Terms, contact us at <a href="mailto:terms@dealecho.io" className="text-indigo-400 hover:underline font-bold">terms@dealecho.io</a></p>
+          <p>If you have any questions regarding these Terms, contact us at <a href="mailto:terms@dealecho.io" className="text-accent-soft hover:underline font-bold">terms@dealecho.io</a></p>
         </div>
       </div>
     </div>

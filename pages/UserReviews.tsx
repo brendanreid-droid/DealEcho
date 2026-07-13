@@ -19,7 +19,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
       <div className="flex items-center justify-between border-b border-slate-100 pb-8">
         <div>
           <h1 className="text-4xl font-extrabold text-slate-900 flex items-center">
-            <Icon name="fa-user-shield" className="text-indigo-600 mr-4" size={32} />
+            <Icon name="fa-user-shield" className="text-accent mr-4" size={32} />
             Verified User Intel
           </h1>
           <p className="text-slate-400 font-bold text-xs mt-3 uppercase tracking-[0.2em]">
@@ -27,7 +27,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
           </p>
         </div>
         <div className="hidden md:block">
-          <div className="bg-indigo-50 text-indigo-700 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">
+          <div className="bg-accent-50 text-accent-700 px-6 py-3 rounded-control font-bold text-xs uppercase tracking-widest">
             Elite Reporter Status
           </div>
         </div>
@@ -38,7 +38,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
           userReviews.map((r) => (
             <div
               key={r.id}
-              className="bg-white p-10 rounded-[32px] border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.01)] space-y-6 hover:shadow-lg transition-all"
+              className="bg-white p-10 rounded-card border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.01)] space-y-6 hover:shadow-lg transition-all"
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center space-x-5">
@@ -50,18 +50,18 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                   <div>
                     <Link
                       to={`/company/${encodeURIComponent(r.companyId)}`}
-                      className="text-2xl font-bold text-slate-900 hover:text-indigo-600 transition-colors block leading-tight"
+                      className="text-2xl font-bold text-slate-900 hover:text-accent transition-colors block leading-tight"
                     >
                       {r.companyName}
                     </Link>
-                    <div className="text-[10px] block text-slate-400 uppercase tracking-widest font-black mt-1">
+                    <div className="text-[10px] block text-slate-400 uppercase tracking-widest font-bold mt-1">
                       {r.industry} &bull; {r.location} &bull;{" "}
                       {new Date(r.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
                 <div
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
                     r.status === "Won"
                       ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                       : r.status === "Lost"
@@ -75,7 +75,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6 border-b border-slate-50">
                 <div className="space-y-1">
-                  <div className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                  <div className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter">
                     TCV
                   </div>
                   <div className="text-xs font-bold text-slate-600">
@@ -83,7 +83,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                  <div className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter">
                     Duration
                   </div>
                   <div className="text-xs font-bold text-slate-600">
@@ -91,7 +91,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                  <div className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter">
                     Responsiveness
                   </div>
                   <div className="text-xs font-bold text-slate-600">
@@ -99,7 +99,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                  <div className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter">
                     Buying Team
                   </div>
                   <div className="text-xs font-bold text-slate-600 truncate">
@@ -108,33 +108,33 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                 </div>
               </div>
 
-              <p className="text-slate-600 text-[15px] leading-relaxed font-medium italic bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+              <p className="text-slate-600 text-[15px] leading-relaxed font-medium italic bg-slate-50/50 p-6 rounded-card border border-slate-100">
                 "{r.content}"
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-2">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                       Negotiation Ease
                     </span>
-                    <span className="text-xs font-black text-indigo-600">
+                    <span className="text-xs font-bold text-accent">
                       {r.negotiationLevel}/5
                     </span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-indigo-500"
+                      className="h-full bg-accent"
                       style={{ width: `${(r.negotiationLevel / 5) * 100}%` }}
                     ></div>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                       Buyer Intent
                     </span>
-                    <span className="text-xs font-black text-rose-600">
+                    <span className="text-xs font-bold text-rose-600">
                       {r.timeWasterLevel}/5
                     </span>
                   </div>
@@ -147,10 +147,10 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                       Scope Clarity
                     </span>
-                    <span className="text-xs font-black text-emerald-600">
+                    <span className="text-xs font-bold text-emerald-600">
                       {r.clarityOfScope || 3}/5
                     </span>
                   </div>
@@ -167,7 +167,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
             </div>
           ))
         ) : (
-          <div className="text-center py-24 bg-slate-50 rounded-[48px] border-2 border-dashed border-slate-200">
+          <div className="text-center py-24 bg-slate-50 rounded-card border-2 border-dashed border-slate-200">
             <Icon name="fa-ghost" className="text-slate-200 mb-6 mx-auto block" size={60} />
             <p className="text-slate-400 font-bold text-lg">
               No intelligence reported by this contributor.

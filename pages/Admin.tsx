@@ -37,7 +37,76 @@ interface AdminReview {
   moderatedAt?: string;
 }
 
-type Tab = "users" | "content" | "flagged" | "pricing" | "newsletter";
+type Tab = "users" | "content" | "flagged" | "pricing" | "newsletter" | "marketing";
+
+// ── Marketing attribution report ──────────────────────────────────────────────
+interface AcquisitionRow {
+  uid: string;
+  email: string;
+  createdAt: string;
+  role: string;
+  tier: string;
+  isPaid: boolean;
+  first_source: string;
+  first_medium: string;
+  first_campaign: string;
+  first_content: string;
+  first_term: string;
+  first_referrer: string;
+  first_landing: string;
+  first_capturedAt: string;
+  last_source: string;
+  last_medium: string;
+  last_campaign: string;
+  last_content: string;
+}
+
+interface CampaignRollup {
+  source: string;
+  medium: string;
+  campaign: string;
+  content: string;
+  signups: number;
+  paid: number;
+  conversionRate: number;
+}
+
+interface AcquisitionReport {
+  rows: AcquisitionRow[];
+  campaigns: CampaignRollup[];
+  totalUsers: number;
+  attributedUsers: number;
+  generatedAt: string;
+}
+
+// Build a CSV string from an array of objects, ordered by the given columns.
+// Values are quoted and internal quotes doubled per RFC 4180.
+function toCsv<T extends Record<string, unknown>>(
+  columns: (keyof T)[],
+  rows: T[],
+): string {
+  const escape = (v: unknown) => {
+    const s = v === null || v === undefined ? "" : String(v);
+    return `"${s.replace(/"/g, '""')}"`;
+  };
+  const header = columns.map((c) => escape(String(c))).join(",");
+  const body = rows
+    .map((r) => columns.map((c) => escape(r[c])).join(","))
+    .join("\r\n");
+  return header + "\r\n" + body;
+}
+
+function downloadCsv(filename: string, csv: string): void {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // ── Role badge UI ─────────────────────────────────────────────────────────────
 const ROLE_STYLES: Record<UserRole, string> = {
@@ -126,6 +195,10 @@ const Admin: React.FC = () => {
 
   const functions = getFunctions(undefined, "australia-southeast1");
 
+  // Marketing attribution report state
+  const [report, setReport] = useState<AcquisitionReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+
   const addToast = (message: string, type: "success" | "error") => {
     const id = ++_toastId;
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -150,6 +223,25 @@ const Admin: React.FC = () => {
       addToast(msg, "error");
     } finally {
       setUsersLoading(false);
+    }
+  }, [functions]);
+
+  // Load marketing attribution report
+  const loadReport = useCallback(async () => {
+    setReportLoading(true);
+    try {
+      const fn = httpsCallable<object, AcquisitionReport>(
+        functions,
+        "adminGetAcquisitionReport",
+      );
+      const result = await fn({});
+      setReport(result.data);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to load marketing report";
+      addToast(msg, "error");
+    } finally {
+      setReportLoading(false);
     }
   }, [functions]);
 
@@ -291,6 +383,14 @@ const Admin: React.FC = () => {
       loadCampaigns();
     }
   }, [isAdmin, isLoading, loadUsers, loadReviews, loadFlaggedReviews, loadCampaigns]);
+
+  // Lazy-load the marketing report the first time its tab is opened (it lists
+  // all users server-side, so we avoid running it on every admin page load).
+  useEffect(() => {
+    if (isAdmin && !isLoading && tab === "marketing" && !report && !reportLoading) {
+      loadReport();
+    }
+  }, [isAdmin, isLoading, tab, report, reportLoading, loadReport]);
 
   // Real-time Firestore listener: reflect role/subscription changes without refresh
   useEffect(() => {
@@ -689,7 +789,7 @@ const Admin: React.FC = () => {
 
         {/* Tab bar */}
         <div className="flex flex-wrap bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
-          {(["users", "content", "flagged", "pricing", "newsletter"] as Tab[]).map((t) => (
+          {(["users", "content", "flagged", "pricing", "newsletter", "marketing"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -709,7 +809,9 @@ const Admin: React.FC = () => {
                         ? "fa-shield-alt"
                         : t === "pricing"
                           ? "fa-tags"
-                          : "fa-paper-plane"
+                          : t === "newsletter"
+                            ? "fa-paper-plane"
+                            : "fa-chart-line"
                 }
                 className="mr-2 inline-block"
                 size={14}
@@ -722,7 +824,9 @@ const Admin: React.FC = () => {
                     ? `Flagged`
                     : t === "pricing"
                       ? "Pricing"
-                      : "Newsletter"}
+                      : t === "newsletter"
+                        ? "Newsletter"
+                        : "Marketing"}
               {t === "flagged" && stats.flagged > 0 && (
                 <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0a0f1e]">
                   {stats.flagged}
@@ -1686,6 +1790,181 @@ const Admin: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* ── MARKETING TAB ── */}
+        {tab === "marketing" && (
+          <div>
+            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-lg font-black text-white">
+                  Marketing Attribution
+                </h2>
+                <p className="text-slate-400 text-sm mt-1">
+                  Signups by first-touch campaign (from utm tags on your
+                  LinkedIn posts and ads). Export raw rows to feed back into
+                  Hermes for optimisation.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={loadReport}
+                  disabled={reportLoading}
+                  className="px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm font-black transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {reportLoading ? (
+                    <Loader2 className="animate-spin" size={14} />
+                  ) : (
+                    <Icon name="fa-sync-alt" size={12} />
+                  )}
+                  Refresh
+                </button>
+                <button
+                  onClick={() => {
+                    if (!report) return;
+                    const cols: (keyof AcquisitionRow)[] = [
+                      "uid", "email", "createdAt", "role", "tier", "isPaid",
+                      "first_source", "first_medium", "first_campaign",
+                      "first_content", "first_term", "first_referrer",
+                      "first_landing", "first_capturedAt", "last_source",
+                      "last_medium", "last_campaign", "last_content",
+                    ];
+                    const stamp = new Date().toISOString().slice(0, 10);
+                    downloadCsv(
+                      `dealecho-acquisition-raw-${stamp}.csv`,
+                      toCsv(cols, report.rows),
+                    );
+                  }}
+                  disabled={!report || report.rows.length === 0}
+                  className="px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm font-black transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Icon name="fa-download" size={12} />
+                  Raw CSV
+                </button>
+                <button
+                  onClick={() => {
+                    if (!report) return;
+                    const cols: (keyof CampaignRollup)[] = [
+                      "source", "medium", "campaign", "content",
+                      "signups", "paid", "conversionRate",
+                    ];
+                    const stamp = new Date().toISOString().slice(0, 10);
+                    downloadCsv(
+                      `dealecho-acquisition-campaigns-${stamp}.csv`,
+                      toCsv(cols, report.campaigns),
+                    );
+                  }}
+                  disabled={!report || report.campaigns.length === 0}
+                  className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-indigo-600/10"
+                >
+                  <Icon name="fa-download" size={12} />
+                  Campaign CSV
+                </button>
+              </div>
+            </div>
+
+            {reportLoading && !report ? (
+              <div className="flex items-center justify-center py-24">
+                <Loader2 className="animate-spin text-indigo-400" size={28} />
+              </div>
+            ) : !report ? (
+              <div className="text-center py-24 text-slate-500 text-sm">
+                No report loaded yet.
+              </div>
+            ) : (
+              <>
+                {/* Summary tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                  {[
+                    { label: "Total Signups", value: report.totalUsers },
+                    { label: "Attributed", value: report.attributedUsers },
+                    {
+                      label: "Direct / Unknown",
+                      value: report.totalUsers - report.attributedUsers,
+                    },
+                    { label: "Campaigns", value: report.campaigns.length },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="bg-white/5 border border-white/10 rounded-2xl p-4"
+                    >
+                      <div className="text-3xl font-black text-white">
+                        {s.value}
+                      </div>
+                      <div className="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-1">
+                        {s.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Campaign table */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                          <th className="px-4 py-3">Source</th>
+                          <th className="px-4 py-3">Medium</th>
+                          <th className="px-4 py-3">Campaign</th>
+                          <th className="px-4 py-3">Content</th>
+                          <th className="px-4 py-3 text-right">Signups</th>
+                          <th className="px-4 py-3 text-right">Paid</th>
+                          <th className="px-4 py-3 text-right">Conv %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {report.campaigns.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={7}
+                              className="px-4 py-10 text-center text-slate-500"
+                            >
+                              No attribution data yet. Once utm-tagged links
+                              start driving signups, campaigns appear here.
+                            </td>
+                          </tr>
+                        ) : (
+                          report.campaigns.map((c, i) => (
+                            <tr
+                              key={i}
+                              className="border-b border-white/5 last:border-0 text-slate-200"
+                            >
+                              <td className="px-4 py-3 font-semibold">
+                                {c.source}
+                              </td>
+                              <td className="px-4 py-3 text-slate-400">
+                                {c.medium}
+                              </td>
+                              <td className="px-4 py-3">{c.campaign}</td>
+                              <td className="px-4 py-3 text-slate-400">
+                                {c.content}
+                              </td>
+                              <td className="px-4 py-3 text-right font-black">
+                                {c.signups}
+                              </td>
+                              <td className="px-4 py-3 text-right font-black text-emerald-400">
+                                {c.paid}
+                              </td>
+                              <td className="px-4 py-3 text-right font-black text-indigo-400">
+                                {Math.round(c.conversionRate * 100)}%
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {report.generatedAt && (
+                  <p className="text-slate-600 text-[11px] mt-3">
+                    Generated {new Date(report.generatedAt).toLocaleString()}
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}

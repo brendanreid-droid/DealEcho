@@ -48,6 +48,9 @@ export { trackNewsletterOpen } from "./triggers/trackNewsletterOpen";
 // Custom Auth Handlers
 export { sendCustomPasswordResetEmail } from "./authCustom";
 
+// Marketing Attribution (UTM capture + admin reporting)
+export { recordAcquisition, adminGetAcquisitionReport } from "./marketing";
+
 // Enterprise Team Management
 export {
   inviteTeamMember,

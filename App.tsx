@@ -8,8 +8,10 @@ import {
   updateProfile,
   getAdditionalUserInfo,
 } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth, googleProvider } from "./src/firebase/config";
 import { track } from "./src/utils/analytics";
+import { captureAttribution, getAttribution, hasAttribution } from "./src/utils/attribution";
 
 const Home = lazy(() => import("./pages/Home"));
 const Search = lazy(() => import("./pages/Search"));
@@ -100,6 +102,28 @@ const App: React.FC = () => {
   }, [notifications, user?.id]);
 
 
+  // Capture marketing attribution (utm_* + referrer) once on app boot, before
+  // any signup can happen. Persists to a first-party cookie.
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+
+  // After a NEW user signs up, send their captured attribution to the server,
+  // which writes it to the user doc. No-op when there's nothing to record.
+  const recordAcquisition = async () => {
+    const attribution = getAttribution();
+    if (!hasAttribution(attribution)) return;
+    try {
+      const fn = httpsCallable(
+        getFunctions(undefined, "australia-southeast1"),
+        "recordAcquisition",
+      );
+      await fn(attribution);
+    } catch {
+      /* attribution must never block the signup flow */
+    }
+  };
+
   const triggerSignIn = () => { setAuthInitialMode("signin"); setIsAuthModalOpen(true); };
   const triggerSignUp = () => { setAuthInitialMode("signup"); setIsAuthModalOpen(true); };
 
@@ -108,7 +132,10 @@ const App: React.FC = () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
       const isNew = getAdditionalUserInfo(res)?.isNewUser;
-      if (isNew) setPostAuthPath("/search");
+      if (isNew) {
+        setPostAuthPath("/search");
+        void recordAcquisition();
+      }
       track(isNew ? "sign_up" : "login", { method: "google" });
     } catch (err: any) {
       if (err?.code !== "auth/popup-closed-by-user")
@@ -127,6 +154,7 @@ const App: React.FC = () => {
       const res = await createUserWithEmailAndPassword(auth, email, pass);
       if (name) await updateProfile(res.user, { displayName: name });
       setPostAuthPath("/search");
+      void recordAcquisition();
       track("sign_up", { method: "password" });
     } else {
       await signInWithEmailAndPassword(auth, email, pass);

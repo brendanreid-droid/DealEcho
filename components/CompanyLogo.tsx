@@ -58,7 +58,7 @@ const CompanyLogo: React.FC<CompanyLogoProps> = ({ name, logoUrl, className = ''
 
   return (
     <div
-      className={`${sizeClasses[size]} flex-shrink-0 bg-gradient-to-br ${getGradient(name)} flex items-center justify-center font-black text-white shadow-inner ${className}`}
+      className={`${sizeClasses[size]} flex-shrink-0 bg-gradient-to-br ${getGradient(name)} flex items-center justify-center font-bold text-white shadow-inner ${className}`}
     >
       {initials}
     </div>

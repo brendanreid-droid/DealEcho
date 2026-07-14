@@ -70,6 +70,12 @@ jobs:
 
       - name: Deploy admin functions
         run: firebase deploy --only functions:adminGetUsers,functions:adminSetRole,functions:adminDeleteContent,functions:adminEditContent,functions:adminGetPricing,functions:adminUpdatePricing,functions:adminCreateUser,functions:adminToggleUserSuspension,functions:adminDeleteUser,functions:adminSendNewsletter --force
+
+      - name: Wait
+        run: sleep 30
+
+      - name: Deploy marketing functions
+        run: firebase deploy --only functions:recordAcquisition,functions:adminGetAcquisitionReport --force
  
 
 

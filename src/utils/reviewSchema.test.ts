@@ -111,6 +111,32 @@ describe("frictionScore", () => {
         wentDark: false,
         verbalToSignature: "Unknown",
       }),
-    ).toBe(Math.round((1 / 15) * 100));
+    ).toBe(7);
+  });
+
+  it("scores intermediate weights correctly", () => {
+    expect(
+      frictionScore({
+        ...baseReview,
+        schemaVersion: 2,
+        frictionEvents: ["Security questionnaire", "Legal redlines on MSA"],
+        closeSlippage: "Pushed twice",
+        wentDark: false,
+        verbalToSignature: "1-4 Weeks",
+      }),
+    ).toBe(Math.round((5 / 15) * 100)); // 2 events + 2 slippage + 1 lag = 5 → 33
+  });
+
+  it("caps friction events at 7 and gives No verbal commit zero lag", () => {
+    expect(
+      frictionScore({
+        ...baseReview,
+        schemaVersion: 2,
+        frictionEvents: Array(10).fill("Security questionnaire"),
+        closeSlippage: "Never pushed",
+        wentDark: false,
+        verbalToSignature: "No verbal commit",
+      }),
+    ).toBe(Math.round((7 / 15) * 100));
   });
 });

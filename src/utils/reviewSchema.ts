@@ -6,6 +6,8 @@ import {
   DEAL_REGIONS,
   TcvBracket,
   DurationBracket,
+  CLOSE_SLIPPAGE,
+  VERBAL_TO_SIGNATURE,
 } from "../constants/dealData";
 import { Review } from "../../types";
 
@@ -72,14 +74,15 @@ export function countryToRegion(country: string): (typeof DEAL_REGIONS)[number] 
   return COUNTRY_REGION_MAP[country.trim().toLowerCase()] ?? "Global / Multi-region";
 }
 
-const SLIPPAGE_POINTS: Record<string, number> = {
+// Partial: members absent from the map ("Unknown", "No verbal commit") intentionally contribute 0.
+const SLIPPAGE_POINTS: Partial<Record<(typeof CLOSE_SLIPPAGE)[number], number>> = {
   "Never pushed": 0,
   "Pushed once": 1,
   "Pushed twice": 2,
   "Pushed 3+ times": 3,
 };
 
-const V2S_POINTS: Record<string, number> = {
+const VERBAL_TO_SIGNATURE_POINTS: Partial<Record<(typeof VERBAL_TO_SIGNATURE)[number], number>> = {
   "< 1 Week": 0,
   "1-4 Weeks": 1,
   "1-3 Months": 2,
@@ -95,9 +98,9 @@ const MAX_FRICTION_POINTS = 15; // 7 events + 3 slippage + 2 ghosting + 3 verbal
  */
 export function frictionScore(r: Review): number | null {
   if ((r.schemaVersion ?? 1) < 2) return null;
-  let pts = Math.min(r.frictionEvents?.length ?? 0, 7);
-  pts += SLIPPAGE_POINTS[r.closeSlippage ?? ""] ?? 0;
+  let pts = Math.min(r.frictionEvents?.length ?? 0, 7); // server validates entries; cap guards legacy/junk arrays
+  pts += SLIPPAGE_POINTS[r.closeSlippage as (typeof CLOSE_SLIPPAGE)[number]] ?? 0;
   if (r.wentDark) pts += 2;
-  pts += V2S_POINTS[r.verbalToSignature ?? ""] ?? 0;
+  pts += VERBAL_TO_SIGNATURE_POINTS[r.verbalToSignature as (typeof VERBAL_TO_SIGNATURE)[number]] ?? 0;
   return Math.round((pts / MAX_FRICTION_POINTS) * 100);
 }

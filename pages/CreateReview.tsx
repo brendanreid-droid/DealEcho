@@ -42,11 +42,15 @@ const PREFS_KEY = "dealecho.reviewerPrefs";
 
 const readPrefs = (): { sellerCategory?: string; sellerSize?: string; currency?: string } => {
   try {
-    return JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}");
+    const p = JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}");
+    return p && typeof p === "object" ? p : {};
   } catch {
     return {};
   }
 };
+
+const memberOr = (list: readonly string[], v: string | undefined, fallback: string): string =>
+  v && list.includes(v) ? v : fallback;
 
 interface CreateReviewProps {
   user: MappedUser | null;
@@ -87,12 +91,12 @@ const CreateReview: React.FC<CreateReviewProps> = ({
   const [regionTouched, setRegionTouched] = useState(false);
 
   const [showDetails, setShowDetails] = useState(false);
-  const prefs = useRef(readPrefs()).current;
+  const [prefs] = useState(readPrefs);
   const dealPeriods = recentDealPeriods();
   const [dealPeriod, setDealPeriod] = useState<string>(dealPeriods[0]); // defaults to current quarter
-  const [currency, setCurrency] = useState<string>(prefs.currency ?? CURRENCIES[0]);
-  const [sellerCategory, setSellerCategory] = useState<string>(prefs.sellerCategory ?? SELLER_CATEGORIES[0]);
-  const [sellerSize, setSellerSize] = useState<string>(prefs.sellerSize ?? SELLER_SIZES[0]);
+  const [currency, setCurrency] = useState<string>(memberOr(CURRENCIES, prefs.currency, CURRENCIES[0]));
+  const [sellerCategory, setSellerCategory] = useState<string>(memberOr(SELLER_CATEGORIES, prefs.sellerCategory, SELLER_CATEGORIES[0]));
+  const [sellerSize, setSellerSize] = useState<string>(memberOr(SELLER_SIZES, prefs.sellerSize, SELLER_SIZES[0]));
   const [frictionEvents, setFrictionEvents] = useState<string[]>([]);
   const [verbalToSignature, setVerbalToSignature] = useState<string>("Unknown");
   const [closeSlippage, setCloseSlippage] = useState<string>("Unknown");
@@ -512,6 +516,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsTender(true)}
+                    aria-pressed={isTender}
                     className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${isTender ? "bg-accent text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
                   >
                     Yes
@@ -519,6 +524,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsTender(false)}
+                    aria-pressed={!isTender}
                     className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${!isTender ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
                   >
                     No
@@ -601,6 +607,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             <button
               type="button"
               onClick={() => setShowDetails((s) => !s)}
+              aria-expanded={showDetails}
               className="w-full flex items-center justify-between p-6 md:p-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-card hover:border-accent/30 transition-all text-left group"
             >
               <div className="flex items-center space-x-4">
@@ -633,6 +640,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                         key={ev}
                         type="button"
                         onClick={() => toggleFriction(ev)}
+                        aria-pressed={frictionEvents.includes(ev)}
                         className={`px-4 py-3.5 rounded-control border-2 text-[11px] font-bold uppercase tracking-widest text-left transition-all ${
                           frictionEvents.includes(ev)
                             ? "bg-accent text-white border-accent shadow-lg"
@@ -684,6 +692,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                       <button
                         type="button"
                         onClick={() => setWentDark(true)}
+                        aria-pressed={wentDark}
                         className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${wentDark ? "bg-accent text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
                       >
                         Yes
@@ -691,6 +700,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                       <button
                         type="button"
                         onClick={() => setWentDark(false)}
+                        aria-pressed={!wentDark}
                         className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${!wentDark ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
                       >
                         No

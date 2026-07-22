@@ -29,3 +29,19 @@ export function isCrmHost(input: string): boolean {
   const host = input.trim().toLowerCase().replace(/^[a-z]+:\/\//, "").split("/")[0];
   return CRM_HOSTS.some((crm) => host === crm || host.endsWith("." + crm));
 }
+
+/**
+ * Domain that is SAFE to show a favicon for in the panel header.
+ * Only the domain-resolution path qualifies: an explicit name means the page
+ * the name was found on (a CRM, news site, dealecho itself) is usually NOT the
+ * company's own site, and CRM hosts are never the prospect. Null = the client
+ * shows an initials avatar instead.
+ */
+export function logoDomain(
+  domain: string | undefined,
+  name: string | undefined,
+): string | null {
+  if (name && name.trim()) return null;
+  if (!domain || isCrmHost(domain)) return null;
+  return registrableDomain(domain) || null;
+}

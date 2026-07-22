@@ -3,6 +3,7 @@ import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 import { GoogleGenAI } from "@google/genai";
 import { resolveCompany, ResolverDeps } from "./resolver";
+import { logoDomain } from "./domains";
 import { CompanyRef } from "./matching";
 import { isProRole } from "./gating";
 import { getOrCreatePersona } from "./personaCache";
@@ -167,6 +168,7 @@ export const lookupCompanyReviews = onCall(
       isPro,
       companyId: company.companyId,
       companyName: company.companyName,
+      matchedDomain: logoDomain(domain, name),
       summary,
       persona,
       recentReviews,

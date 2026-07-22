@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { registrableDomain, isCrmHost } from "./domains";
+import { registrableDomain, isCrmHost, logoDomain } from "./domains";
 
 describe("registrableDomain", () => {
   it("strips www and protocol", () => {
@@ -30,5 +30,23 @@ describe("isCrmHost", () => {
   });
   it("does not flag a normal prospect site", () => {
     expect(isCrmHost("acme.com")).toBe(false);
+  });
+});
+
+describe("logoDomain", () => {
+  it("returns the registrable domain for a plain prospect host", () => {
+    // registrableDomain deliberately keeps subdomains (see its own tests above),
+    // so it does not collapse "app.datadoghq.com" to "datadoghq.com" — logoDomain
+    // delegates rather than re-implementing domain slicing.
+    expect(logoDomain("app.datadoghq.com", undefined)).toBe("app.datadoghq.com");
+  });
+  it("is null when an explicit name drove the lookup", () => {
+    expect(logoDomain("datadoghq.com", "Datadog")).toBeNull();
+  });
+  it("is null for CRM hosts", () => {
+    expect(logoDomain("na1.salesforce.com", undefined)).toBeNull();
+  });
+  it("is null when no domain given", () => {
+    expect(logoDomain(undefined, undefined)).toBeNull();
   });
 });

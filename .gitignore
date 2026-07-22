@@ -40,3 +40,4 @@ functions/lib/
 # Frontend environment (local secrets — never commit)
 .env.local
 .env.*.local
+.superpowers/

@@ -2,8 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Review } from '../types';
 import Icon from "../src/components/Icon";
-import { DEPARTMENTS, TCV_BRACKETS as TCV_ORDER, DURATION_BRACKETS as DURATION_ORDER } from "../src/constants/dealData";
+import { DEPARTMENTS, TCV_BRACKETS as TCV_ORDER, DURATION_BRACKETS as DURATION_ORDER, DEAL_TYPES, DEAL_REGIONS } from "../src/constants/dealData";
 import { MappedUser } from "../src/hooks/useAuth";
+import { normalizeTcvBracket, normalizeDurationBracket, frictionScore } from "../src/utils/reviewSchema";
 
 interface GlobalTrendsProps {
   user: MappedUser | null;
@@ -15,6 +16,8 @@ interface GlobalTrendsProps {
 const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSignInClick }) => {
   const [filterIndustry, setFilterIndustry] = useState('all');
   const [filterTeam, setFilterTeam] = useState('all');
+  const [filterDealType, setFilterDealType] = useState('all');
+  const [filterRegion, setFilterRegion] = useState('all');
 
   const industries = useMemo(() => Array.from(new Set(reviews.map(r => r.industry))).sort(), [reviews]);
 
@@ -22,13 +25,23 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
     return reviews.filter(r => {
       const matchIndustry = filterIndustry === 'all' || r.industry === filterIndustry;
       const matchTeam = filterTeam === 'all' || r.buyingTeam.includes(filterTeam);
-      return matchIndustry && matchTeam;
+      const matchDealType = filterDealType === 'all' || r.dealType === filterDealType;
+      const matchRegion = filterRegion === 'all' || r.dealRegion === filterRegion;
+      return matchIndustry && matchTeam && matchDealType && matchRegion;
     });
-  }, [reviews, filterIndustry, filterTeam]);
+  }, [reviews, filterIndustry, filterTeam, filterDealType, filterRegion]);
 
   const stats = useMemo(() => {
     const total = filteredReviews.length || 1;
     const wins = filteredReviews.filter(r => r.status === 'Won').length;
+    const noDecisions = filteredReviews.filter(r => r.status === 'No Decision').length;
+
+    const frictionScores = filteredReviews
+      .map(frictionScore)
+      .filter((n): n is number => n !== null);
+    const frictionIndex = frictionScores.length
+      ? Math.round(frictionScores.reduce((a, b) => a + b, 0) / frictionScores.length)
+      : null;
 
     const indMap: Record<string, { count: number, wins: number, respTotal: number, wasteTotal: number }> = {};
     filteredReviews.forEach(r => {
@@ -59,9 +72,11 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
     });
 
     filteredReviews.forEach(r => {
-      if (matrix[r.cycleDuration] && matrix[r.cycleDuration][r.tcvBracket]) {
-        matrix[r.cycleDuration][r.tcvBracket].count++;
-        if (r.status === 'Won') matrix[r.cycleDuration][r.tcvBracket].wins++;
+      const d = normalizeDurationBracket(r.cycleDuration);
+      const t = normalizeTcvBracket(r.tcvBracket);
+      if (d && t) {
+        matrix[d][t].count++;
+        if (r.status === 'Won') matrix[d][t].wins++;
       }
     });
 
@@ -78,7 +93,16 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
       .map(([name, data]) => ({ name, avgFriction: (data.friction / data.count).toFixed(1), count: data.count }))
       .sort((a, b) => parseFloat(b.avgFriction) - parseFloat(a.avgFriction));
 
-    return { total: filteredReviews.length, winRate: Math.round((wins / total) * 100), topIndustries, matrix, departments };
+    return {
+      total: filteredReviews.length,
+      winRate: Math.round((wins / total) * 100),
+      noDecisionRate: Math.round((noDecisions / total) * 100),
+      frictionIndex,
+      frictionSample: frictionScores.length,
+      topIndustries,
+      matrix,
+      departments,
+    };
   }, [filteredReviews]);
 
   // Unauthenticated "Vault" Screen (Unified)
@@ -145,6 +169,20 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
               {DEPARTMENTS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Deal Type</label>
+            <select value={filterDealType} onChange={(e) => setFilterDealType(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 focus:border-accent/30 focus:bg-white rounded-xl px-5 py-4 text-sm font-bold text-slate-700 outline-none transition-all cursor-pointer">
+              <option value="all">All Deal Types</option>
+              {DEAL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Region</label>
+            <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 focus:border-accent/30 focus:bg-white rounded-xl px-5 py-4 text-sm font-bold text-slate-700 outline-none transition-all cursor-pointer">
+              <option value="all">All Regions</option>
+              {DEAL_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -178,8 +216,13 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
               <StatSummaryCard label="Verified Reports" value={stats.total} icon="fa-fingerprint" />
               <StatSummaryCard label="Global Win Rate" value={`${stats.winRate}%`} icon="fa-trophy" color="text-emerald-500" />
-              <StatSummaryCard label="Legal Friction" value={stats.departments[0]?.avgFriction || '0'} icon="fa-handshake-simple" color="text-amber-500" />
-              <StatSummaryCard label="Markets" value={industries.length} icon="fa-globe" color="text-accent" />
+              <StatSummaryCard label="No Decision Rate" value={`${stats.noDecisionRate}%`} icon="fa-hourglass-half" color="text-amber-500" />
+              <StatSummaryCard
+                label="Friction Index"
+                value={stats.frictionIndex !== null ? `${stats.frictionIndex}` : "N/A"}
+                icon="fa-gauge-high"
+                color="text-rose-500"
+              />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">

@@ -7,7 +7,26 @@ import Icon from "../src/components/Icon";
 import { Loader2 } from "lucide-react";
 import { useToast } from "../src/components/Toast";
 import { companyLogoUrl } from "../src/utils/companyLogo";
-import { DEPARTMENTS, TCV_BRACKETS, DURATION_BRACKETS } from "../src/constants/dealData";
+import {
+  DEPARTMENTS,
+  TCV_BRACKETS,
+  DURATION_BRACKETS,
+  OUTCOMES,
+  Outcome,
+  DEAL_TYPES,
+  DEAL_REGIONS,
+  CURRENCIES,
+  SELLER_CATEGORIES,
+  SELLER_SIZES,
+  FRICTION_EVENTS,
+  VERBAL_TO_SIGNATURE,
+  CLOSE_SLIPPAGE,
+  PAYMENT_TERMS,
+  PROCUREMENT_ENTRY,
+  STAKEHOLDER_COUNTS,
+  recentDealPeriods,
+} from "../src/constants/dealData";
+import { countryToRegion } from "../src/utils/reviewSchema";
 import { MappedUser } from "../src/hooks/useAuth";
 import { ReviewCooldownError } from "../src/hooks/useReviews";
 import { track } from "../src/utils/analytics";
@@ -51,8 +70,11 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
   const [tcvBracket, setTcvBracket] = useState<string>(TCV_BRACKETS[0]);
   const [cycleDuration, setCycleDuration] = useState<string>(DURATION_BRACKETS[0]);
-  const [status, setStatus] = useState<"Won" | "Lost" | "Ongoing">("Won");
+  const [status, setStatus] = useState<Outcome>("Won");
   const [isTender, setIsTender] = useState(false);
+  const [dealType, setDealType] = useState<string>(DEAL_TYPES[0]);
+  const [dealRegion, setDealRegion] = useState<string>(DEAL_REGIONS[0]);
+  const [regionTouched, setRegionTouched] = useState(false);
   const [buyingTeam, setBuyingTeam] = useState<string[]>([]);
   const [commRating, setCommRating] = useState(0);
   const [negotiation, setNegotiation] = useState(0);
@@ -77,6 +99,12 @@ const CreateReview: React.FC<CreateReviewProps> = ({
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, selectedCompany]);
+
+  useEffect(() => {
+    if (selectedCompany && !regionTouched) {
+      setDealRegion(countryToRegion(selectedCompany.country));
+    }
+  }, [selectedCompany, regionTouched]);
 
   const handleDeptAdd = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const dept = e.target.value;
@@ -381,18 +409,20 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                 <select
                   value={status}
                   onChange={(e) =>
-                    setStatus(e.target.value as "Won" | "Lost" | "Ongoing")
+                    setStatus(e.target.value as Outcome)
                   }
                   className="w-full bg-white border border-slate-200 rounded-control px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-accent/30 transition-colors"
                 >
-                  <option value="Won">Won</option>
-                  <option value="Lost">Lost</option>
-                  <option value="Ongoing">Ongoing</option>
+                  {OUTCOMES.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-card space-y-4 shadow-sm">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  TCV Range
+                  TCV Range (USD equiv.)
                 </label>
                 <select
                   value={tcvBracket}
@@ -443,6 +473,16 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   </button>
                 </div>
               </div>
+              <DealSelectCard label="Deal Type" value={dealType} onChange={setDealType} options={DEAL_TYPES} />
+              <DealSelectCard
+                label="Region Sold Into"
+                value={dealRegion}
+                onChange={(v) => {
+                  setRegionTouched(true);
+                  setDealRegion(v);
+                }}
+                options={DEAL_REGIONS}
+              />
             </div>
 
             <div className="p-10 bg-slate-50/50 border border-slate-200 rounded-card space-y-8 shadow-inner">
@@ -663,6 +703,30 @@ const CreateReview: React.FC<CreateReviewProps> = ({
     </div>
   );
 };
+
+const DealSelectCard: React.FC<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly string[];
+}> = ({ label, value, onChange, options }) => (
+  <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-card space-y-4 shadow-sm">
+    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+      {label}
+    </label>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full bg-white border border-slate-200 rounded-control px-4 py-4 text-sm font-bold text-slate-700 outline-none shadow-sm cursor-pointer hover:border-accent/30"
+    >
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </select>
+  </div>
+);
 
 const ScorecardCard: React.FC<{
   label: string;

@@ -21,7 +21,7 @@ export interface Review {
   currency: string;
   tcvBracket: string;
   cycleDuration: string;
-  status: 'Won' | 'Lost' | 'Ongoing';
+  status: 'Won' | 'Lost' | 'No Decision' | 'Withdrew' | 'Ongoing';
   isTender: boolean;
   buyingTeam: string[];
   location: string;
@@ -37,6 +37,21 @@ export interface Review {
   content: string;
   logoUrl?: string;
   createdAt: string;
+
+  // --- Schema v2 (2026-07). Absent on legacy reviews; set server-side. ---
+  schemaVersion?: number;
+  dealType?: string; // DEAL_TYPES
+  dealRegion?: string; // DEAL_REGIONS — region sold INTO (buying entity), not company HQ
+  dealPeriod?: string; // e.g. "Q3 2026" or "Older" — when the deal concluded/stalled
+  sellerCategory?: string; // SELLER_CATEGORIES — what the reviewer sells
+  sellerSize?: string; // SELLER_SIZES — reviewer's company headcount
+  frictionEvents?: string[]; // FRICTION_EVENTS subset; empty array = none observed
+  verbalToSignature?: string; // VERBAL_TO_SIGNATURE
+  closeSlippage?: string; // CLOSE_SLIPPAGE
+  wentDark?: boolean; // buyer went silent >2 weeks mid-cycle
+  paymentTerms?: string; // PAYMENT_TERMS
+  procurementEntry?: string; // PROCUREMENT_ENTRY
+  stakeholderCount?: string; // STAKEHOLDER_COUNTS
 }
 
 export interface AIModerationResult {

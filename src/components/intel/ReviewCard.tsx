@@ -44,9 +44,11 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review: r }) => (
         className={`text-2xs font-semibold rounded-control px-3 py-1 ${
           r.status === "Won"
             ? "bg-emerald-50 text-signal-healthy"
-            : r.status === "Lost"
+            : r.status === "Lost" || r.status === "No Decision"
               ? "bg-rose-50 text-signal-risk"
-              : "bg-navy-50 text-accent"
+              : r.status === "Withdrew"
+                ? "bg-amber-50 text-signal-caution"
+                : "bg-navy-50 text-accent"
         }`}
       >
         {r.status}
@@ -63,6 +65,9 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review: r }) => (
       <span>{r.tcvBracket}</span>
       <span>· {r.cycleDuration}</span>
       <span>· {r.isTender ? "Tender" : "Direct"}</span>
+      {r.dealType && <span>· {r.dealType}</span>}
+      {r.dealRegion && <span>· {r.dealRegion}</span>}
+      {r.dealPeriod && <span>· {r.dealPeriod}</span>}
       {r.buyingTeam.map((t) => (
         <span key={t} className="text-accent bg-navy-50 rounded px-1.5">{t}</span>
       ))}

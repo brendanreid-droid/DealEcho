@@ -41,3 +41,6 @@ functions/lib/
 .env.local
 .env.*.local
 .superpowers/
+
+# Extension store submission zips (built artifacts, not source)
+extension/release/

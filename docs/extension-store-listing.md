@@ -1,15 +1,15 @@
-# Chrome Web Store Listing - DealEcho
+# Chrome Web Store Listing - Dealecho
 
 ## Name
-DealEcho - Sales Intelligence
+Dealecho - Sales Intelligence
 
 ## Short description (max 132 chars)
 See how companies actually buy - reviews, buyer personas and red flags from real sellers, on any prospect site or CRM.
 
 ## Long description
-DealEcho shows you seller-submitted intelligence about the company you are looking at - before your first call.
+Dealecho shows you seller-submitted intelligence about the company you are looking at - before your first call.
 
-Click the DealEcho icon on any prospect website (or highlight a company name inside your CRM) and the side panel shows:
+Click the Dealecho icon on any prospect website (or highlight a company name inside your CRM) and the side panel shows:
 
 - Buyer health score and rating from verified seller reviews
 - Score breakdown: responsiveness, negotiation, buyer intent, scope clarity
@@ -19,7 +19,7 @@ Click the DealEcho icon on any prospect website (or highlight a company name ins
 
 Stop walking into deals blind. Know the buying process, the friction and the timeline before you spend a quarter discovering it.
 
-Requires a free DealEcho account (dealecho.io). Review details are part of DealEcho Pro.
+Requires a free Dealecho account (dealecho.io). Review details are part of Dealecho Pro.
 
 ## Category
 Productivity → Workflow & Planning (Chrome); Productivity (Edge)

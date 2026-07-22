@@ -174,7 +174,18 @@ export function ReviewsView({
       >
         <CompanyLogo name={companyName ?? ""} domain={result.matchedDomain} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: theme.navy, letterSpacing: 0.3, textTransform: "uppercase" }}>
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: theme.navy,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {companyName}
           </div>
           {summary && (
@@ -234,6 +245,7 @@ export function ReviewsView({
       )}
 
       {isPro ? (
+        (recentReviews ?? []).length > 0 && (
         <Section label="Recent reviews" color={theme.faint}>
           {(recentReviews ?? []).map((r) => {
             const metaParts = [r.dealType, r.dealRegion, r.tcvBracket, r.dealPeriod ?? formatDate(r.createdAt)]
@@ -255,7 +267,7 @@ export function ReviewsView({
                 >
                   "{r.content}"
                 </div>
-                <div style={{ fontSize: 10, color: theme.sub, marginTop: 2, display: "flex", gap: 0 }}>
+                <div style={{ fontSize: 10, color: theme.sub, marginTop: 2 }}>
                   {METRICS.map((m, i) => (
                     <Tip key={m.key} text={m.hint} style={{ display: "inline-block" }}>
                       <span>{i > 0 ? " · " : ""}{m.short} {r[m.key]}</span>
@@ -266,6 +278,7 @@ export function ReviewsView({
             );
           })}
         </Section>
+        )
       ) : (
         <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10 }}>
           <a href="https://www.dealecho.io/pricing" target="_blank" rel="noreferrer" style={primaryBtn}>

@@ -218,7 +218,7 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
               <StatSummaryCard label="Global Win Rate" value={`${stats.winRate}%`} icon="fa-trophy" color="text-emerald-500" />
               <StatSummaryCard label="No Decision Rate" value={`${stats.noDecisionRate}%`} icon="fa-hourglass-half" color="text-amber-500" />
               <StatSummaryCard
-                label="Friction Index"
+                label={stats.frictionIndex !== null ? `Friction Index (${stats.frictionSample} rpts)` : "Friction Index"}
                 value={stats.frictionIndex !== null ? `${stats.frictionIndex}` : "N/A"}
                 icon="fa-gauge-high"
                 color="text-rose-500"

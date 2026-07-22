@@ -15,6 +15,8 @@ import Playbook from "../src/components/intel/Playbook";
 import EvidenceList from "../src/components/intel/EvidenceList";
 import { getAccountSignal, AccountSignal } from "../services/accountSignal";
 import Button from "../src/components/ui/Button";
+import { TCV_BRACKETS } from "../src/constants/dealData";
+import { normalizeTcvBracket } from "../src/utils/reviewSchema";
 
 interface CompanyProfileProps {
   user: MappedUser | null;
@@ -46,17 +48,12 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [showReviewRuleModal, setShowReviewRuleModal] = useState(false);
 
-  // Mapping TCV bracket strings to numeric order for sorting
-  const TCV_ORDER: Record<string, number> = {
-    "< $10k": 1,
-    "$10k - $25k": 2,
-    "$25k - $50k": 3,
-    "$50k - $100k": 4,
-    "$100k - $250k": 5,
-    "$250k - $500k": 6,
-    "$500k - $750k": 7,
-    "$750k - $1M": 8,
-    "$1M+": 9,
+  // Numeric order for TCV bracket sorting, derived from the shared bracket
+  // list so new brackets can't silently drop out of the sort again.
+  // index 1..N in bracket order; legacy "$1M+" normalizes into the new scale; unknown → 0 (sorts last/lowest)
+  const tcvRank = (bracket: string): number => {
+    const b = normalizeTcvBracket(bracket);
+    return b ? TCV_BRACKETS.indexOf(b) + 1 : 0;
   };
 
   useEffect(() => {
@@ -107,13 +104,13 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       case "oldest":
         return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       case "deal-high":
-        return sorted.sort((a, b) => (TCV_ORDER[b.tcvBracket] || 0) - (TCV_ORDER[a.tcvBracket] || 0));
+        return sorted.sort((a, b) => tcvRank(b.tcvBracket) - tcvRank(a.tcvBracket));
       case "deal-low":
-        return sorted.sort((a, b) => (TCV_ORDER[a.tcvBracket] || 0) - (TCV_ORDER[b.tcvBracket] || 0));
+        return sorted.sort((a, b) => tcvRank(a.tcvBracket) - tcvRank(b.tcvBracket));
       default:
         return sorted;
     }
-  }, [filteredReviews, sortOrder, TCV_ORDER]);
+  }, [filteredReviews, sortOrder]);
 
   // Aggregated Stats for Header
   const statsSummary = useMemo(() => {

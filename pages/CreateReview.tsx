@@ -382,6 +382,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                   onClick={() => {
                     setSelectedCompany(null);
                     setSearchQuery("");
+                    setRegionTouched(false);
                   }}
                   className="w-12 h-12 rounded-2xl bg-white text-slate-300 hover:text-rose-500 transition-all shadow-sm border border-slate-100 flex items-center justify-center group/btn"
                 >

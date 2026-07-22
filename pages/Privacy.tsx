@@ -250,9 +250,12 @@ const Privacy: React.FC = () => {
                 <li>
                   <strong className="text-slate-200">Authentication Credentials:</strong> If you sign in to the extension using Google Single Sign-On or email/password, your credentials are handled by Firebase Authentication. The extension does not store raw passwords or OAuth tokens on your device beyond the active browser session.
                 </li>
+                <li>
+                  <strong className="text-slate-200">Company Identification via AI:</strong> The hostname or highlighted text sent from the extension may be processed by our AI provider (see the Google Gemini disclosure above) solely to identify the company you are looking up.
+                </li>
               </ul>
               <p>
-                The extension does not inject scripts into pages at load time, does not read page content without an explicit user action, and does not transmit data to any third party other than Dealecho's own Firebase backend and Google's authentication services.
+                The extension does not inject scripts into pages at load time, does not read page content without an explicit user action, and does not transmit data to any third party other than Dealecho's own Firebase backend, Google's authentication services, and our AI provider as described above. We do not sell extension data or use it for advertising.
               </p>
               <p>
                 You can remove the extension at any time via Chrome's extension management page (<em>chrome://extensions</em>). Removal immediately stops all data collection by the extension.

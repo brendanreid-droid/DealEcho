@@ -1,4 +1,4 @@
-# Chrome Web Store Listing — DealEcho
+# Chrome Web Store Listing - DealEcho
 
 ## Name
 DealEcho - Sales Intelligence

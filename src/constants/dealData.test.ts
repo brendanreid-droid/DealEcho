@@ -34,7 +34,7 @@ describe("dealData v2 constants", () => {
 
 describe("recentDealPeriods", () => {
   it("returns 8 quarters newest-first plus Older, from a fixed date", () => {
-    const periods = recentDealPeriods(new Date("2026-07-22"));
+    const periods = recentDealPeriods(new Date(2026, 6, 22));
     expect(periods[0]).toBe("Q3 2026");
     expect(periods[1]).toBe("Q2 2026");
     expect(periods[7]).toBe("Q4 2024");

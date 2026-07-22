@@ -38,6 +38,16 @@ const formatDate = (iso: string): string =>
     year: "numeric",
   });
 
+const PREFS_KEY = "dealecho.reviewerPrefs";
+
+const readPrefs = (): { sellerCategory?: string; sellerSize?: string; currency?: string } => {
+  try {
+    return JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+};
+
 interface CreateReviewProps {
   user: MappedUser | null;
   onAddReview: (review: Review) => Promise<boolean>;
@@ -75,6 +85,27 @@ const CreateReview: React.FC<CreateReviewProps> = ({
   const [dealType, setDealType] = useState<string>(DEAL_TYPES[0]);
   const [dealRegion, setDealRegion] = useState<string>(DEAL_REGIONS[0]);
   const [regionTouched, setRegionTouched] = useState(false);
+
+  const [showDetails, setShowDetails] = useState(false);
+  const prefs = useRef(readPrefs()).current;
+  const dealPeriods = recentDealPeriods();
+  const [dealPeriod, setDealPeriod] = useState<string>(dealPeriods[0]); // defaults to current quarter
+  const [currency, setCurrency] = useState<string>(prefs.currency ?? CURRENCIES[0]);
+  const [sellerCategory, setSellerCategory] = useState<string>(prefs.sellerCategory ?? SELLER_CATEGORIES[0]);
+  const [sellerSize, setSellerSize] = useState<string>(prefs.sellerSize ?? SELLER_SIZES[0]);
+  const [frictionEvents, setFrictionEvents] = useState<string[]>([]);
+  const [verbalToSignature, setVerbalToSignature] = useState<string>("Unknown");
+  const [closeSlippage, setCloseSlippage] = useState<string>("Unknown");
+  const [wentDark, setWentDark] = useState(false);
+  const [paymentTerms, setPaymentTerms] = useState<string>("Unknown / N/A");
+  const [procurementEntry, setProcurementEntry] = useState<string>("Unknown");
+  const [stakeholderCount, setStakeholderCount] = useState<string>(STAKEHOLDER_COUNTS[0]);
+
+  const toggleFriction = (ev: string) =>
+    setFrictionEvents((prev) =>
+      prev.includes(ev) ? prev.filter((e) => e !== ev) : [...prev, ev],
+    );
+
   const [buyingTeam, setBuyingTeam] = useState<string[]>([]);
   const [commRating, setCommRating] = useState(0);
   const [negotiation, setNegotiation] = useState(0);
@@ -118,11 +149,13 @@ const CreateReview: React.FC<CreateReviewProps> = ({
     setBuyingTeam((prev) => prev.filter((d) => d !== dept));
   };
 
+  const wordCount = content.trim().split(/\s+/).filter((w) => w).length;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !selectedCompany ||
-      !content ||
+      wordCount < 50 ||
       commRating === 0 ||
       negotiation === 0 ||
       timeWaster === 0 ||
@@ -130,7 +163,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       buyingTeam.length === 0
     ) {
       setError(
-        "Please complete all sections, including selecting at least one department in the Buying Team.",
+        "Please complete all sections - at least one Buying Team department, all four scorecard ratings, and a Strategic Context write-up of 50+ words.",
       );
       errorRef.current?.scrollIntoView({ behavior: "smooth" });
       return;
@@ -150,11 +183,24 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       companyName: selectedCompany.name,
       userId: user?.id || "user-1",
       userName: user?.name || "Anonymous",
-      currency: "USD",
+      currency,
       tcvBracket,
       cycleDuration,
       status,
       isTender,
+      schemaVersion: 2,
+      dealType,
+      dealRegion,
+      dealPeriod,
+      sellerCategory,
+      sellerSize,
+      frictionEvents,
+      verbalToSignature,
+      closeSlippage,
+      wentDark,
+      paymentTerms,
+      procurementEntry,
+      stakeholderCount,
       buyingTeam,
       location: selectedCompany.country,
       communicationRating: commRating,
@@ -170,6 +216,11 @@ const CreateReview: React.FC<CreateReviewProps> = ({
     onAddReview(newReview).then((success) => {
       setIsSubmitting(false);
       if (success) {
+        try {
+          localStorage.setItem(PREFS_KEY, JSON.stringify({ sellerCategory, sellerSize, currency }));
+        } catch {
+          // storage unavailable (private mode) — prefill is best-effort
+        }
         toast.success("Review submitted for moderation.");
         track("review_submitted", { company: selectedCompany.name });
         navigate("/");
@@ -544,6 +595,117 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             </div>
           </section>
 
+          {/* Optional: Deal Details — objective events, not opinions. Collapsed by default
+              to keep the required path fast; every field has a safe default. */}
+          <section className="space-y-6">
+            <button
+              type="button"
+              onClick={() => setShowDetails((s) => !s)}
+              className="w-full flex items-center justify-between p-6 md:p-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-card hover:border-accent/30 transition-all text-left group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 rounded-2xl bg-white text-accent flex items-center justify-center border border-slate-200 shadow-sm">
+                  <Icon name={showDetails ? "fa-chevron-up" : "fa-plus"} size={14} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">
+                    Deal Details <span className="text-slate-400 normal-case tracking-normal font-medium">(optional, ~60 seconds)</span>
+                  </h3>
+                  <p className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mt-1">
+                    Powers the benchmarks you get back. Skip freely - defaults are fine.
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {showDetails && (
+              <div className="p-10 bg-slate-50/50 border border-slate-200 rounded-card space-y-8 shadow-inner">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-900 uppercase tracking-widest block mb-1">
+                    Procurement Gauntlet
+                  </label>
+                  <p className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mb-6">
+                    Select everything the buyer required. Leave empty if none applied.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {FRICTION_EVENTS.map((ev) => (
+                      <button
+                        key={ev}
+                        type="button"
+                        onClick={() => toggleFriction(ev)}
+                        className={`px-4 py-3.5 rounded-control border-2 text-[11px] font-bold uppercase tracking-widest text-left transition-all ${
+                          frictionEvents.includes(ev)
+                            ? "bg-accent text-white border-accent shadow-lg"
+                            : "bg-white text-slate-500 border-slate-200 hover:border-accent/30"
+                        }`}
+                      >
+                        {ev}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <DealSelectCard
+                    label="Verbal Yes → Signature"
+                    value={verbalToSignature}
+                    onChange={setVerbalToSignature}
+                    options={VERBAL_TO_SIGNATURE}
+                  />
+                  <DealSelectCard
+                    label="Close Date Slippage"
+                    value={closeSlippage}
+                    onChange={setCloseSlippage}
+                    options={CLOSE_SLIPPAGE}
+                  />
+                  <DealSelectCard
+                    label="Payment Terms Demanded"
+                    value={paymentTerms}
+                    onChange={setPaymentTerms}
+                    options={PAYMENT_TERMS}
+                  />
+                  <DealSelectCard
+                    label="Procurement Entered"
+                    value={procurementEntry}
+                    onChange={setProcurementEntry}
+                    options={PROCUREMENT_ENTRY}
+                  />
+                  <DealSelectCard
+                    label="Stakeholders Involved"
+                    value={stakeholderCount}
+                    onChange={setStakeholderCount}
+                    options={STAKEHOLDER_COUNTS}
+                  />
+                  <div className="p-8 bg-slate-50/80 border border-slate-200 rounded-card flex flex-col space-y-4 shadow-sm">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      Buyer Went Dark &gt;2 Weeks?
+                    </label>
+                    <div className="grid grid-cols-2 bg-white p-1.5 rounded-control border border-slate-200 shadow-sm">
+                      <button
+                        type="button"
+                        onClick={() => setWentDark(true)}
+                        className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${wentDark ? "bg-accent text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setWentDark(false)}
+                        className={`py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${!wentDark ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"}`}
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+                  <DealSelectCard label="Deal Period" value={dealPeriod} onChange={setDealPeriod} options={dealPeriods} />
+                  <DealSelectCard label="Deal Currency" value={currency} onChange={setCurrency} options={CURRENCIES} />
+                  <DealSelectCard label="What You Sell" value={sellerCategory} onChange={setSellerCategory} options={SELLER_CATEGORIES} />
+                  <DealSelectCard label="Your Company Size" value={sellerSize} onChange={setSellerSize} options={SELLER_SIZES} />
+                </div>
+              </div>
+            )}
+          </section>
+
           {/* Section 3: Scorecard */}
           <section className="space-y-8">
             <div className="flex items-center space-x-4">
@@ -630,14 +792,14 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             />
             <div className="flex items-center justify-between px-4">
               <p className="text-sm text-slate-500 font-medium">
-                {content.trim().split(/\s+/).length < 50 ? (
+                {wordCount < 50 ? (
                   <>Share what <strong>worked</strong> and what <strong>didn't</strong> in your sales cycle</>
                 ) : (
                   <span className="text-emerald-600 font-bold">✓ Ready to submit</span>
                 )}
               </p>
-              <div className={`text-sm font-bold ${content.trim().split(/\s+/).length >= 50 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                {content.trim().split(/\s+/).filter(w => w).length}/50 words
+              <div className={`text-sm font-bold ${wordCount >= 50 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                {wordCount}/50 words
               </div>
             </div>
           </section>
@@ -685,7 +847,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             disabled={
               isSubmitting ||
               !selectedCompany ||
-              !content ||
+              wordCount < 50 ||
               commRating === 0 ||
               negotiation === 0 ||
               timeWaster === 0 ||

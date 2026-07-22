@@ -616,10 +616,10 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 uppercase tracking-[0.2em]">
-                    Deal Details <span className="text-slate-400 normal-case tracking-normal font-medium">(optional, ~60 seconds)</span>
+                    Deal Details
                   </h3>
                   <p className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mt-1">
-                    Powers the benchmarks you get back. Skip freely - defaults are fine.
+                    Powers the benchmarks you get back.
                   </p>
                 </div>
               </div>
@@ -707,7 +707,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
                       </button>
                     </div>
                   </div>
-                  <DealSelectCard label="Deal Period" value={dealPeriod} onChange={setDealPeriod} options={dealPeriods} />
+                  <DealSelectCard label="When Deal Ended" value={dealPeriod} onChange={setDealPeriod} options={dealPeriods} />
                   <DealSelectCard label="Deal Currency" value={currency} onChange={setCurrency} options={CURRENCIES} />
                   <DealSelectCard label="What You Sell" value={sellerCategory} onChange={setSellerCategory} options={SELLER_CATEGORIES} />
                   <DealSelectCard label="Your Company Size" value={sellerSize} onChange={setSellerSize} options={SELLER_SIZES} />

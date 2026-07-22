@@ -99,9 +99,19 @@ export const CURRENCIES = ["USD", "AUD", "EUR", "GBP", "Other"] as const;
 export const SELLER_CATEGORIES = [
   "Software / SaaS",
   "IT Services / Consulting",
+  "Professional Services (Legal / Accounting / Advisory)",
   "Hardware / Equipment",
+  "Industrial / Manufacturing",
+  "Construction / Facilities",
+  "Logistics / Supply Chain",
+  "Marketing / Media / Agency",
   "Financial Services",
+  "Insurance",
   "Telco / Infrastructure",
+  "Energy / Utilities",
+  "Healthcare / Life Sciences",
+  "HR / Recruitment / Training",
+  "Travel / Events / Corporate Services",
   "Other",
 ] as const;
 

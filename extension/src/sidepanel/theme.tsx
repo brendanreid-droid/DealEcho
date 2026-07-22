@@ -25,10 +25,12 @@ export function healthColor(v: number): string {
   return theme.risk;
 }
 
-/** Won = emerald, Lost = rose, anything else = muted. */
+/** Review outcome colour. Mirrors the web app's ReviewCard badge mapping. */
 export function statusColor(status: string): string {
   if (status === "Won") return theme.healthy;
-  if (status === "Lost") return theme.risk;
+  if (status === "Lost" || status === "No Decision") return theme.risk;
+  if (status === "Withdrew") return theme.caution;
+  if (status === "Ongoing") return theme.accent;
   return theme.sub;
 }
 

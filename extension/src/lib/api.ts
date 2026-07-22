@@ -28,6 +28,12 @@ export interface LookupReview {
   negotiationLevel: number;
   timeWasterLevel: number;
   clarityOfScope: number;
+  // Schema v2 (optional — absent on legacy reviews)
+  schemaVersion?: number;
+  dealType?: string;
+  dealRegion?: string;
+  dealPeriod?: string;
+  tcvBracket?: string;
 }
 
 export interface LookupResult {
@@ -38,6 +44,8 @@ export interface LookupResult {
   summary?: LookupSummary;
   persona?: { summary?: string } | null;
   recentReviews?: LookupReview[];
+  /** Domain safe to derive a favicon from; null/absent = show initials avatar. */
+  matchedDomain?: string | null;
 }
 
 export interface LookupInput {

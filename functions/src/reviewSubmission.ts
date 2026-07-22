@@ -96,8 +96,14 @@ function sanitize(data: any): ReviewPayload {
   const dealPeriod =
     /^Q[1-4] 20\d{2}$/.test(dealPeriodRaw) || dealPeriodRaw === "Older" ? dealPeriodRaw : "Older";
 
-  const frictionEvents = Array.isArray(data?.frictionEvents)
-    ? data.frictionEvents.filter((e: unknown) => typeof e === "string" && (FRICTION_EVENTS as readonly string[]).includes(e))
+  const frictionEvents: string[] = Array.isArray(data?.frictionEvents)
+    ? Array.from(
+        new Set(
+          (data.frictionEvents as unknown[]).filter(
+            (e: unknown): e is string => typeof e === "string" && (FRICTION_EVENTS as readonly string[]).includes(e),
+          ),
+        ),
+      ).slice(0, FRICTION_EVENTS.length)
     : [];
 
   return {

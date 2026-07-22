@@ -17,6 +17,23 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { db } from "./lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
+import {
+  TCV_BRACKETS,
+  DURATION_BRACKETS,
+  OUTCOMES,
+  DEAL_TYPES,
+  DEAL_REGIONS,
+  CURRENCIES,
+  SELLER_CATEGORIES,
+  SELLER_SIZES,
+  FRICTION_EVENTS,
+  VERBAL_TO_SIGNATURE,
+  CLOSE_SLIPPAGE,
+  PAYMENT_TERMS,
+  PROCUREMENT_ENTRY,
+  STAKEHOLDER_COUNTS,
+  enumOr,
+} from "./lib/reviewSchema";
 
 const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 182; // ~6 months
 
@@ -27,7 +44,7 @@ interface ReviewPayload {
   currency: string;
   tcvBracket: string;
   cycleDuration: string;
-  status: "Won" | "Lost" | "Ongoing";
+  status: "Won" | "Lost" | "No Decision" | "Withdrew" | "Ongoing";
   isTender: boolean;
   buyingTeam: string[];
   location: string;
@@ -38,6 +55,19 @@ interface ReviewPayload {
   industry: string;
   country: string;
   content: string;
+  schemaVersion: number;
+  dealType: string;
+  dealRegion: string;
+  dealPeriod: string;
+  sellerCategory: string;
+  sellerSize: string;
+  frictionEvents: string[];
+  verbalToSignature: string;
+  closeSlippage: string;
+  wentDark: boolean;
+  paymentTerms: string;
+  procurementEntry: string;
+  stakeholderCount: string;
 }
 
 /** Whitelist + coerce the client payload; reject obviously invalid input. */
@@ -56,17 +86,26 @@ function sanitize(data: any): ReviewPayload {
     throw new HttpsError("invalid-argument", "Review is too short (minimum 50 words). Share what worked and what didn't in this sales cycle - communication, negotiation, buyer intent, and scope clarity.");
   }
 
-  const outcome = ["Won", "Lost", "Ongoing"].includes(data?.status) ? data.status : "Ongoing";
+  const outcome = enumOr(OUTCOMES, data?.status, "Ongoing") as ReviewPayload["status"];
   const buyingTeam = Array.isArray(data?.buyingTeam)
     ? data.buyingTeam.filter((d: any) => typeof d === "string").slice(0, 20)
+    : [];
+
+  // Deal period is client-generated ("Q3 2026" / "Older") — validate shape, not membership.
+  const dealPeriodRaw = str(data?.dealPeriod).trim();
+  const dealPeriod =
+    /^Q[1-4] 20\d{2}$/.test(dealPeriodRaw) || dealPeriodRaw === "Older" ? dealPeriodRaw : "Older";
+
+  const frictionEvents = Array.isArray(data?.frictionEvents)
+    ? data.frictionEvents.filter((e: unknown) => typeof e === "string" && (FRICTION_EVENTS as readonly string[]).includes(e))
     : [];
 
   return {
     companyId,
     companyName: str(data?.companyName).trim(),
-    currency: str(data?.currency) || "USD",
-    tcvBracket: str(data?.tcvBracket),
-    cycleDuration: str(data?.cycleDuration),
+    currency: enumOr(CURRENCIES, data?.currency, "USD"),
+    tcvBracket: enumOr(TCV_BRACKETS, data?.tcvBracket, TCV_BRACKETS[0]),
+    cycleDuration: enumOr(DURATION_BRACKETS, data?.cycleDuration, DURATION_BRACKETS[0]),
     status: outcome,
     isTender: !!data?.isTender,
     buyingTeam,
@@ -78,6 +117,19 @@ function sanitize(data: any): ReviewPayload {
     industry: str(data?.industry),
     country: str(data?.country),
     content,
+    schemaVersion: 2,
+    dealType: enumOr(DEAL_TYPES, data?.dealType, DEAL_TYPES[0]),
+    dealRegion: enumOr(DEAL_REGIONS, data?.dealRegion, "Global / Multi-region"),
+    dealPeriod,
+    sellerCategory: enumOr(SELLER_CATEGORIES, data?.sellerCategory, "Other"),
+    sellerSize: enumOr(SELLER_SIZES, data?.sellerSize, SELLER_SIZES[0]),
+    frictionEvents,
+    verbalToSignature: enumOr(VERBAL_TO_SIGNATURE, data?.verbalToSignature, "Unknown"),
+    closeSlippage: enumOr(CLOSE_SLIPPAGE, data?.closeSlippage, "Unknown"),
+    wentDark: !!data?.wentDark,
+    paymentTerms: enumOr(PAYMENT_TERMS, data?.paymentTerms, "Unknown / N/A"),
+    procurementEntry: enumOr(PROCUREMENT_ENTRY, data?.procurementEntry, "Unknown"),
+    stakeholderCount: enumOr(STAKEHOLDER_COUNTS, data?.stakeholderCount, STAKEHOLDER_COUNTS[0]),
   };
 }
 

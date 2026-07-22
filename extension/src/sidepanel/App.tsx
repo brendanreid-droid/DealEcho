@@ -91,7 +91,7 @@ export function App() {
     top: 0,
     background: theme.white,
   };
-  const body: CSSProperties = { padding: 16 };
+  const body: CSSProperties = { padding: "14px 16px" };
 
   if (!authReady) {
     return (
@@ -172,22 +172,22 @@ export function App() {
           </div>
         )}
         {context && (
-          <p style={{ fontSize: 11, color: theme.faint, margin: "0 0 10px" }}>
+          <p style={{ fontSize: 10, color: theme.faint, margin: "0 0 10px" }}>
             Looking at <strong style={{ color: theme.sub }}>{context.hostname || "—"}</strong>
           </p>
         )}
         {!context && (
-          <p style={{ fontSize: 13, color: theme.sub }}>
+          <p style={{ fontSize: 12, color: theme.sub }}>
             Click the dealecho icon on a company page to begin.
           </p>
         )}
         {context && status === "loading" && (
-          <p style={{ fontSize: 13, color: theme.sub }}>
+          <p style={{ fontSize: 12, color: theme.sub }}>
             Looking up {context.selection || context.hostname}…
           </p>
         )}
         {context && status === "error" && (
-          <p style={{ fontSize: 13, color: theme.risk }}>Lookup failed. Try again.</p>
+          <p style={{ fontSize: 12, color: theme.risk }}>Lookup failed. Try again.</p>
         )}
         {context && status === "idle" && result && (
           <ReviewsView result={result} companyHint={context.selection || context.hostname} />

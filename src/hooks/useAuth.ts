@@ -38,6 +38,8 @@ export interface AuthState {
   isLoading: boolean;
   /** ISO expiry of an active give-to-get review unlock, else null. */
   reviewUnlockUntil: string | null;
+  /** ISO timestamp a retention offer was last redeemed, else null. */
+  retentionOfferAcceptedAt: string | null;
   /** True while a review unlock is active (full reviews readable). */
   hasReviewUnlock: boolean;
   /** Bumps on every token (re)read so data hooks can re-subscribe with the
@@ -54,6 +56,7 @@ export const useAuth = (): AuthState => {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamRole, setTeamRole] = useState<TeamRole | null>(null);
   const [reviewUnlockUntil, setReviewUnlockUntil] = useState<string | null>(null);
+  const [retentionOfferAcceptedAt, setRetentionOfferAcceptedAt] = useState<string | null>(null);
   const [claimsVersion, setClaimsVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -116,6 +119,11 @@ export const useAuth = (): AuthState => {
             // Give-to-get review unlock. The doc mirrors the custom claim; if
             // the doc shows an active unlock the current token doesn't yet
             // carry, force a token refresh so firestore.rules will honour it.
+            const acceptedAt = data.retentionOffer?.acceptedAt;
+            setRetentionOfferAcceptedAt(
+              typeof acceptedAt === 'string' ? acceptedAt : null,
+            );
+
             const until = data.reviewUnlock?.until;
             const untilStr = typeof until === 'string' ? until : null;
             setReviewUnlockUntil(untilStr);
@@ -142,6 +150,7 @@ export const useAuth = (): AuthState => {
         setTeamId(null);
         setTeamRole(null);
         setReviewUnlockUntil(null);
+        setRetentionOfferAcceptedAt(null);
       }
       setIsLoading(false);
     });
@@ -174,6 +183,7 @@ export const useAuth = (): AuthState => {
     hasReviewUnlock:
       !!reviewUnlockUntil &&
       new Date(reviewUnlockUntil).getTime() > Date.now(),
+    retentionOfferAcceptedAt,
     claimsVersion,
     refreshClaims,
   };

@@ -4,6 +4,20 @@ import { db } from "./lib/firebaseAdmin";
 
 type Plan = "monthly" | "annual";
 
+// A retention offer can only be redeemed once per this window, so users can't
+// repeatedly threaten to cancel to farm discounts.
+const RETENTION_COOLDOWN_MS = 365 * 24 * 60 * 60 * 1000; // 12 months
+
+function isActivePaid(role: unknown, tier: unknown): boolean {
+  return (
+    role === "paid" ||
+    role === "enterprise" ||
+    tier === "paid_monthly" ||
+    tier === "paid_annual" ||
+    tier === "enterprise"
+  );
+}
+
 /**
  * Returns a Stripe customer id valid under the CURRENT Stripe mode, creating a
  * new one if the stored id is missing/deleted or belongs to the other mode
@@ -244,6 +258,28 @@ export const applyRetentionOffer = onCall(
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
     const userData = userSnap.data();
+
+    // Guard 1: paid accounts only. Free users have no subscription to discount.
+    if (!isActivePaid(userData?.role, userData?.tier)) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Retention offers are only available on a paid plan.",
+      );
+    }
+
+    // Guard 2: one redemption per cooldown window, so cancelling can't be used
+    // to farm repeat discounts.
+    const prevAcceptedAt = userData?.retentionOffer?.acceptedAt;
+    if (typeof prevAcceptedAt === "string") {
+      const prevMs = new Date(prevAcceptedAt).getTime();
+      if (!isNaN(prevMs) && Date.now() - prevMs < RETENTION_COOLDOWN_MS) {
+        throw new HttpsError(
+          "failed-precondition",
+          "You've already redeemed a retention offer. This offer isn't available again yet.",
+        );
+      }
+    }
+
     if (!userData?.subscriptionId) {
       throw new HttpsError(
         "not-found",

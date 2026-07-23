@@ -46,7 +46,14 @@ const MyIntel: React.FC<MyIntelProps> = ({
   onSignInClick,
 }) => {
   const navigate = useNavigate();
-  const { refreshClaims, tier } = useAuth();
+  const { refreshClaims, tier, retentionOfferAcceptedAt } = useAuth();
+  // Mirrors the server's 12-month cooldown so we hide the offer step from users
+  // who've already redeemed (server still enforces authoritatively).
+  const RETENTION_COOLDOWN_MS = 365 * 24 * 60 * 60 * 1000;
+  const retentionOfferUsed =
+    !!retentionOfferAcceptedAt &&
+    Date.now() - new Date(retentionOfferAcceptedAt).getTime() <
+      RETENTION_COOLDOWN_MS;
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [offerSuccess, setOfferSuccess] = useState(false);
@@ -787,6 +794,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
       <RetentionModal
         isOpen={showRetention}
         tier={tier}
+        offerUsed={retentionOfferUsed}
         onClose={() => setShowRetention(false)}
         onApplyOffer={handleApplyOffer}
         onConfirmCancel={handleConfirmCancel}

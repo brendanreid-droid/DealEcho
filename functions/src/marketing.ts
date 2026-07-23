@@ -125,6 +125,38 @@ export const updateMarketingProfile = onCall({ cors: true }, async (request) => 
   return { status: "ok" };
 });
 
+// ── Locale / region capture ───────────────────────────────────────────────────
+interface LocalePayload {
+  region: string; // IANA timezone, e.g. "Australia/Sydney"
+  country: string; // 2-letter code derived from language tag, e.g. "AU"
+  language: string; // raw BCP-47 tag, e.g. "en-AU"
+}
+
+const TIMEZONE_PATTERN = /^(?:UTC|[A-Za-z]+(?:\/[A-Za-z0-9_+\-]+){1,2})$/;
+const LANGUAGE_PATTERN = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
+
+/** Extract an uppercase 2-letter region subtag from a BCP-47 language tag. */
+function countryFromLanguage(language: string): string {
+  const parts = language.split("-");
+  for (const p of parts.slice(1)) {
+    if (/^[A-Za-z]{2}$/.test(p)) return p.toUpperCase();
+  }
+  return "";
+}
+
+/** Validate browser-supplied locale. Returns null when nothing usable. */
+function sanitizeLocale(raw: any): LocalePayload | null {
+  if (!raw || typeof raw !== "object") return null;
+  const tz = typeof raw.timeZone === "string" ? raw.timeZone.slice(0, 60) : "";
+  const lang =
+    typeof raw.language === "string" ? raw.language.slice(0, 35) : "";
+  const region = TIMEZONE_PATTERN.test(tz) ? tz : "";
+  const language = LANGUAGE_PATTERN.test(lang) ? lang : "";
+  const country = language ? countryFromLanguage(language) : "";
+  if (!region && !country) return null;
+  return { region, country, language };
+}
+
 // ── recordActivity ────────────────────────────────────────────────────────────
 const ACTIVITY_TYPES = new Set(["search", "profile_view"]);
 const INDUSTRY_PATTERN = /^[A-Za-z0-9 &\-/().,'+]{1,60}$/;
@@ -186,6 +218,8 @@ export const recordActivity = onCall({ cors: true }, async (request) => {
  * client cannot write to someone else's record).
  *   - firstTouch: written once, immutable (first campaign that brought them in).
  *   - lastTouch:  refreshed each call (most recent campaign before signup).
+ * Also persists a coarse geo signal (browser timezone + locale country) under
+ * `geo`, independent of whether any attribution is present.
  */
 export const recordAcquisition = onCall({ cors: true }, async (request) => {
   if (!request.auth) {
@@ -195,8 +229,9 @@ export const recordAcquisition = onCall({ cors: true }, async (request) => {
 
   const firstTouch = sanitizeTouch(request.data?.firstTouch);
   const lastTouch = sanitizeTouch(request.data?.lastTouch);
-  if (!firstTouch && !lastTouch) {
-    return { status: "skipped", reason: "no attribution data" };
+  const locale = sanitizeLocale(request.data?.locale);
+  if (!firstTouch && !lastTouch && !locale) {
+    return { status: "skipped", reason: "no data" };
   }
 
   const userRef = db.collection("users").doc(uid);
@@ -204,20 +239,33 @@ export const recordAcquisition = onCall({ cors: true }, async (request) => {
   const existing = (snap.exists ? snap.data()?.acquisition : undefined) ?? {};
 
   const nowIso = new Date().toISOString();
-  const acquisition: Record<string, unknown> = { ...existing };
+  const update: Record<string, unknown> = {};
 
-  // firstTouch is immutable: only set when not already present.
-  if (firstTouch && !existing.firstTouch) {
-    acquisition.firstTouch = { ...firstTouch, recordedAt: nowIso };
+  if (firstTouch || lastTouch) {
+    const acquisition: Record<string, unknown> = { ...existing };
+    // firstTouch is immutable: only set when not already present.
+    if (firstTouch && !existing.firstTouch) {
+      acquisition.firstTouch = { ...firstTouch, recordedAt: nowIso };
+    }
+    // lastTouch always refreshed; fall back to firstTouch if that's all we have.
+    const lt = lastTouch ?? firstTouch;
+    if (lt) {
+      acquisition.lastTouch = { ...lt, recordedAt: nowIso };
+    }
+    acquisition.updatedAt = nowIso;
+    update.acquisition = acquisition;
   }
-  // lastTouch always refreshed; fall back to firstTouch if that's all we have.
-  const lt = lastTouch ?? firstTouch;
-  if (lt) {
-    acquisition.lastTouch = { ...lt, recordedAt: nowIso };
-  }
-  acquisition.updatedAt = nowIso;
 
-  await userRef.set({ acquisition }, { merge: true });
+  // Geo is set once and left alone (first-seen region wins), so a later trip
+  // abroad doesn't rewrite the account's home region.
+  if (locale && !snap.data()?.geo?.region && !snap.data()?.geo?.country) {
+    update.geo = { ...locale, recordedAt: nowIso };
+  }
+
+  if (Object.keys(update).length === 0) {
+    return { status: "skipped", reason: "nothing to update" };
+  }
+  await userRef.set(update, { merge: true });
   return { status: "ok" };
 });
 
@@ -230,6 +278,8 @@ interface ReportRow {
   isBusinessEmail: boolean;
   marketingRole: string;
   companySize: string;
+  region: string;
+  country: string;
   searches: number;
   profileViews: number;
   reviewCount: number;
@@ -319,6 +369,7 @@ export const adminGetAcquisitionReport = onCall(
       const domain = emailDomain(u.email ?? "");
       const mp = fs.marketingProfile ?? {};
       const behavior = fs.behavior ?? {};
+      const geo = fs.geo ?? {};
       return {
         uid: u.uid,
         email: u.email ?? "",
@@ -327,6 +378,8 @@ export const adminGetAcquisitionReport = onCall(
         isBusinessEmail: isBusinessDomain(domain),
         marketingRole: (mp.role as string) ?? "",
         companySize: (mp.companySize as string) ?? "",
+        region: (geo.region as string) ?? "",
+        country: (geo.country as string) ?? "",
         searches: (behavior.searches as number) ?? 0,
         profileViews: (behavior.profileViews as number) ?? 0,
         reviewCount: reviewCounts[u.uid] ?? 0,
@@ -410,6 +463,41 @@ export const adminGetAcquisitionReport = onCall(
       .map((c) => ({ ...c, conversionRate: c.signups ? c.paid / c.signups : 0 }))
       .sort((a, b) => b.signups - a.signups);
 
+    // Region rollup (browser timezone) with activity, so you can see both where
+    // signups come from and where the engaged usage is.
+    const regionRollup: Record<
+      string,
+      {
+        region: string;
+        country: string;
+        signups: number;
+        paid: number;
+        searches: number;
+        profileViews: number;
+      }
+    > = {};
+    for (const r of rows) {
+      const region = r.region || "(unknown)";
+      const g = (regionRollup[region] ??= {
+        region,
+        country: r.country,
+        signups: 0,
+        paid: 0,
+        searches: 0,
+        profileViews: 0,
+      });
+      g.signups += 1;
+      if (r.isPaid) g.paid += 1;
+      g.searches += r.searches;
+      g.profileViews += r.profileViews;
+      if (!g.country && r.country) g.country = r.country;
+    }
+    const regions = Object.values(regionRollup).sort(
+      (a, b) =>
+        b.signups - a.signups ||
+        b.searches + b.profileViews - (a.searches + a.profileViews),
+    );
+
     // Target accounts: business email domains grouped for outbound. Multiple
     // signups from one domain = warm account.
     const accountRollup: Record<
@@ -488,6 +576,7 @@ export const adminGetAcquisitionReport = onCall(
       campaigns,
       roles,
       emailTypes,
+      regions,
       accounts,
       totalUsers: rows.length,
       attributedUsers: attributed,

@@ -12,6 +12,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth, googleProvider } from "./src/firebase/config";
 import { track } from "./src/utils/analytics";
 import { captureAttribution, getAttribution, hasAttribution } from "./src/utils/attribution";
+import { getLocale } from "./src/utils/locale";
 
 const Home = lazy(() => import("./pages/Home"));
 const Search = lazy(() => import("./pages/Search"));
@@ -142,13 +143,16 @@ const App: React.FC = () => {
   // which writes it to the user doc. No-op when there's nothing to record.
   const recordAcquisition = async () => {
     const attribution = getAttribution();
-    if (!hasAttribution(attribution)) return;
+    const locale = getLocale();
+    // Fire when there's attribution OR a locale signal to persist. Locale is
+    // always available, so this now runs for every new signup.
+    if (!hasAttribution(attribution) && !locale) return;
     try {
       const fn = httpsCallable(
         getFunctions(undefined, "australia-southeast1"),
         "recordAcquisition",
       );
-      await fn(attribution);
+      await fn({ ...attribution, ...(locale ? { locale } : {}) });
     } catch {
       /* attribution must never block the signup flow */
     }

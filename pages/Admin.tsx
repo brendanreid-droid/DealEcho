@@ -48,6 +48,8 @@ interface AcquisitionRow {
   isBusinessEmail: boolean;
   marketingRole: string;
   companySize: string;
+  region: string;
+  country: string;
   searches: number;
   profileViews: number;
   reviewCount: number;
@@ -95,6 +97,15 @@ interface EmailTypeRollup {
   conversionRate: number;
 }
 
+interface RegionRollup {
+  region: string;
+  country: string;
+  signups: number;
+  paid: number;
+  searches: number;
+  profileViews: number;
+}
+
 interface AccountUser {
   email: string;
   displayName: string;
@@ -122,6 +133,7 @@ interface AcquisitionReport {
   campaigns: CampaignRollup[];
   roles: RoleRollup[];
   emailTypes: EmailTypeRollup[];
+  regions: RegionRollup[];
   accounts: AccountRollup[];
   totalUsers: number;
   attributedUsers: number;
@@ -1127,6 +1139,7 @@ const Admin: React.FC = () => {
                     const cols: (keyof AcquisitionRow)[] = [
                       "uid", "email", "displayName", "emailDomain",
                       "isBusinessEmail", "marketingRole", "companySize",
+                      "region", "country",
                       "searches", "profileViews", "reviewCount",
                       "topIndustries", "lastActiveAt",
                       "createdAt", "role", "tier", "isPaid",
@@ -1198,6 +1211,25 @@ const Admin: React.FC = () => {
                 >
                   <Icon name="fa-download" size={12} />
                   Accounts CSV
+                </button>
+                <button
+                  onClick={() => {
+                    if (!report) return;
+                    const stamp = new Date().toISOString().slice(0, 10);
+                    downloadCsv(
+                      `dealecho-regions-${stamp}.csv`,
+                      toCsv(
+                        ["region", "country", "signups", "paid",
+                         "searches", "profileViews"],
+                        report.regions ?? [],
+                      ),
+                    );
+                  }}
+                  disabled={!report || (report.regions ?? []).length === 0}
+                  className="px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm font-black transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Icon name="fa-download" size={12} />
+                  Regions CSV
                 </button>
               </div>
             </div>
@@ -1386,6 +1418,73 @@ const Admin: React.FC = () => {
                       </table>
                     </div>
                   ))}
+                </div>
+
+                {/* Activity by region (browser timezone) */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mt-6">
+                  <div className="px-4 pt-4">
+                    <h3 className="text-sm font-black text-white">
+                      Activity by Region
+                    </h3>
+                    <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
+                      From browser timezone at signup. Shows where signups and
+                      engaged usage come from - useful for outbound timing and
+                      territory.
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                          <th className="px-4 py-2">Region</th>
+                          <th className="px-4 py-2">Country</th>
+                          <th className="px-4 py-2 text-right">Signups</th>
+                          <th className="px-4 py-2 text-right">Paid</th>
+                          <th className="px-4 py-2 text-right">Searches</th>
+                          <th className="px-4 py-2 text-right">Views</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(report.regions ?? []).length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={6}
+                              className="px-4 py-6 text-center text-slate-500"
+                            >
+                              No region data yet. New signups populate this once
+                              deployed.
+                            </td>
+                          </tr>
+                        ) : (
+                          (report.regions ?? []).map((g) => (
+                            <tr
+                              key={g.region}
+                              className="border-b border-white/5 last:border-0 text-slate-200"
+                            >
+                              <td className="px-4 py-2.5 font-semibold">
+                                {g.region}
+                              </td>
+                              <td className="px-4 py-2.5 text-slate-400">
+                                {g.country || "-"}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black">
+                                {g.signups}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black text-emerald-400">
+                                {g.paid}
+                              </td>
+                              <td className="px-4 py-2.5 text-right text-slate-400">
+                                {g.searches}
+                              </td>
+                              <td className="px-4 py-2.5 text-right text-slate-400">
+                                {g.profileViews}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Target accounts (business email domains) */}

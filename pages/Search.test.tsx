@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Search from "./Search";
 import { ReviewSummary } from "../src/hooks/useReviewSummaries";
+import { searchCompanies } from "../services/geminiService";
 
 vi.mock("../services/geminiService", () => ({
   searchCompanies: vi.fn().mockResolvedValue([]),
@@ -89,5 +90,25 @@ describe("Search landing (no query)", () => {
   it("shows a be-the-first CTA when there are no reviews", () => {
     renderLanding([]);
     expect(screen.getByText(/be the first/i)).toBeInTheDocument();
+  });
+});
+
+describe("Search global-search loading state", () => {
+  it("shows the global-database banner while the web search is pending", async () => {
+    (searchCompanies as any).mockReturnValueOnce(new Promise(() => {}));
+    render(
+      <MemoryRouter initialEntries={["/search?q=stripe"]}>
+        <Search
+          user={{ id: "u1", name: "Sam" }}
+          isPaid={false}
+          onSignInClick={() => {}}
+          reviewSummaries={[summary]}
+          trackedIds={[]}
+          onToggleTrack={() => {}}
+          isLoading={false}
+        />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText(/Searching our global database/i)).toBeInTheDocument();
   });
 });

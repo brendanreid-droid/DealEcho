@@ -5,6 +5,7 @@ import { ReviewSummary } from "../src/hooks/useReviewSummaries";
 import CompanyCard, { CompanyCardData } from "../src/components/CompanyCard";
 import CompanyLogo from "../components/CompanyLogo";
 import { CardGridSkeleton } from "../src/components/Skeleton";
+import { Loader2 } from "lucide-react";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 import { searchCompanies } from "../services/geminiService";
 import { Company } from "../types";
@@ -348,9 +349,15 @@ const Search: React.FC<SearchProps> = ({
               {/* 2. AI / Global Search Accounts Section */}
               {isAiSearching ? (
                 <div>
-                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
-                    Searching web for “{q}”...
-                  </h2>
+                  <div className="flex items-center gap-3 bg-accent-50 border border-accent-100 rounded-card px-4 py-3 mb-4">
+                    <Loader2 className="animate-spin text-accent shrink-0" size={18} />
+                    <div>
+                      <p className="text-accent font-bold text-sm">Searching our global database…</p>
+                      <p className="text-accent-soft text-xs">
+                        Scanning the web for accounts matching “{q}”. This can take a few seconds.
+                      </p>
+                    </div>
+                  </div>
                   <CardGridSkeleton count={3} />
                 </div>
               ) : filteredAiCompanies.length > 0 ? (

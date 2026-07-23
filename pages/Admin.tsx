@@ -53,9 +53,12 @@ interface AcquisitionRow {
   searches: number;
   profileViews: number;
   reviewCount: number;
+  trackedCompanies: number;
   topIndustries: string;
   lastActiveAt: string;
   createdAt: string;
+  score: number;
+  scoreBand: string;
   role: string;
   tier: string;
   isPaid: boolean;
@@ -123,9 +126,44 @@ interface AccountRollup {
   searches: number;
   profileViews: number;
   reviews: number;
+  score: number;
   topIndustries: string;
   lastSignupAt: string;
   users: AccountUser[];
+}
+
+interface Funnel {
+  signedUp: number;
+  searched: number;
+  viewedProfile: number;
+  trackedCompany: number;
+  submittedReview: number;
+  paid: number;
+}
+
+interface EngagementConversion {
+  label: string;
+  users: number;
+  paid: number;
+  conversionRate: number;
+}
+
+interface AtRiskUser {
+  email: string;
+  displayName: string;
+  emailDomain: string;
+  tier: string;
+  lastActiveAt: string;
+  daysSinceActive: number | null;
+}
+
+interface NeverActivatedUser {
+  email: string;
+  displayName: string;
+  emailDomain: string;
+  isBusinessEmail: boolean;
+  createdAt: string;
+  daysSinceSignup: number | null;
 }
 
 interface AcquisitionReport {
@@ -135,6 +173,10 @@ interface AcquisitionReport {
   emailTypes: EmailTypeRollup[];
   regions: RegionRollup[];
   accounts: AccountRollup[];
+  funnel: Funnel;
+  engagementConversion: EngagementConversion[];
+  atRiskPaid: AtRiskUser[];
+  neverActivated: NeverActivatedUser[];
   totalUsers: number;
   attributedUsers: number;
   businessEmailUsers: number;
@@ -1141,7 +1183,8 @@ const Admin: React.FC = () => {
                       "isBusinessEmail", "marketingRole", "companySize",
                       "region", "country",
                       "searches", "profileViews", "reviewCount",
-                      "topIndustries", "lastActiveAt",
+                      "trackedCompanies", "topIndustries", "lastActiveAt",
+                      "score", "scoreBand",
                       "createdAt", "role", "tier", "isPaid",
                       "first_source", "first_medium", "first_campaign",
                       "first_content", "first_term", "first_referrer",
@@ -1276,6 +1319,97 @@ const Admin: React.FC = () => {
                     </div>
                   ))}
                 </div>
+
+                {/* Activation funnel + conversion by engagement depth */}
+                {report.funnel && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                      <h3 className="text-sm font-black text-white">
+                        Activation Funnel
+                      </h3>
+                      <p className="text-slate-500 text-[11px] mt-0.5 mb-3">
+                        How far signups get. Shows where onboarding leaks.
+                      </p>
+                      <div className="space-y-2">
+                        {[
+                          { label: "Signed up", value: report.funnel.signedUp },
+                          { label: "Searched", value: report.funnel.searched },
+                          { label: "Viewed a profile", value: report.funnel.viewedProfile },
+                          { label: "Tracked a company", value: report.funnel.trackedCompany },
+                          { label: "Submitted a review", value: report.funnel.submittedReview },
+                          { label: "Paid", value: report.funnel.paid },
+                        ].map((step) => {
+                          const total = report.funnel.signedUp || 1;
+                          const pct = Math.round((step.value / total) * 100);
+                          return (
+                            <div key={step.label}>
+                              <div className="flex justify-between text-[12px] mb-1">
+                                <span className="text-slate-300 font-semibold">
+                                  {step.label}
+                                </span>
+                                <span className="text-slate-400 font-bold">
+                                  {step.value}{" "}
+                                  <span className="text-slate-600">
+                                    ({pct}%)
+                                  </span>
+                                </span>
+                              </div>
+                              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                                <div
+                                  className="h-full bg-indigo-500 rounded-full"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                      <div className="px-4 pt-4">
+                        <h3 className="text-sm font-black text-white">
+                          Conversion by Engagement Depth
+                        </h3>
+                        <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
+                          Does deeper early activity predict paid? Bucketed on
+                          profile views.
+                        </p>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                            <th className="px-4 py-2">Engagement</th>
+                            <th className="px-4 py-2 text-right">Users</th>
+                            <th className="px-4 py-2 text-right">Paid</th>
+                            <th className="px-4 py-2 text-right">Conv %</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(report.engagementConversion ?? []).map((e) => (
+                            <tr
+                              key={e.label}
+                              className="border-b border-white/5 last:border-0 text-slate-200"
+                            >
+                              <td className="px-4 py-2.5 font-semibold">
+                                {e.label}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black">
+                                {e.users}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black text-emerald-400">
+                                {e.paid}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black text-indigo-400">
+                                {Math.round(e.conversionRate * 100)}%
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
 
                 {/* Campaign table */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
@@ -1494,14 +1628,15 @@ const Admin: React.FC = () => {
                       Target Accounts
                     </h3>
                     <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
-                      Business email domains grouped by signups. Multiple users
-                      from one domain = warm outbound account.
+                      Business email domains ranked by lead score (fit +
+                      engagement + recency). Contact the top of the list first.
                     </p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                          <th className="px-4 py-2 text-right">Score</th>
                           <th className="px-4 py-2">Domain</th>
                           <th className="px-4 py-2 text-right">Users</th>
                           <th className="px-4 py-2 text-right">Paid</th>
@@ -1519,7 +1654,7 @@ const Admin: React.FC = () => {
                         {(report.accounts ?? []).length === 0 ? (
                           <tr>
                             <td
-                              colSpan={9}
+                              colSpan={10}
                               className="px-4 py-8 text-center text-slate-500"
                             >
                               No business email signups yet.
@@ -1531,6 +1666,11 @@ const Admin: React.FC = () => {
                               key={a.domain}
                               className="border-b border-white/5 last:border-0 text-slate-200 align-top"
                             >
+                              <td className="px-4 py-2.5 text-right">
+                                <span className="inline-block min-w-[2.5rem] text-center font-black text-indigo-300">
+                                  {a.score}
+                                </span>
+                              </td>
                               <td className="px-4 py-2.5 font-black">
                                 {a.domain}
                               </td>
@@ -1567,6 +1707,124 @@ const Admin: React.FC = () => {
                         )}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+
+                {/* Dormancy: at-risk paid + never-activated signups */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <div className="px-4 pt-4">
+                      <h3 className="text-sm font-black text-white">
+                        At-Risk Paid Users
+                      </h3>
+                      <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
+                        Paying, but no activity in 30+ days. Churn risk - worth a
+                        check-in.
+                      </p>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                            <th className="px-4 py-2">User</th>
+                            <th className="px-4 py-2">Tier</th>
+                            <th className="px-4 py-2 text-right">Days Idle</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(report.atRiskPaid ?? []).length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={3}
+                                className="px-4 py-6 text-center text-slate-500"
+                              >
+                                No at-risk paid users.
+                              </td>
+                            </tr>
+                          ) : (
+                            (report.atRiskPaid ?? []).map((u) => (
+                              <tr
+                                key={u.email}
+                                className="border-b border-white/5 last:border-0 text-slate-200"
+                              >
+                                <td className="px-4 py-2.5">
+                                  <div className="font-semibold">
+                                    {u.displayName || u.email}
+                                  </div>
+                                  <div className="text-slate-500 text-[11px]">
+                                    {u.emailDomain}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-2.5 text-slate-400">
+                                  {u.tier}
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-black text-amber-400">
+                                  {u.daysSinceActive ?? "-"}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <div className="px-4 pt-4">
+                      <h3 className="text-sm font-black text-white">
+                        Never Activated
+                      </h3>
+                      <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
+                        Signed up 7+ days ago, zero searches / views / reviews.
+                        Onboarding failures - win-back targets.
+                      </p>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                            <th className="px-4 py-2">User</th>
+                            <th className="px-4 py-2">Email</th>
+                            <th className="px-4 py-2 text-right">Days Since</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(report.neverActivated ?? []).length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={3}
+                                className="px-4 py-6 text-center text-slate-500"
+                              >
+                                No dormant signups.
+                              </td>
+                            </tr>
+                          ) : (
+                            (report.neverActivated ?? []).map((u) => (
+                              <tr
+                                key={u.email}
+                                className="border-b border-white/5 last:border-0 text-slate-200"
+                              >
+                                <td className="px-4 py-2.5 font-semibold">
+                                  {u.displayName || u.email}
+                                </td>
+                                <td className="px-4 py-2.5 text-slate-400">
+                                  {u.isBusinessEmail ? (
+                                    <span className="text-indigo-300">
+                                      {u.emailDomain}
+                                    </span>
+                                  ) : (
+                                    u.emailDomain
+                                  )}
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-black text-slate-400">
+                                  {u.daysSinceSignup ?? "-"}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
 

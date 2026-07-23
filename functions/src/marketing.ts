@@ -283,9 +283,12 @@ interface ReportRow {
   searches: number;
   profileViews: number;
   reviewCount: number;
+  trackedCompanies: number;
   topIndustries: string;
   lastActiveAt: string;
   createdAt: string;
+  score: number;
+  scoreBand: string;
   role: string;
   tier: string;
   isPaid: boolean;
@@ -325,6 +328,50 @@ function isPaidUser(role: string, tier: string): boolean {
     tier === "paid_annual" ||
     tier === "enterprise"
   );
+}
+
+/** Whole days between an ISO timestamp and now; null when unparseable. */
+function daysSince(iso: string): number | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / 86_400_000);
+}
+
+const BUYER_ROLES = new Set(["sales", "procurement", "founder", "finance"]);
+
+/**
+ * Transparent additive lead score (0-100ish) from fit + engagement + recency.
+ * Fit: business email, buyer role. Engagement: searches, profile views,
+ * reviews (highest intent), tracked companies. Recency: last active window.
+ * Deliberately simple and explainable so the outbound list is trustable.
+ */
+function scoreUser(r: {
+  isBusinessEmail: boolean;
+  marketingRole: string;
+  searches: number;
+  profileViews: number;
+  reviewCount: number;
+  trackedCompanies: number;
+  lastActiveAt: string;
+}): number {
+  let s = 0;
+  if (r.isBusinessEmail) s += 25;
+  if (BUYER_ROLES.has(r.marketingRole)) s += 15;
+  s += Math.min(r.searches, 10) * 2; // up to 20
+  s += Math.min(r.profileViews, 10) * 2; // up to 20
+  s += Math.min(r.reviewCount * 10, 20); // reviews = high intent, up to 20
+  s += Math.min(r.trackedCompanies * 5, 15); // up to 15
+  const d = daysSince(r.lastActiveAt);
+  if (d !== null && d <= 7) s += 15;
+  else if (d !== null && d <= 30) s += 8;
+  return s;
+}
+
+function scoreBand(score: number): string {
+  if (score >= 70) return "hot";
+  if (score >= 40) return "warm";
+  return "cool";
 }
 
 /**
@@ -370,22 +417,43 @@ export const adminGetAcquisitionReport = onCall(
       const mp = fs.marketingProfile ?? {};
       const behavior = fs.behavior ?? {};
       const geo = fs.geo ?? {};
+      const isBusinessEmail = isBusinessDomain(domain);
+      const marketingRole = (mp.role as string) ?? "";
+      const searches = (behavior.searches as number) ?? 0;
+      const profileViews = (behavior.profileViews as number) ?? 0;
+      const reviewCount = reviewCounts[u.uid] ?? 0;
+      const tracked = Array.isArray(fs.trackedCompanies)
+        ? fs.trackedCompanies.length
+        : 0;
+      const lastActiveAt = (behavior.lastActiveAt as string) ?? "";
+      const score = scoreUser({
+        isBusinessEmail,
+        marketingRole,
+        searches,
+        profileViews,
+        reviewCount,
+        trackedCompanies: tracked,
+        lastActiveAt,
+      });
       return {
         uid: u.uid,
         email: u.email ?? "",
         displayName: u.displayName ?? "",
         emailDomain: domain,
-        isBusinessEmail: isBusinessDomain(domain),
-        marketingRole: (mp.role as string) ?? "",
+        isBusinessEmail,
+        marketingRole,
         companySize: (mp.companySize as string) ?? "",
         region: (geo.region as string) ?? "",
         country: (geo.country as string) ?? "",
-        searches: (behavior.searches as number) ?? 0,
-        profileViews: (behavior.profileViews as number) ?? 0,
-        reviewCount: reviewCounts[u.uid] ?? 0,
+        searches,
+        profileViews,
+        reviewCount,
+        trackedCompanies: tracked,
         topIndustries: topIndustries(behavior.industries, 3),
-        lastActiveAt: (behavior.lastActiveAt as string) ?? "",
+        lastActiveAt,
         createdAt: u.metadata.creationTime ?? "",
+        score,
+        scoreBand: scoreBand(score),
         role,
         tier,
         isPaid: isPaidUser(role, tier),
@@ -511,6 +579,7 @@ export const adminGetAcquisitionReport = onCall(
         searches: number;
         profileViews: number;
         reviews: number;
+        score: number;
         industryCounts: Record<string, number>;
         lastSignupAt: string;
         users: { email: string; displayName: string; marketingRole: string; isPaid: boolean; createdAt: string }[];
@@ -527,6 +596,7 @@ export const adminGetAcquisitionReport = onCall(
         searches: 0,
         profileViews: 0,
         reviews: 0,
+        score: 0,
         industryCounts: {},
         lastSignupAt: "",
         users: [],
@@ -536,6 +606,7 @@ export const adminGetAcquisitionReport = onCall(
       a.searches += r.searches;
       a.profileViews += r.profileViews;
       a.reviews += r.reviewCount;
+      a.score += r.score;
       const userIndustries = fsMap[r.uid]?.behavior?.industries;
       if (userIndustries && typeof userIndustries === "object") {
         for (const [k, v] of Object.entries(userIndustries)) {
@@ -566,9 +637,87 @@ export const adminGetAcquisitionReport = onCall(
         ...a,
         topIndustries: topIndustries(industryCounts, 3),
       }))
+      // Sort by lead score so the warmest outbound targets sit on top; signups
+      // and recency break ties.
       .sort(
         (a, b) =>
-          b.signups - a.signups || (a.lastSignupAt < b.lastSignupAt ? 1 : -1),
+          b.score - a.score ||
+          b.signups - a.signups ||
+          (a.lastSignupAt < b.lastSignupAt ? 1 : -1),
+      );
+
+    // Activation funnel: how many signups reach each engagement step. Steps are
+    // cumulative-ish signals derived from the counters (not strict timestamps).
+    const funnel = {
+      signedUp: rows.length,
+      searched: rows.filter((r) => r.searches > 0).length,
+      viewedProfile: rows.filter((r) => r.profileViews > 0).length,
+      trackedCompany: rows.filter((r) => r.trackedCompanies > 0).length,
+      submittedReview: rows.filter((r) => r.reviewCount > 0).length,
+      paid: rows.filter((r) => r.isPaid).length,
+    };
+
+    // Conversion by engagement depth: does deeper early activity predict paid?
+    // Buckets on profile views, the densest intent signal.
+    const viewBuckets = [
+      { label: "0 views", min: 0, max: 0 },
+      { label: "1-2 views", min: 1, max: 2 },
+      { label: "3-5 views", min: 3, max: 5 },
+      { label: "6+ views", min: 6, max: Infinity },
+    ];
+    const engagementConversion = viewBuckets.map((b) => {
+      const inBucket = rows.filter(
+        (r) => r.profileViews >= b.min && r.profileViews <= b.max,
+      );
+      const paid = inBucket.filter((r) => r.isPaid).length;
+      return {
+        label: b.label,
+        users: inBucket.length,
+        paid,
+        conversionRate: inBucket.length ? paid / inBucket.length : 0,
+      };
+    });
+
+    // Dormancy: paid users gone quiet (churn risk) and signups that never did
+    // anything (activation failures). Thresholds in days.
+    const AT_RISK_DAYS = 30;
+    const NEVER_ACTIVATED_DAYS = 7;
+    const dormant = (r: ReportRow) => {
+      const d = daysSince(r.lastActiveAt);
+      return d === null || d >= AT_RISK_DAYS;
+    };
+    const atRiskPaid = rows
+      .filter((r) => r.isPaid && dormant(r))
+      .map((r) => ({
+        email: r.email,
+        displayName: r.displayName,
+        emailDomain: r.emailDomain,
+        tier: r.tier,
+        lastActiveAt: r.lastActiveAt,
+        daysSinceActive: daysSince(r.lastActiveAt),
+      }))
+      .sort(
+        (a, b) => (b.daysSinceActive ?? 9999) - (a.daysSinceActive ?? 9999),
+      );
+    const neverActivated = rows
+      .filter(
+        (r) =>
+          !r.isPaid &&
+          r.searches === 0 &&
+          r.profileViews === 0 &&
+          r.reviewCount === 0 &&
+          (daysSince(r.createdAt) ?? 0) >= NEVER_ACTIVATED_DAYS,
+      )
+      .map((r) => ({
+        email: r.email,
+        displayName: r.displayName,
+        emailDomain: r.emailDomain,
+        isBusinessEmail: r.isBusinessEmail,
+        createdAt: r.createdAt,
+        daysSinceSignup: daysSince(r.createdAt),
+      }))
+      .sort(
+        (a, b) => (b.daysSinceSignup ?? 0) - (a.daysSinceSignup ?? 0),
       );
 
     return {
@@ -578,6 +727,10 @@ export const adminGetAcquisitionReport = onCall(
       emailTypes,
       regions,
       accounts,
+      funnel,
+      engagementConversion,
+      atRiskPaid,
+      neverActivated,
       totalUsers: rows.length,
       attributedUsers: attributed,
       businessEmailUsers: rows.filter((r) => r.isBusinessEmail).length,

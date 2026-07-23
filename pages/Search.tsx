@@ -145,6 +145,55 @@ const Search: React.FC<SearchProps> = ({
     });
   }, [reviewSummaries]);
 
+  // Distinct industries present in reviewed companies (for the hero quick-chips).
+  const industries = useMemo(
+    () =>
+      Array.from(new Set(companies.map((c) => c.industry).filter(Boolean)))
+        .sort()
+        .slice(0, 6),
+    [companies],
+  );
+
+  // Most-recently-reviewed accounts for the landing grid (mirrors Home's sort-by-lastDate).
+  const recentCompanies = useMemo(() => {
+    const stats: Record<string, any> = {};
+    reviewSummaries.forEach((s) => {
+      const name = s.companyName;
+      if (!stats[name]) {
+        stats[name] = {
+          id: s.companyId, name: s.companyName, industry: s.industry, location: s.location,
+          count: 0, respTotal: 0, negTotal: 0, wasteTotal: 0, scopeTotal: 0,
+          lastDate: s.createdAt, excerpt: s.excerpt,
+        };
+      }
+      stats[name].count++;
+      stats[name].respTotal += s.communicationRating;
+      stats[name].negTotal += s.negotiationLevel;
+      stats[name].wasteTotal += s.timeWasterLevel;
+      stats[name].scopeTotal += s.clarityOfScope || 3;
+      if (new Date(s.createdAt) > new Date(stats[name].lastDate)) {
+        stats[name].lastDate = s.createdAt;
+        stats[name].excerpt = s.excerpt;
+      }
+    });
+    return Object.values(stats)
+      .sort((a, b) => new Date(b.lastDate).getTime() - new Date(a.lastDate).getTime())
+      .slice(0, 6)
+      .map((c) => {
+        const avgResp = c.respTotal / c.count, avgNeg = c.negTotal / c.count,
+          avgWaste = c.wasteTotal / c.count, avgScope = c.scopeTotal / c.count;
+        const domainGuess = guessDomainFromName(c.name);
+        return {
+          id: c.id, name: c.name, industry: c.industry, location: c.location,
+          reports: c.count, excerpt: c.excerpt,
+          logoUrl: companyLogoUrl({ name: c.name, domain: domainGuess }),
+          healthIndex: Math.round(((avgResp + avgNeg + avgWaste + avgScope) / 20) * 100),
+          responsiveness: Math.round(avgResp * 20), negotiation: Math.round(avgNeg * 20),
+          buyerIntent: Math.round(avgWaste * 20), scopeClarity: Math.round(avgScope * 20),
+        };
+      });
+  }, [reviewSummaries]);
+
   // Filter reviewed companies locally
   const results = useMemo(() => {
     if (!q.trim()) return [];
@@ -304,10 +353,41 @@ const Search: React.FC<SearchProps> = ({
             </div>
           </>
         ) : (
-          <div className="de-card p-12 text-center">
-            <p className="text-slate-600 font-medium">
-              Enter a company name or industry to search.
-            </p>
+          <div className="space-y-8">
+            <h1 className="sr-only">Find how any account buys</h1>
+            {industries.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {industries.map((ind) => (
+                  <Link
+                    key={ind}
+                    to={`/search?q=${encodeURIComponent(ind)}`}
+                    className="bg-white/10 text-slate-200 hover:bg-white/20 px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+                  >
+                    {ind}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {recentCompanies.length > 0 ? (
+              <div>
+                <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                  Recently reviewed
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {recentCompanies.map((c) => (
+                    <CompanyCard key={c.id} company={c} isPro={isPaid} isLoggedIn={!!user} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="de-card p-12 text-center">
+                <p className="text-slate-600 font-medium">No accounts reviewed yet.</p>
+                <p className="text-slate-400 text-sm mt-1">Be the first to add intel on an account.</p>
+                <div className="mt-5 flex justify-center">
+                  <Button variant="primary" to="/review/new">Share intel on an account</Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

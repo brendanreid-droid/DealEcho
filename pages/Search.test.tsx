@@ -44,3 +44,50 @@ describe("Search gating", () => {
     expect(screen.queryByText("Sign in to view")).not.toBeInTheDocument();
   });
 });
+
+const summary2: ReviewSummary = {
+  reviewId: "s2", companyId: "comp-2", companyName: "Datadog", industry: "Observability",
+  location: "US", country: "US", status: "Won", createdAt: "2026-05-01T00:00:00.000Z",
+  excerpt: "Fast to engage.", communicationRating: 5,
+  negotiationLevel: 4, timeWasterLevel: 4, clarityOfScope: 4,
+};
+
+function renderLanding(reviewSummaries: ReviewSummary[]) {
+  return render(
+    <MemoryRouter initialEntries={["/search"]}>
+      <Search
+        user={{ id: "u1", name: "Sam" }}
+        isPaid={false}
+        onSignInClick={() => {}}
+        reviewSummaries={reviewSummaries}
+        trackedIds={[]}
+        onToggleTrack={() => {}}
+        isLoading={false}
+      />
+    </MemoryRouter>,
+  );
+}
+
+describe("Search landing (no query)", () => {
+  it("renders the hero heading", () => {
+    renderLanding([summary, summary2]);
+    expect(screen.getByText(/Find how any account buys/i)).toBeInTheDocument();
+  });
+
+  it("shows a recently-reviewed grid with reviewed companies", () => {
+    renderLanding([summary, summary2]);
+    expect(screen.getByText("Datadog")).toBeInTheDocument();
+    expect(screen.getByText("Snowflake")).toBeInTheDocument();
+  });
+
+  it("renders an industry chip linking to that industry query", () => {
+    renderLanding([summary, summary2]);
+    const chip = screen.getByRole("link", { name: "Data" });
+    expect(chip).toHaveAttribute("href", "/search?q=Data");
+  });
+
+  it("shows a be-the-first CTA when there are no reviews", () => {
+    renderLanding([]);
+    expect(screen.getByText(/be the first/i)).toBeInTheDocument();
+  });
+});

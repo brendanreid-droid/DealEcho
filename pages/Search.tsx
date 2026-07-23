@@ -349,7 +349,7 @@ const Search: React.FC<SearchProps> = ({
               {/* 2. AI / Global Search Accounts Section */}
               {isAiSearching ? (
                 <div>
-                  <div className="flex items-center gap-3 bg-accent-50 border border-accent-100 rounded-card px-4 py-3 mb-4">
+                  <div role="status" className="flex items-center gap-3 bg-accent-50 border border-accent-100 rounded-card px-4 py-3 mb-4">
                     <Loader2 className="animate-spin text-accent shrink-0" size={18} />
                     <div>
                       <p className="text-accent font-bold text-sm">Searching our global database…</p>

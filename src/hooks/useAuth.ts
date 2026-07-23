@@ -21,6 +21,7 @@ export interface MappedUser {
     role?: string;
     promptDismissed?: boolean;
     onboardingDismissed?: boolean;
+    extensionAdded?: boolean;
   };
 }
 
@@ -106,6 +107,7 @@ export const useAuth = (): AuthState => {
                       role: typeof mp?.role === 'string' ? mp.role : undefined,
                       promptDismissed: Boolean(mp?.promptDismissedAt),
                       onboardingDismissed: Boolean(mp?.onboardingDismissedAt),
+                      extensionAdded: Boolean(mp?.extensionAddedAt),
                     },
                   }
                 : null

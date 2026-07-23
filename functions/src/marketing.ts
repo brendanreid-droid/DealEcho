@@ -116,6 +116,9 @@ export const updateMarketingProfile = onCall({ cors: true }, async (request) => 
   if (request.data?.onboardingDismissed === true) {
     profile.onboardingDismissedAt = nowIso;
   }
+  if (request.data?.extensionAdded === true) {
+    profile.extensionAddedAt = nowIso;
+  }
   if (Object.keys(profile).length === 0) {
     return { status: "skipped", reason: "no valid fields" };
   }

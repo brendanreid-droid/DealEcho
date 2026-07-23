@@ -17,18 +17,25 @@ import { track } from "../utils/analytics";
  *    checklist is incomplete and not dismissed.
  */
 
+// TODO: replace with the real Chrome Web Store URL once the extension is
+// published. "#" keeps the step functional (clicking still marks it done).
+const EXTENSION_URL = "#";
+
 export interface OnboardingSteps {
   hasReview: boolean;
   hasTracked: boolean;
   hasProfile: boolean;
+  hasExtension: boolean;
 }
 
 export function onboardingComplete(s: OnboardingSteps): boolean {
-  return s.hasReview && s.hasTracked && s.hasProfile;
+  return s.hasReview && s.hasTracked && s.hasProfile && s.hasExtension;
 }
 
 function completedCount(s: OnboardingSteps): number {
-  return [s.hasReview, s.hasTracked, s.hasProfile].filter(Boolean).length;
+  return [s.hasReview, s.hasTracked, s.hasProfile, s.hasExtension].filter(
+    Boolean,
+  ).length;
 }
 
 interface ModalProps {
@@ -41,7 +48,7 @@ interface ModalProps {
   onAnswerQuestions: () => void;
 }
 
-const STEP_TOTAL = 3;
+const STEP_TOTAL = 4;
 
 export const OnboardingChecklistModal: React.FC<ModalProps> = ({
   open,
@@ -96,6 +103,22 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
       action: () => {
         track("onboarding_step_click", { step: "profile" });
         onAnswerQuestions();
+      },
+    },
+    {
+      key: "extension",
+      done: steps.hasExtension,
+      title: "Get the browser extension",
+      body: "Pull deal intel and log reviews without leaving your CRM or inbox.",
+      cta: "Get the extension",
+      action: () => {
+        track("onboarding_step_click", { step: "extension" });
+        // Mark done on click; we can't detect the actual install. Opens the
+        // store in a new tab once EXTENSION_URL is a real link.
+        void saveMarketingProfile({ extensionAdded: true });
+        if (EXTENSION_URL !== "#") {
+          window.open(EXTENSION_URL, "_blank", "noopener,noreferrer");
+        }
       },
     },
   ];

@@ -113,6 +113,7 @@ const App: React.FC = () => {
     hasReview: myReviews.length > 0,
     hasTracked: trackedCompanies.length > 0,
     hasProfile: !!user?.marketingProfile?.role,
+    hasExtension: !!user?.marketingProfile?.extensionAdded,
   };
   const onboardingDone = onboardingComplete(onboardingSteps);
   const onboardingDismissed = !!user?.marketingProfile?.onboardingDismissed;

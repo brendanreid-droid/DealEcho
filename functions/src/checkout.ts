@@ -129,6 +129,29 @@ export const cancelSubscription = onCall(
 
     const uid = request.auth.uid;
 
+    // Capture cancellation feedback (reason + free text) for retention
+    // analytics before we tear the subscription down. Best-effort: never let a
+    // feedback write block the cancellation the user asked for.
+    try {
+      const reason = request.data?.reason;
+      const reasonText = request.data?.reasonText;
+      const cleanReason =
+        typeof reason === "string" ? reason.slice(0, 60) : "";
+      const cleanText =
+        typeof reasonText === "string" ? reasonText.slice(0, 1000) : "";
+      if (cleanReason || cleanText) {
+        await db.collection("cancellation_feedback").add({
+          uid,
+          reason: cleanReason,
+          reasonText: cleanText,
+          tier: request.data?.tier ?? "",
+          createdAt: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to record cancellation feedback:", err);
+    }
+
     // Look up the user's subscription from Firestore
     const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
@@ -185,6 +208,112 @@ export const cancelSubscription = onCall(
     }
 
     return { success: true };
+  },
+);
+
+/**
+ * Retention save-offer. Applies a Stripe coupon to the caller's live
+ * subscription instead of cancelling:
+ *   - "monthly_discount": apply a coupon (e.g. 50% off for 2 months) to the
+ *     current subscription.
+ *   - "annual_discount": switch the subscription to the annual price AND apply
+ *     an annual coupon (e.g. 20% off).
+ *
+ * Coupon and price IDs live in the server-only Firestore doc
+ * `private_config/retention` (never exposed to the client), with env fallbacks:
+ *   { monthlyCouponId, annualCouponId, annualPriceId }
+ *
+ * The user triggers this from their own account; we never move money on our
+ * own initiative. Returns { success, offer } for the UI to confirm.
+ */
+export const applyRetentionOffer = onCall(
+  { cors: true, invoker: "public" },
+  async (request) => {
+    const stripe = getStripe();
+
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+    const uid = request.auth.uid;
+
+    const offer = request.data?.offer;
+    if (offer !== "monthly_discount" && offer !== "annual_discount") {
+      throw new HttpsError("invalid-argument", "Unknown retention offer.");
+    }
+
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    const userData = userSnap.data();
+    if (!userData?.subscriptionId) {
+      throw new HttpsError(
+        "not-found",
+        "No active subscription found for your account.",
+      );
+    }
+
+    // Load retention config (server-only doc; Admin SDK bypasses rules).
+    const cfgSnap = await db.collection("private_config").doc("retention").get();
+    const cfg = cfgSnap.data() ?? {};
+    const monthlyCouponId: string | undefined =
+      cfg.monthlyCouponId ?? process.env.STRIPE_RETENTION_MONTHLY_COUPON;
+    const annualCouponId: string | undefined =
+      cfg.annualCouponId ?? process.env.STRIPE_RETENTION_ANNUAL_COUPON;
+    const annualPriceId: string | undefined =
+      cfg.annualPriceId ?? process.env.STRIPE_ANNUAL_PRICE_ID;
+
+    try {
+      if (offer === "monthly_discount") {
+        if (!monthlyCouponId) {
+          throw new HttpsError(
+            "failed-precondition",
+            "This offer isn't available right now.",
+          );
+        }
+        await stripe.subscriptions.update(userData.subscriptionId, {
+          coupon: monthlyCouponId,
+        });
+      } else {
+        // annual_discount: move to the annual price and apply the annual coupon.
+        if (!annualCouponId || !annualPriceId) {
+          throw new HttpsError(
+            "failed-precondition",
+            "This offer isn't available right now.",
+          );
+        }
+        const sub = await stripe.subscriptions.retrieve(
+          userData.subscriptionId,
+        );
+        const itemId = sub.items.data[0]?.id;
+        if (!itemId) {
+          throw new HttpsError("internal", "Subscription item not found.");
+        }
+        await stripe.subscriptions.update(userData.subscriptionId, {
+          items: [{ id: itemId, price: annualPriceId }],
+          coupon: annualCouponId,
+          proration_behavior: "create_prorations",
+        });
+      }
+    } catch (err: any) {
+      if (err instanceof HttpsError) throw err;
+      throw new HttpsError(
+        "internal",
+        err.message || "Failed to apply the offer. Please try again.",
+      );
+    }
+
+    // Record acceptance for retention analytics; keep the user Pro.
+    await userRef.set(
+      {
+        retentionOffer: {
+          offer,
+          acceptedAt: new Date().toISOString(),
+        },
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+
+    return { success: true, offer };
   },
 );
 

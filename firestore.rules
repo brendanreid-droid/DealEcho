@@ -101,6 +101,21 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Private config (retention coupons, etc.) ───────────────────────────────
+    // Server-only: read exclusively by Cloud Functions (Admin SDK bypasses
+    // rules). Never exposed to the client so coupon IDs stay private.
+    match /private_config/{docId} {
+      allow read, write: if false;
+    }
+
+    // ── Cancellation feedback ──────────────────────────────────────────────────
+    // Written by the cancelSubscription callable (Admin SDK). Admins read for
+    // retention analysis; clients never read or write directly.
+    match /cancellation_feedback/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // ── Newsletters (campaign history) ──────────────────────────────────────────
     // Only administrators can read or write campaign analytics.
     match /newsletters/{newsletterId} {

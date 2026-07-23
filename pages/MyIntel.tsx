@@ -9,7 +9,7 @@ import CompanyLogo from "../components/CompanyLogo";
 import { useAuth, MappedUser } from "../src/hooks/useAuth";
 import Icon from "../src/components/Icon";
 import MySubmissions from "../src/components/MySubmissions";
-import { Loader2 } from "lucide-react";
+import RetentionModal from "../src/components/RetentionModal";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
 const getTimeAgo = (dateStr: string): string => {
@@ -46,10 +46,11 @@ const MyIntel: React.FC<MyIntelProps> = ({
   onSignInClick,
 }) => {
   const navigate = useNavigate();
-  const { refreshClaims } = useAuth();
-  const [cancelling, setCancelling] = useState(false);
+  const { refreshClaims, tier } = useAuth();
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [offerSuccess, setOfferSuccess] = useState(false);
+  const [showRetention, setShowRetention] = useState(false);
   const [activeTab, setActiveTab] = useState<'tracked' | 'reviews' | 'billing'>('tracked');
   const [resetSent, setResetSent] = useState(false);
   const [resetSending, setResetSending] = useState(false);
@@ -65,30 +66,25 @@ const MyIntel: React.FC<MyIntelProps> = ({
     });
   }, [user?.notificationPreferences]);
 
-  const handleCancelSubscription = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to cancel your Sales Pro subscription? You will lose access to all Pro features immediately.",
-      )
-    ) {
-      return;
-    }
-    setCancelling(true);
+  // Retention flow: applying an offer keeps the user Pro; confirming cancel
+  // downgrades. Both surface errors to the modal so it can stay open on failure.
+  const handleApplyOffer = async (offer: string) => {
+    setCancelError(null);
+    const functions = getFunctions(undefined, "australia-southeast1");
+    const offerFn = httpsCallable(functions, "applyRetentionOffer");
+    await offerFn({ offer });
+    await refreshClaims(); // annual switch changes tier
+    setOfferSuccess(true);
+  };
+
+  const handleConfirmCancel = async (reason: string, reasonText: string) => {
     setCancelError(null);
     setCancelSuccess(false);
-    try {
-      const functions = getFunctions(undefined, "australia-southeast1");
-      const cancelFn = httpsCallable(functions, "cancelSubscription");
-      await cancelFn({});
-      await refreshClaims();
-      setCancelSuccess(true);
-    } catch (err: any) {
-      setCancelError(
-        err.message || "Failed to cancel subscription. Please try again.",
-      );
-    } finally {
-      setCancelling(false);
-    }
+    const functions = getFunctions(undefined, "australia-southeast1");
+    const cancelFn = httpsCallable(functions, "cancelSubscription");
+    await cancelFn({ reason, reasonText, tier });
+    await refreshClaims();
+    setCancelSuccess(true);
   };
 
   const [billingLoading, setBillingLoading] = useState(false);
@@ -567,63 +563,54 @@ const MyIntel: React.FC<MyIntelProps> = ({
             </div>
 
             {/* Plan & Subscription Section */}
-            <div className="bg-white p-8 rounded-card border border-slate-100 shadow-sm space-y-6">
-              <h3 className="text-lg font-bold text-slate-900">Subscription & Plan</h3>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                    Current Plan
-                  </p>
+            <div className="bg-white p-8 rounded-card border border-slate-100 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                <div className="flex items-center gap-4">
                   <div
-                    className={`px-6 py-3 rounded-control text-center border inline-block ${isPaid ? "bg-accent/20 border-accent-soft/30" : "bg-white/10 border-white/10"}`}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                      isPaid ? "bg-accent/10 text-accent" : "bg-slate-100 text-slate-400"
+                    }`}
                   >
-                    <div className="text-sm font-bold">
-                      {isPaid ? "Sales Pro Member" : "Pioneer Plan"}
-                    </div>
+                    <Icon name={isPaid ? "fa-crown" : "fa-user"} size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Current Plan
+                    </p>
+                    <p className="text-lg font-bold text-slate-900 mt-0.5">
+                      {isPaid ? "Sales Pro" : "Pioneer (Free)"}
+                    </p>
+                    {isPaid && (
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
+                        {tier === "paid_annual" ? "Billed annually" : "Billed monthly"}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-3">
-                  {cancelSuccess && (
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
-                      Subscription cancelled successfully
-                    </span>
-                  )}
-                  {cancelError && (
-                    <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">
-                      {cancelError}
-                    </span>
-                  )}
-                  {!isPaid && (
-                    <Link
-                      to="/pricing"
-                      className="px-6 py-3 bg-accent text-white rounded-control text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all shadow-lg flex items-center space-x-2"
-                    >
-                      <Icon name="fa-crown" size={10} />
-                      <span>Upgrade to Sales Pro</span>
-                    </Link>
-                  )}
-                  {isPaid && (
-                    <button
-                      onClick={handleCancelSubscription}
-                      disabled={cancelling}
-                      className="px-6 py-3 bg-rose-600/20 border border-rose-500/30 text-rose-400 rounded-control text-[10px] font-bold uppercase tracking-widest hover:bg-rose-600/40 transition-all flex items-center space-x-2 disabled:opacity-50 justify-center"
-                    >
-                      {cancelling ? (
-                        <>
-                          <Loader2 className="animate-spin text-rose-400" size={10} />
-                          <span>Cancelling…</span>
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="fa-times-circle" size={10} />
-                          <span>Cancel Subscription</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
+
+                {!isPaid && (
+                  <Link
+                    to="/pricing"
+                    className="px-6 py-3 bg-accent text-white rounded-control text-sm font-bold hover:bg-accent-700 transition-all shadow-lg shadow-accent/20 flex items-center justify-center gap-2"
+                  >
+                    <Icon name="fa-crown" size={13} />
+                    <span>Upgrade to Sales Pro</span>
+                  </Link>
+                )}
               </div>
+
+              {offerSuccess && (
+                <div className="mt-5 rounded-control bg-accent/5 border border-accent/20 px-4 py-3 text-[13px] font-semibold text-accent flex items-center gap-2">
+                  <Icon name="fa-check-circle" size={14} />
+                  Your discount has been applied. Thanks for staying with us.
+                </div>
+              )}
+              {cancelSuccess && (
+                <div className="mt-5 rounded-control bg-slate-50 border border-slate-200 px-4 py-3 text-[13px] font-semibold text-slate-600 flex items-center gap-2">
+                  <Icon name="fa-check-circle" size={14} />
+                  Your subscription has been cancelled.
+                </div>
+              )}
             </div>
 
             {/* Payment Details Section */}
@@ -772,9 +759,38 @@ const MyIntel: React.FC<MyIntelProps> = ({
                 </label>
               </div>
             </div>
+
+            {/* Cancel subscription — intentionally understated, at the very
+                bottom, behind the retention flow. */}
+            {isPaid && (
+              <div className="pt-2 text-center">
+                <button
+                  onClick={() => {
+                    setCancelError(null);
+                    setShowRetention(true);
+                  }}
+                  className="text-[12px] font-semibold text-slate-400 hover:text-slate-600 underline underline-offset-2 transition-colors"
+                >
+                  Cancel subscription
+                </button>
+                {cancelError && !showRetention && (
+                  <p className="text-[12px] text-signal-risk font-semibold mt-2">
+                    {cancelError}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      <RetentionModal
+        isOpen={showRetention}
+        tier={tier}
+        onClose={() => setShowRetention(false)}
+        onApplyOffer={handleApplyOffer}
+        onConfirmCancel={handleConfirmCancel}
+      />
     </div>
   );
 };

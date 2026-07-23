@@ -49,7 +49,7 @@ export { trackNewsletterOpen } from "./triggers/trackNewsletterOpen";
 export { sendCustomPasswordResetEmail } from "./authCustom";
 
 // Marketing Attribution (UTM capture + admin reporting)
-export { recordAcquisition, adminGetAcquisitionReport } from "./marketing";
+export { recordAcquisition, adminGetAcquisitionReport, updateMarketingProfile } from "./marketing";
 
 // Enterprise Team Management
 export {

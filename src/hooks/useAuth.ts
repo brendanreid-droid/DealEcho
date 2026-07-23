@@ -16,6 +16,11 @@ export interface MappedUser {
     realTimeAlerts: boolean;
     weeklyDigest: boolean;
   };
+  /** Undefined until the user doc snapshot arrives; {} when unanswered. */
+  marketingProfile?: {
+    role?: string;
+    promptDismissed?: boolean;
+  };
 }
 
 export interface AuthState {
@@ -77,6 +82,7 @@ export const useAuth = (): AuthState => {
             const data = snap.data();
             if (data.role) setRole(data.role as UserRole);
             if (data.tier) setTier(data.tier as UserTier);
+            const mp = data.marketingProfile;
             setUser((prev) =>
               prev
                 ? {
@@ -85,9 +91,16 @@ export const useAuth = (): AuthState => {
                       realTimeAlerts: true,
                       weeklyDigest: true,
                     },
+                    marketingProfile: {
+                      role: typeof mp?.role === 'string' ? mp.role : undefined,
+                      promptDismissed: Boolean(mp?.promptDismissedAt),
+                    },
                   }
                 : null
             );
+          } else {
+            // Doc not created yet: mark the profile as loaded-and-unanswered.
+            setUser((prev) => (prev ? { ...prev, marketingProfile: {} } : null));
           }
         });
       } else {

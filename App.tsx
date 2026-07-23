@@ -36,6 +36,10 @@ const RouteFallback: React.FC = () => (
   </div>
 );
 import AuthModal from "./components/AuthModal";
+import {
+  MarketingProfileModal,
+  MarketingProfileBanner,
+} from "./src/components/MarketingProfilePrompt";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRedirectBridge from "./src/components/AuthRedirectBridge";
 import { Navigation, Footer } from "./src/components/Shell";
@@ -78,6 +82,12 @@ const App: React.FC = () => {
   const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
   const [postAuthPath, setPostAuthPath] = useState<string | null>(null);
 
+  // Post-signup role prompt: modal right after signup, banner re-ask from the
+  // ~3rd session when the modal was skipped.
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [sessionCount, setSessionCount] = useState(0);
+  const [bannerHidden, setBannerHidden] = useState(false);
+
   const [notifications, setNotifications] = useState<Record<string, number>>(
     {},
   );
@@ -108,6 +118,26 @@ const App: React.FC = () => {
     captureAttribution();
   }, []);
 
+  // Count signed-in sessions (one per app load) to pace the role re-ask banner.
+  useEffect(() => {
+    if (!user?.id) return;
+    const key = `dealecho_sessions_${user.id}`;
+    const n = (parseInt(localStorage.getItem(key) ?? "0", 10) || 0) + 1;
+    localStorage.setItem(key, String(n));
+    setSessionCount(n);
+  }, [user?.id]);
+
+  const mp = user?.marketingProfile;
+  const showRoleBanner =
+    !!user &&
+    !bannerHidden &&
+    !showProfileModal &&
+    !isAuthModalOpen &&
+    sessionCount >= 3 &&
+    mp !== undefined &&
+    !mp.role &&
+    !mp.promptDismissed;
+
   // After a NEW user signs up, send their captured attribution to the server,
   // which writes it to the user doc. No-op when there's nothing to record.
   const recordAcquisition = async () => {
@@ -135,6 +165,7 @@ const App: React.FC = () => {
       if (isNew) {
         setPostAuthPath("/search");
         void recordAcquisition();
+        setShowProfileModal(true);
       }
       track(isNew ? "sign_up" : "login", { method: "google" });
     } catch (err: any) {
@@ -155,6 +186,7 @@ const App: React.FC = () => {
       if (name) await updateProfile(res.user, { displayName: name });
       setPostAuthPath("/search");
       void recordAcquisition();
+      setShowProfileModal(true);
       track("sign_up", { method: "password" });
     } else {
       await signInWithEmailAndPassword(auth, email, pass);
@@ -189,6 +221,13 @@ const App: React.FC = () => {
             0,
           )}
         />
+
+        {showRoleBanner && (
+          <MarketingProfileBanner
+            onAnswered={() => setBannerHidden(true)}
+            onDismissed={() => setBannerHidden(true)}
+          />
+        )}
 
         <main className="flex-grow">
           <Suspense fallback={<RouteFallback />}>
@@ -332,6 +371,10 @@ const App: React.FC = () => {
           onGoogleLogin={onGoogleLogin}
           onEmailLogin={onEmailLogin}
           initialMode={authInitialMode}
+        />
+        <MarketingProfileModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
         />
         <Footer />
       </div>

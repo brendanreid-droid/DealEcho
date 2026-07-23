@@ -57,6 +57,73 @@ function sanitizeTouch(raw: any): TouchPayload | null {
   return out;
 }
 
+// ── Email domain classification ───────────────────────────────────────────────
+/** Consumer / ISP mailbox domains. Anything else counts as a business domain. */
+const PERSONAL_DOMAINS = new Set([
+  "gmail.com", "googlemail.com",
+  "outlook.com", "outlook.com.au", "hotmail.com", "hotmail.co.uk",
+  "live.com", "live.com.au", "msn.com",
+  "yahoo.com", "yahoo.com.au", "yahoo.co.uk", "ymail.com",
+  "icloud.com", "me.com", "mac.com",
+  "aol.com", "proton.me", "protonmail.com", "pm.me",
+  "gmx.com", "gmx.net", "zoho.com", "mail.com", "yandex.com",
+  "hey.com", "duck.com", "fastmail.com", "fastmail.fm",
+  "bigpond.com", "bigpond.net.au", "optusnet.com.au", "iinet.net.au",
+  "internode.on.net", "tpg.com.au", "westnet.com.au",
+]);
+
+function emailDomain(email: string): string {
+  const at = email.lastIndexOf("@");
+  return at === -1 ? "" : email.slice(at + 1).toLowerCase();
+}
+
+function isBusinessDomain(domain: string): boolean {
+  return domain !== "" && !PERSONAL_DOMAINS.has(domain);
+}
+
+// ── updateMarketingProfile ────────────────────────────────────────────────────
+const MARKETING_ROLES = new Set([
+  "sales", "procurement", "founder", "finance", "other",
+]);
+const COMPANY_SIZES = new Set(["1-10", "11-50", "51-200", "200+"]);
+
+/**
+ * Called by the client when the user answers (or permanently dismisses) the
+ * role prompt. Writes only to the caller's OWN user doc under marketingProfile;
+ * values are validated against fixed enums so nothing free-form is stored.
+ */
+export const updateMarketingProfile = onCall({ cors: true }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in.");
+  }
+  const uid = request.auth.uid;
+  const nowIso = new Date().toISOString();
+
+  const profile: Record<string, unknown> = {};
+  const role = request.data?.role;
+  if (typeof role === "string" && MARKETING_ROLES.has(role)) {
+    profile.role = role;
+    profile.roleRecordedAt = nowIso;
+  }
+  const companySize = request.data?.companySize;
+  if (typeof companySize === "string" && COMPANY_SIZES.has(companySize)) {
+    profile.companySize = companySize;
+  }
+  if (request.data?.dismissed === true) {
+    profile.promptDismissedAt = nowIso;
+  }
+  if (Object.keys(profile).length === 0) {
+    return { status: "skipped", reason: "no valid fields" };
+  }
+  profile.updatedAt = nowIso;
+
+  await db
+    .collection("users")
+    .doc(uid)
+    .set({ marketingProfile: profile }, { merge: true });
+  return { status: "ok" };
+});
+
 // ── recordAcquisition ─────────────────────────────────────────────────────────
 /**
  * Called by the client right after a NEW user signs up. Writes marketing
@@ -103,6 +170,11 @@ export const recordAcquisition = onCall({ cors: true }, async (request) => {
 interface ReportRow {
   uid: string;
   email: string;
+  displayName: string;
+  emailDomain: string;
+  isBusinessEmail: boolean;
+  marketingRole: string;
+  companySize: string;
   createdAt: string;
   role: string;
   tier: string;
@@ -160,9 +232,16 @@ export const adminGetAcquisitionReport = onCall(
         (fs.role as UserRole) ?? (u.customClaims?.role as UserRole) ?? "free";
       const tier =
         (fs.tier as string) ?? (u.customClaims?.tier as string) ?? "free";
+      const domain = emailDomain(u.email ?? "");
+      const mp = fs.marketingProfile ?? {};
       return {
         uid: u.uid,
         email: u.email ?? "",
+        displayName: u.displayName ?? "",
+        emailDomain: domain,
+        isBusinessEmail: isBusinessDomain(domain),
+        marketingRole: (mp.role as string) ?? "",
+        companySize: (mp.companySize as string) ?? "",
         createdAt: u.metadata.creationTime ?? "",
         role,
         tier,
@@ -217,11 +296,88 @@ export const adminGetAcquisitionReport = onCall(
       (r) => r.first_source || r.first_medium || r.first_campaign,
     ).length;
 
+    // Role rollup (from the post-signup role prompt).
+    const roleRollup: Record<string, { role: string; signups: number; paid: number }> = {};
+    for (const r of rows) {
+      const key = r.marketingRole || "(unanswered)";
+      if (!roleRollup[key]) roleRollup[key] = { role: key, signups: 0, paid: 0 };
+      roleRollup[key].signups += 1;
+      if (r.isPaid) roleRollup[key].paid += 1;
+    }
+    const roles = Object.values(roleRollup)
+      .map((c) => ({ ...c, conversionRate: c.signups ? c.paid / c.signups : 0 }))
+      .sort((a, b) => b.signups - a.signups);
+
+    // Business vs personal email rollup.
+    const emailTypeRollup: Record<string, { type: string; signups: number; paid: number }> = {};
+    for (const r of rows) {
+      const key = r.isBusinessEmail ? "business" : "personal";
+      if (!emailTypeRollup[key]) emailTypeRollup[key] = { type: key, signups: 0, paid: 0 };
+      emailTypeRollup[key].signups += 1;
+      if (r.isPaid) emailTypeRollup[key].paid += 1;
+    }
+    const emailTypes = Object.values(emailTypeRollup)
+      .map((c) => ({ ...c, conversionRate: c.signups ? c.paid / c.signups : 0 }))
+      .sort((a, b) => b.signups - a.signups);
+
+    // Target accounts: business email domains grouped for outbound. Multiple
+    // signups from one domain = warm account.
+    const accountRollup: Record<
+      string,
+      {
+        domain: string;
+        signups: number;
+        paid: number;
+        roles: string[];
+        trackedCompanies: number;
+        lastSignupAt: string;
+        users: { email: string; displayName: string; marketingRole: string; isPaid: boolean; createdAt: string }[];
+      }
+    > = {};
+    for (const r of rows) {
+      if (!r.isBusinessEmail) continue;
+      const a = (accountRollup[r.emailDomain] ??= {
+        domain: r.emailDomain,
+        signups: 0,
+        paid: 0,
+        roles: [],
+        trackedCompanies: 0,
+        lastSignupAt: "",
+        users: [],
+      });
+      a.signups += 1;
+      if (r.isPaid) a.paid += 1;
+      if (r.marketingRole && !a.roles.includes(r.marketingRole)) {
+        a.roles.push(r.marketingRole);
+      }
+      const tracked = fsMap[r.uid]?.trackedCompanies;
+      if (Array.isArray(tracked)) a.trackedCompanies += tracked.length;
+      const parsed = r.createdAt ? new Date(r.createdAt) : null;
+      const created =
+        parsed && !isNaN(parsed.getTime()) ? parsed.toISOString() : "";
+      if (created > a.lastSignupAt) a.lastSignupAt = created;
+      a.users.push({
+        email: r.email,
+        displayName: r.displayName,
+        marketingRole: r.marketingRole,
+        isPaid: r.isPaid,
+        createdAt: created,
+      });
+    }
+    const accounts = Object.values(accountRollup).sort(
+      (a, b) => b.signups - a.signups || (a.lastSignupAt < b.lastSignupAt ? 1 : -1),
+    );
+
     return {
       rows,
       campaigns,
+      roles,
+      emailTypes,
+      accounts,
       totalUsers: rows.length,
       attributedUsers: attributed,
+      businessEmailUsers: rows.filter((r) => r.isBusinessEmail).length,
+      roleAnsweredUsers: rows.filter((r) => r.marketingRole).length,
       generatedAt: new Date().toISOString(),
     };
   },

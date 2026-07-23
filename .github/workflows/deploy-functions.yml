@@ -75,7 +75,7 @@ jobs:
         run: sleep 30
 
       - name: Deploy marketing functions
-        run: firebase deploy --only functions:recordAcquisition,functions:adminGetAcquisitionReport --force
+        run: firebase deploy --only functions:recordAcquisition,functions:adminGetAcquisitionReport,functions:updateMarketingProfile --force
  
 
 

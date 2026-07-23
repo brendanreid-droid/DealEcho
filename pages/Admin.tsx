@@ -43,6 +43,11 @@ type Tab = "users" | "content" | "flagged" | "pricing" | "newsletter" | "marketi
 interface AcquisitionRow {
   uid: string;
   email: string;
+  displayName: string;
+  emailDomain: string;
+  isBusinessEmail: boolean;
+  marketingRole: string;
+  companySize: string;
   createdAt: string;
   role: string;
   tier: string;
@@ -71,11 +76,48 @@ interface CampaignRollup {
   conversionRate: number;
 }
 
+interface RoleRollup {
+  role: string;
+  signups: number;
+  paid: number;
+  conversionRate: number;
+}
+
+interface EmailTypeRollup {
+  type: string;
+  signups: number;
+  paid: number;
+  conversionRate: number;
+}
+
+interface AccountUser {
+  email: string;
+  displayName: string;
+  marketingRole: string;
+  isPaid: boolean;
+  createdAt: string;
+}
+
+interface AccountRollup {
+  domain: string;
+  signups: number;
+  paid: number;
+  roles: string[];
+  trackedCompanies: number;
+  lastSignupAt: string;
+  users: AccountUser[];
+}
+
 interface AcquisitionReport {
   rows: AcquisitionRow[];
   campaigns: CampaignRollup[];
+  roles: RoleRollup[];
+  emailTypes: EmailTypeRollup[];
+  accounts: AccountRollup[];
   totalUsers: number;
   attributedUsers: number;
+  businessEmailUsers: number;
+  roleAnsweredUsers: number;
   generatedAt: string;
 }
 
@@ -1074,7 +1116,9 @@ const Admin: React.FC = () => {
                   onClick={() => {
                     if (!report) return;
                     const cols: (keyof AcquisitionRow)[] = [
-                      "uid", "email", "createdAt", "role", "tier", "isPaid",
+                      "uid", "email", "displayName", "emailDomain",
+                      "isBusinessEmail", "marketingRole", "companySize",
+                      "createdAt", "role", "tier", "isPaid",
                       "first_source", "first_medium", "first_campaign",
                       "first_content", "first_term", "first_referrer",
                       "first_landing", "first_capturedAt", "last_source",
@@ -1111,6 +1155,34 @@ const Admin: React.FC = () => {
                   <Icon name="fa-download" size={12} />
                   Campaign CSV
                 </button>
+                <button
+                  onClick={() => {
+                    if (!report) return;
+                    const rows = (report.accounts ?? []).map((a) => ({
+                      domain: a.domain,
+                      signups: a.signups,
+                      paid: a.paid,
+                      roles: a.roles.join("; "),
+                      trackedCompanies: a.trackedCompanies,
+                      lastSignupAt: a.lastSignupAt,
+                      users: a.users.map((u) => u.email).join("; "),
+                    }));
+                    const stamp = new Date().toISOString().slice(0, 10);
+                    downloadCsv(
+                      `dealecho-target-accounts-${stamp}.csv`,
+                      toCsv(
+                        ["domain", "signups", "paid", "roles",
+                         "trackedCompanies", "lastSignupAt", "users"],
+                        rows,
+                      ),
+                    );
+                  }}
+                  disabled={!report || (report.accounts ?? []).length === 0}
+                  className="px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm font-black transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Icon name="fa-download" size={12} />
+                  Accounts CSV
+                </button>
               </div>
             </div>
 
@@ -1125,7 +1197,7 @@ const Admin: React.FC = () => {
             ) : (
               <>
                 {/* Summary tiles */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                   {[
                     { label: "Total Signups", value: report.totalUsers },
                     { label: "Attributed", value: report.attributedUsers },
@@ -1134,6 +1206,14 @@ const Admin: React.FC = () => {
                       value: report.totalUsers - report.attributedUsers,
                     },
                     { label: "Campaigns", value: report.campaigns.length },
+                    {
+                      label: "Business Email",
+                      value: report.businessEmailUsers ?? 0,
+                    },
+                    {
+                      label: "Role Answered",
+                      value: report.roleAnsweredUsers ?? 0,
+                    },
                   ].map((s) => (
                     <div
                       key={s.label}
@@ -1199,6 +1279,163 @@ const Admin: React.FC = () => {
                               </td>
                               <td className="px-4 py-3 text-right font-black text-indigo-400">
                                 {Math.round(c.conversionRate * 100)}%
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Role + email-type rollups */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  {[
+                    {
+                      title: "Signups by Role",
+                      note: "From the post-signup role prompt.",
+                      rows: (report.roles ?? []).map((r) => ({
+                        label: r.role,
+                        signups: r.signups,
+                        paid: r.paid,
+                        conversionRate: r.conversionRate,
+                      })),
+                      empty: "No role answers yet.",
+                    },
+                    {
+                      title: "Business vs Personal Email",
+                      note: "Business domains are outbound-ready accounts.",
+                      rows: (report.emailTypes ?? []).map((e) => ({
+                        label: e.type,
+                        signups: e.signups,
+                        paid: e.paid,
+                        conversionRate: e.conversionRate,
+                      })),
+                      empty: "No users yet.",
+                    },
+                  ].map((section) => (
+                    <div
+                      key={section.title}
+                      className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden"
+                    >
+                      <div className="px-4 pt-4">
+                        <h3 className="text-sm font-black text-white">
+                          {section.title}
+                        </h3>
+                        <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
+                          {section.note}
+                        </p>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                            <th className="px-4 py-2"> </th>
+                            <th className="px-4 py-2 text-right">Signups</th>
+                            <th className="px-4 py-2 text-right">Paid</th>
+                            <th className="px-4 py-2 text-right">Conv %</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {section.rows.length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={4}
+                                className="px-4 py-6 text-center text-slate-500"
+                              >
+                                {section.empty}
+                              </td>
+                            </tr>
+                          ) : (
+                            section.rows.map((r) => (
+                              <tr
+                                key={r.label}
+                                className="border-b border-white/5 last:border-0 text-slate-200"
+                              >
+                                <td className="px-4 py-2.5 font-semibold capitalize">
+                                  {r.label}
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-black">
+                                  {r.signups}
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-black text-emerald-400">
+                                  {r.paid}
+                                </td>
+                                <td className="px-4 py-2.5 text-right font-black text-indigo-400">
+                                  {Math.round(r.conversionRate * 100)}%
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Target accounts (business email domains) */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mt-6">
+                  <div className="px-4 pt-4">
+                    <h3 className="text-sm font-black text-white">
+                      Target Accounts
+                    </h3>
+                    <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
+                      Business email domains grouped by signups. Multiple users
+                      from one domain = warm outbound account.
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                          <th className="px-4 py-2">Domain</th>
+                          <th className="px-4 py-2 text-right">Users</th>
+                          <th className="px-4 py-2 text-right">Paid</th>
+                          <th className="px-4 py-2">Roles</th>
+                          <th className="px-4 py-2 text-right">Tracked</th>
+                          <th className="px-4 py-2">Last Signup</th>
+                          <th className="px-4 py-2">People</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(report.accounts ?? []).length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={7}
+                              className="px-4 py-8 text-center text-slate-500"
+                            >
+                              No business email signups yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          (report.accounts ?? []).map((a) => (
+                            <tr
+                              key={a.domain}
+                              className="border-b border-white/5 last:border-0 text-slate-200 align-top"
+                            >
+                              <td className="px-4 py-2.5 font-black">
+                                {a.domain}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black">
+                                {a.signups}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black text-emerald-400">
+                                {a.paid}
+                              </td>
+                              <td className="px-4 py-2.5 text-slate-400 capitalize">
+                                {a.roles.join(", ") || "-"}
+                              </td>
+                              <td className="px-4 py-2.5 text-right text-slate-400">
+                                {a.trackedCompanies}
+                              </td>
+                              <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">
+                                {a.lastSignupAt
+                                  ? new Date(a.lastSignupAt).toLocaleDateString()
+                                  : "-"}
+                              </td>
+                              <td className="px-4 py-2.5 text-slate-400">
+                                {a.users
+                                  .map((u) => u.displayName || u.email)
+                                  .join(", ")}
                               </td>
                             </tr>
                           ))

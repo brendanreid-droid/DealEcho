@@ -20,6 +20,7 @@ export interface MappedUser {
   marketingProfile?: {
     role?: string;
     promptDismissed?: boolean;
+    onboardingDismissed?: boolean;
   };
 }
 
@@ -34,6 +35,13 @@ export interface AuthState {
   teamRole: TeamRole | null;
   isTeamManager: boolean;
   isLoading: boolean;
+  /** ISO expiry of an active give-to-get review unlock, else null. */
+  reviewUnlockUntil: string | null;
+  /** True while a review unlock is active (full reviews readable). */
+  hasReviewUnlock: boolean;
+  /** Bumps on every token (re)read so data hooks can re-subscribe with the
+   *  fresh token (e.g. after an unlock or Stripe upgrade grants read access). */
+  claimsVersion: number;
   /** Call after Stripe checkout completes to pick up new claims */
   refreshClaims: () => Promise<void>;
 }
@@ -44,6 +52,8 @@ export const useAuth = (): AuthState => {
   const [tier, setTier] = useState<UserTier>('free');
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamRole, setTeamRole] = useState<TeamRole | null>(null);
+  const [reviewUnlockUntil, setReviewUnlockUntil] = useState<string | null>(null);
+  const [claimsVersion, setClaimsVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const mapUser = useCallback((fbUser: User): MappedUser => ({
@@ -60,6 +70,7 @@ export const useAuth = (): AuthState => {
       setTier((tokenResult.claims.tier as UserTier) ?? 'free');
       setTeamId((tokenResult.claims.teamId as string) ?? null);
       setTeamRole((tokenResult.claims.teamRole as TeamRole) ?? null);
+      setClaimsVersion((v) => v + 1); // signal data hooks to re-subscribe
     } catch {
       setRole('free');
       setTier('free');
@@ -94,10 +105,28 @@ export const useAuth = (): AuthState => {
                     marketingProfile: {
                       role: typeof mp?.role === 'string' ? mp.role : undefined,
                       promptDismissed: Boolean(mp?.promptDismissedAt),
+                      onboardingDismissed: Boolean(mp?.onboardingDismissedAt),
                     },
                   }
                 : null
             );
+
+            // Give-to-get review unlock. The doc mirrors the custom claim; if
+            // the doc shows an active unlock the current token doesn't yet
+            // carry, force a token refresh so firestore.rules will honour it.
+            const until = data.reviewUnlock?.until;
+            const untilStr = typeof until === 'string' ? until : null;
+            setReviewUnlockUntil(untilStr);
+            if (untilStr && new Date(untilStr).getTime() > Date.now()) {
+              getIdTokenResult(fbUser)
+                .then((tr) => {
+                  const claim = Number(tr.claims.reviewUnlockUntil ?? 0);
+                  if (claim * 1000 < new Date(untilStr).getTime()) {
+                    return readClaims(fbUser, true); // pull the fresh claim
+                  }
+                })
+                .catch(() => {});
+            }
           } else {
             // Doc not created yet: mark the profile as loaded-and-unanswered.
             setUser((prev) => (prev ? { ...prev, marketingProfile: {} } : null));
@@ -110,6 +139,7 @@ export const useAuth = (): AuthState => {
         setTier('free');
         setTeamId(null);
         setTeamRole(null);
+        setReviewUnlockUntil(null);
       }
       setIsLoading(false);
     });
@@ -138,6 +168,11 @@ export const useAuth = (): AuthState => {
     teamRole,
     isTeamManager: teamRole === 'manager',
     isLoading,
+    reviewUnlockUntil,
+    hasReviewUnlock:
+      !!reviewUnlockUntil &&
+      new Date(reviewUnlockUntil).getTime() > Date.now(),
+    claimsVersion,
     refreshClaims,
   };
 };

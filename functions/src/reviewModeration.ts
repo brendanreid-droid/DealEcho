@@ -26,6 +26,7 @@
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { defineSecret } from "firebase-functions/params";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { GoogleGenAI } from "@google/genai";
 
@@ -34,6 +35,60 @@ if (getApps().length === 0) initializeApp();
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 const REGION = "australia-southeast1"; // matches existing Stripe functions
 const EXCERPT_LENGTH = 140; // characters of content exposed to free users
+
+// Give-to-get: a user's first APPROVED review unlocks temporary full-review
+// read access. Enforced by a self-expiring custom claim checked in
+// firestore.rules, so no cleanup job is needed.
+const REVIEW_UNLOCK_DAYS = 7;
+
+/**
+ * Grant the review-read unlock to `uid` when this is their first approved
+ * review. Sets a `reviewUnlockUntil` custom claim (epoch seconds, read by
+ * rules) and mirrors it onto the user doc so the client can surface it and
+ * know to refresh its token. No-op if they already have another approved
+ * review or an active unlock. Never throws into the moderation path.
+ */
+async function grantReviewUnlockIfFirst(
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+  reviewId: string,
+): Promise<void> {
+  try {
+    // First approved review? Look for any OTHER approved review by this user.
+    const others = await db
+      .collection("reviews")
+      .where("userId", "==", uid)
+      .where("moderationStatus", "==", "approved")
+      .limit(2)
+      .get();
+    const hasOtherApproved = others.docs.some((d) => d.id !== reviewId);
+    if (hasOtherApproved) return;
+
+    const auth = getAuth();
+    const nowSec = Math.floor(Date.now() / 1000);
+    const user = await auth.getUser(uid);
+    const existing = (user.customClaims?.reviewUnlockUntil as number) ?? 0;
+    if (existing > nowSec) return; // already has an active unlock
+
+    const untilSec = nowSec + REVIEW_UNLOCK_DAYS * 24 * 60 * 60;
+    await auth.setCustomUserClaims(uid, {
+      ...(user.customClaims ?? {}),
+      reviewUnlockUntil: untilSec,
+    });
+    await db.collection("users").doc(uid).set(
+      {
+        reviewUnlock: {
+          until: new Date(untilSec * 1000).toISOString(),
+          grantedAt: new Date().toISOString(),
+          reason: "first_review",
+        },
+      },
+      { merge: true },
+    );
+  } catch (err) {
+    console.error(`Failed to grant review unlock for ${uid}:`, err);
+  }
+}
 
 interface ModerationVerdict {
   isSafe: boolean;
@@ -149,6 +204,12 @@ export const onReviewWritten = onDocumentWritten(
         moderationReason: verdict.reason ?? null,
         moderatedAt: FieldValue.serverTimestamp(),
       });
+      // Give-to-get: reward the author's first approved review with temporary
+      // full-review access. Runs off the approval, so rejected reviews earn
+      // nothing (no spam-to-unlock).
+      if (verdict.isSafe && typeof data.userId === "string") {
+        await grantReviewUnlockIfFirst(db, data.userId, reviewId);
+      }
       // The update above re-triggers this function; the summary sync happens
       // on that second invocation (status will no longer be 'pending').
       return;

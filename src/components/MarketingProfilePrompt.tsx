@@ -24,6 +24,7 @@ export async function saveMarketingProfile(payload: {
   role?: string;
   companySize?: string;
   dismissed?: boolean;
+  onboardingDismissed?: boolean;
 }): Promise<void> {
   try {
     const fn = httpsCallable(

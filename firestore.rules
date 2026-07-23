@@ -13,6 +13,15 @@ service cloud.firestore {
         && request.auth.token.role in ['paid', 'admin', 'free_full'];
     }
 
+    // Give-to-get: a temporary full-review unlock earned by writing a first
+    // review. Backed by a self-expiring `reviewUnlockUntil` custom claim
+    // (epoch seconds), so access lapses automatically with no cleanup job.
+    function hasReviewUnlock() {
+      return isSignedIn()
+        && request.auth.token.reviewUnlockUntil is int
+        && request.auth.token.reviewUnlockUntil > request.time.toMillis() / 1000;
+    }
+
     function isAdmin() {
       return isSignedIn() && request.auth.token.role == 'admin';
     }
@@ -40,9 +49,11 @@ service cloud.firestore {
     // Users cannot set moderation fields — only Cloud Functions (Admin SDK) can.
     // Admins can moderate (update/delete).
     match /reviews/{reviewId} {
-      // Pro users read all reviews; any signed-in user can read their OWN
+      // Pro users read all reviews; users with an active give-to-get unlock
+      // read all reviews too; any signed-in user can always read their OWN
       // reviews (so they can see a rejected review + its moderation reason).
       allow read: if isPro()
+                  || hasReviewUnlock()
                   || (isSignedIn() && resource.data.userId == request.auth.uid);
       // Reviews are created/edited exclusively via the submitReview /
       // resubmitReview callables (Admin SDK, bypasses rules). This enforces the

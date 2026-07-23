@@ -14,7 +14,13 @@ export class ReviewCooldownError extends Error {
   }
 }
 
-export const useReviews = () => {
+/**
+ * @param accessKey Change this to force a re-subscribe with the current auth
+ *   token — e.g. pass the auth `claimsVersion` so a newly granted review
+ *   unlock (or Stripe upgrade) revives the listener that permission-denied
+ *   killed while the user was still on a free token.
+ */
+export const useReviews = (accessKey?: string | number) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,7 +44,7 @@ export const useReviews = () => {
       setIsLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [accessKey]);
 
   const addReview = useCallback(async (newReview: Review) => {
     // Reviews are written server-side by the submitReview callable, which

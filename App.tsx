@@ -41,12 +41,20 @@ import {
   MarketingProfileModal,
   MarketingProfileBanner,
 } from "./src/components/MarketingProfilePrompt";
+import {
+  OnboardingChecklistModal,
+  OnboardingLauncher,
+  onboardingComplete,
+  dismissOnboarding,
+  OnboardingSteps,
+} from "./src/components/OnboardingChecklist";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRedirectBridge from "./src/components/AuthRedirectBridge";
 import { Navigation, Footer } from "./src/components/Shell";
 
 import { useAuth } from "./src/hooks/useAuth";
 import { useReviews } from "./src/hooks/useReviews";
+import { useMyReviews } from "./src/hooks/useMyReviews";
 import { useTracking } from "./src/hooks/useTracking";
 import { useReviewSummaries } from "./src/hooks/useReviewSummaries";
 
@@ -63,12 +71,19 @@ const ScrollToTop = () => {
 // MappedUser is now provided directly by useAuth hook
 
 const App: React.FC = () => {
-  const { user, isAdmin, isPaid, isEnterprise } = useAuth();
+  const {
+    user,
+    isAdmin,
+    isPaid,
+    isEnterprise,
+    claimsVersion,
+    reviewUnlockUntil,
+  } = useAuth();
   const {
     reviews,
     isLoading: reviewsLoading,
     addReview: handleAddReview,
-  } = useReviews();
+  } = useReviews(claimsVersion);
   const {
     summaries: reviewSummaries,
     isLoading: summariesLoading,
@@ -78,6 +93,7 @@ const App: React.FC = () => {
     user?.id,
     isPaid,
   );
+  const { myReviews } = useMyReviews(user?.id);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
@@ -88,6 +104,26 @@ const App: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [sessionCount, setSessionCount] = useState(0);
   const [bannerHidden, setBannerHidden] = useState(false);
+
+  // Getting-started checklist: modal first session, then a floating launcher.
+  const [showChecklist, setShowChecklist] = useState(false);
+  const [checklistSeenThisSession, setChecklistSeenThisSession] = useState(false);
+
+  const onboardingSteps: OnboardingSteps = {
+    hasReview: myReviews.length > 0,
+    hasTracked: trackedCompanies.length > 0,
+    hasProfile: !!user?.marketingProfile?.role,
+  };
+  const onboardingDone = onboardingComplete(onboardingSteps);
+  const onboardingDismissed = !!user?.marketingProfile?.onboardingDismissed;
+  // Launcher shows for signed-in users who haven't finished or dismissed setup;
+  // wait until the profile snapshot has loaded to avoid a flash.
+  const showLauncher =
+    !!user &&
+    user.marketingProfile !== undefined &&
+    !onboardingDone &&
+    !onboardingDismissed &&
+    !showChecklist;
 
   const [notifications, setNotifications] = useState<Record<string, number>>(
     {},
@@ -128,12 +164,35 @@ const App: React.FC = () => {
     setSessionCount(n);
   }, [user?.id]);
 
+  // Auto-open the checklist once per session for signed-in users who still
+  // have setup to do and haven't dismissed it (covers returning users, not
+  // just fresh signups).
+  useEffect(() => {
+    if (
+      user &&
+      user.marketingProfile !== undefined &&
+      !checklistSeenThisSession &&
+      !onboardingDone &&
+      !onboardingDismissed
+    ) {
+      setShowChecklist(true);
+      setChecklistSeenThisSession(true);
+    }
+  }, [
+    user,
+    checklistSeenThisSession,
+    onboardingDone,
+    onboardingDismissed,
+  ]);
+
   const mp = user?.marketingProfile;
   const showRoleBanner =
     !!user &&
     !bannerHidden &&
     !showProfileModal &&
     !isAuthModalOpen &&
+    !showChecklist &&
+    !showLauncher &&
     sessionCount >= 3 &&
     mp !== undefined &&
     !mp.role &&
@@ -169,7 +228,7 @@ const App: React.FC = () => {
       if (isNew) {
         setPostAuthPath("/search");
         void recordAcquisition();
-        setShowProfileModal(true);
+        // The getting-started checklist auto-opens once the user doc loads.
       }
       track(isNew ? "sign_up" : "login", { method: "google" });
     } catch (err: any) {
@@ -190,7 +249,7 @@ const App: React.FC = () => {
       if (name) await updateProfile(res.user, { displayName: name });
       setPostAuthPath("/search");
       void recordAcquisition();
-      setShowProfileModal(true);
+      // The getting-started checklist auto-opens once the user doc loads.
       track("sign_up", { method: "password" });
     } else {
       await signInWithEmailAndPassword(auth, email, pass);
@@ -380,6 +439,26 @@ const App: React.FC = () => {
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
         />
+        <OnboardingChecklistModal
+          open={showChecklist}
+          steps={onboardingSteps}
+          reviewUnlockUntil={reviewUnlockUntil}
+          onClose={() => setShowChecklist(false)}
+          onDismiss={() => {
+            dismissOnboarding();
+            setShowChecklist(false);
+          }}
+          onAnswerQuestions={() => {
+            setShowChecklist(false);
+            setShowProfileModal(true);
+          }}
+        />
+        {showLauncher && (
+          <OnboardingLauncher
+            steps={onboardingSteps}
+            onOpen={() => setShowChecklist(true)}
+          />
+        )}
         <Footer />
       </div>
     </BrowserRouter>

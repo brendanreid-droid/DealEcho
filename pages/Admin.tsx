@@ -48,6 +48,11 @@ interface AcquisitionRow {
   isBusinessEmail: boolean;
   marketingRole: string;
   companySize: string;
+  searches: number;
+  profileViews: number;
+  reviewCount: number;
+  topIndustries: string;
+  lastActiveAt: string;
   createdAt: string;
   role: string;
   tier: string;
@@ -104,6 +109,10 @@ interface AccountRollup {
   paid: number;
   roles: string[];
   trackedCompanies: number;
+  searches: number;
+  profileViews: number;
+  reviews: number;
+  topIndustries: string;
   lastSignupAt: string;
   users: AccountUser[];
 }
@@ -1118,6 +1127,8 @@ const Admin: React.FC = () => {
                     const cols: (keyof AcquisitionRow)[] = [
                       "uid", "email", "displayName", "emailDomain",
                       "isBusinessEmail", "marketingRole", "companySize",
+                      "searches", "profileViews", "reviewCount",
+                      "topIndustries", "lastActiveAt",
                       "createdAt", "role", "tier", "isPaid",
                       "first_source", "first_medium", "first_campaign",
                       "first_content", "first_term", "first_referrer",
@@ -1163,6 +1174,10 @@ const Admin: React.FC = () => {
                       signups: a.signups,
                       paid: a.paid,
                       roles: a.roles.join("; "),
+                      searches: a.searches,
+                      profileViews: a.profileViews,
+                      reviews: a.reviews,
+                      topIndustries: a.topIndustries,
                       trackedCompanies: a.trackedCompanies,
                       lastSignupAt: a.lastSignupAt,
                       users: a.users.map((u) => u.email).join("; "),
@@ -1172,6 +1187,7 @@ const Admin: React.FC = () => {
                       `dealecho-target-accounts-${stamp}.csv`,
                       toCsv(
                         ["domain", "signups", "paid", "roles",
+                         "searches", "profileViews", "reviews", "topIndustries",
                          "trackedCompanies", "lastSignupAt", "users"],
                         rows,
                       ),
@@ -1391,6 +1407,10 @@ const Admin: React.FC = () => {
                           <th className="px-4 py-2 text-right">Users</th>
                           <th className="px-4 py-2 text-right">Paid</th>
                           <th className="px-4 py-2">Roles</th>
+                          <th className="px-4 py-2 text-right">
+                            Searches / Views / Reviews
+                          </th>
+                          <th className="px-4 py-2">Top Industries</th>
                           <th className="px-4 py-2 text-right">Tracked</th>
                           <th className="px-4 py-2">Last Signup</th>
                           <th className="px-4 py-2">People</th>
@@ -1400,7 +1420,7 @@ const Admin: React.FC = () => {
                         {(report.accounts ?? []).length === 0 ? (
                           <tr>
                             <td
-                              colSpan={7}
+                              colSpan={9}
                               className="px-4 py-8 text-center text-slate-500"
                             >
                               No business email signups yet.
@@ -1423,6 +1443,12 @@ const Admin: React.FC = () => {
                               </td>
                               <td className="px-4 py-2.5 text-slate-400 capitalize">
                                 {a.roles.join(", ") || "-"}
+                              </td>
+                              <td className="px-4 py-2.5 text-right text-slate-400 whitespace-nowrap">
+                                {a.searches} / {a.profileViews} / {a.reviews}
+                              </td>
+                              <td className="px-4 py-2.5 text-slate-400">
+                                {a.topIndustries || "-"}
                               </td>
                               <td className="px-4 py-2.5 text-right text-slate-400">
                                 {a.trackedCompanies}

@@ -16,6 +16,7 @@ import { getAccountSignal, AccountSignal } from "../services/accountSignal";
 import Button from "../src/components/ui/Button";
 import { TCV_BRACKETS } from "../src/constants/dealData";
 import { normalizeTcvBracket } from "../src/utils/reviewSchema";
+import { recordActivity } from "../src/utils/activity";
 
 interface CompanyProfileProps {
   user: MappedUser | null;
@@ -73,6 +74,15 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       }
     }
   }, [companyId, company, reviews]);
+
+  // Behavioral signal for the marketing dashboard: one profile view per
+  // company per session, tagged with the company's industry.
+  useEffect(() => {
+    if (company && companyId) {
+      recordActivity("profile_view", company.industry, companyId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company?.id, companyId]);
 
   const companyReviews = useMemo(() => {
     if (!company) return [];

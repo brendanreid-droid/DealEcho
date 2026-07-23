@@ -8,6 +8,7 @@ import { CardGridSkeleton } from "../src/components/Skeleton";
 import { Loader2 } from "lucide-react";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 import { searchCompanies } from "../services/geminiService";
+import { recordActivity } from "../src/utils/activity";
 import { Company } from "../types";
 import Button from "../src/components/ui/Button";
 
@@ -207,6 +208,18 @@ const Search: React.FC<SearchProps> = ({
       )
       .sort((a, b) => b.healthIndex - a.healthIndex);
   }, [q, companies]);
+
+  // Behavioral signal for the marketing dashboard: count each distinct search
+  // per session; attach an industry when the query matches a known one.
+  useEffect(() => {
+    if (!q.trim()) return;
+    const query = q.trim().toLowerCase();
+    const industry = reviewSummaries
+      .map((s) => s.industry)
+      .find((i) => i && i.toLowerCase() === query);
+    recordActivity("search", industry, query);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
   // Search company entities via Gemini Google Search tool in Cloud Function
   useEffect(() => {

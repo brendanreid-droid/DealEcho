@@ -3,6 +3,7 @@ import {
   HttpsError,
   CallableRequest,
 } from "firebase-functions/v2/https";
+import { FieldValue } from "firebase-admin/firestore";
 import { db, auth } from "./lib/firebaseAdmin";
 
 type UserRole = "free" | "paid" | "admin" | "free_full" | "enterprise";
@@ -124,6 +125,60 @@ export const updateMarketingProfile = onCall({ cors: true }, async (request) => 
   return { status: "ok" };
 });
 
+// ── recordActivity ────────────────────────────────────────────────────────────
+const ACTIVITY_TYPES = new Set(["search", "profile_view"]);
+const INDUSTRY_PATTERN = /^[A-Za-z0-9 &\-/().,'+]{1,60}$/;
+const MAX_INDUSTRY_KEYS = 50;
+
+/**
+ * Fire-and-forget behavioral counters, aggregated on the caller's OWN user doc
+ * under `behavior` (no raw event log). Industry strings are charset/length
+ * checked and the industries map is capped so a hostile client cannot grow the
+ * doc without bound. Feeds the admin marketing report's ICP signals.
+ */
+export const recordActivity = onCall({ cors: true }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in.");
+  }
+  const type = request.data?.type;
+  if (typeof type !== "string" || !ACTIVITY_TYPES.has(type)) {
+    throw new HttpsError("invalid-argument", "Unknown activity type.");
+  }
+
+  let industry: string | null = null;
+  const rawIndustry = request.data?.industry;
+  if (typeof rawIndustry === "string") {
+    const trimmed = rawIndustry.trim();
+    if (INDUSTRY_PATTERN.test(trimmed)) industry = trimmed;
+  }
+
+  const userRef = db.collection("users").doc(request.auth.uid);
+
+  // Cap distinct industry keys: only count a NEW industry while under the cap.
+  if (industry) {
+    const snap = await userRef.get();
+    const existing = snap.data()?.behavior?.industries ?? {};
+    if (
+      existing[industry] === undefined &&
+      Object.keys(existing).length >= MAX_INDUSTRY_KEYS
+    ) {
+      industry = null;
+    }
+  }
+
+  const behavior: Record<string, unknown> = {
+    lastActiveAt: new Date().toISOString(),
+  };
+  if (type === "search") behavior.searches = FieldValue.increment(1);
+  if (type === "profile_view") behavior.profileViews = FieldValue.increment(1);
+  if (industry) {
+    behavior.industries = { [industry]: FieldValue.increment(1) };
+  }
+
+  await userRef.set({ behavior }, { merge: true });
+  return { status: "ok" };
+});
+
 // ── recordAcquisition ─────────────────────────────────────────────────────────
 /**
  * Called by the client right after a NEW user signs up. Writes marketing
@@ -175,6 +230,11 @@ interface ReportRow {
   isBusinessEmail: boolean;
   marketingRole: string;
   companySize: string;
+  searches: number;
+  profileViews: number;
+  reviewCount: number;
+  topIndustries: string;
+  lastActiveAt: string;
   createdAt: string;
   role: string;
   tier: string;
@@ -191,6 +251,20 @@ interface ReportRow {
   last_medium: string;
   last_campaign: string;
   last_content: string;
+}
+
+/** Top N industries from a counts map, formatted "Name (count)". */
+function topIndustries(
+  counts: Record<string, number> | undefined,
+  n: number,
+): string {
+  if (!counts) return "";
+  return Object.entries(counts)
+    .filter(([, v]) => typeof v === "number" && v > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([k, v]) => `${k} (${v})`)
+    .join(", ");
 }
 
 function isPaidUser(role: string, tier: string): boolean {
@@ -223,6 +297,16 @@ export const adminGetAcquisitionReport = onCall(
       if (s.exists) fsMap[s.id] = s.data()!;
     });
 
+    // Reviews submitted per user (projection keeps the read light).
+    const reviewCounts: Record<string, number> = {};
+    const reviewSnap = await db.collection("reviews").select("userId").get();
+    reviewSnap.docs.forEach((d) => {
+      const uid = d.data().userId;
+      if (typeof uid === "string") {
+        reviewCounts[uid] = (reviewCounts[uid] ?? 0) + 1;
+      }
+    });
+
     const rows: ReportRow[] = listResult.users.map((u) => {
       const fs = fsMap[u.uid] ?? {};
       const acq = fs.acquisition ?? {};
@@ -234,6 +318,7 @@ export const adminGetAcquisitionReport = onCall(
         (fs.tier as string) ?? (u.customClaims?.tier as string) ?? "free";
       const domain = emailDomain(u.email ?? "");
       const mp = fs.marketingProfile ?? {};
+      const behavior = fs.behavior ?? {};
       return {
         uid: u.uid,
         email: u.email ?? "",
@@ -242,6 +327,11 @@ export const adminGetAcquisitionReport = onCall(
         isBusinessEmail: isBusinessDomain(domain),
         marketingRole: (mp.role as string) ?? "",
         companySize: (mp.companySize as string) ?? "",
+        searches: (behavior.searches as number) ?? 0,
+        profileViews: (behavior.profileViews as number) ?? 0,
+        reviewCount: reviewCounts[u.uid] ?? 0,
+        topIndustries: topIndustries(behavior.industries, 3),
+        lastActiveAt: (behavior.lastActiveAt as string) ?? "",
         createdAt: u.metadata.creationTime ?? "",
         role,
         tier,
@@ -330,6 +420,10 @@ export const adminGetAcquisitionReport = onCall(
         paid: number;
         roles: string[];
         trackedCompanies: number;
+        searches: number;
+        profileViews: number;
+        reviews: number;
+        industryCounts: Record<string, number>;
         lastSignupAt: string;
         users: { email: string; displayName: string; marketingRole: string; isPaid: boolean; createdAt: string }[];
       }
@@ -342,11 +436,26 @@ export const adminGetAcquisitionReport = onCall(
         paid: 0,
         roles: [],
         trackedCompanies: 0,
+        searches: 0,
+        profileViews: 0,
+        reviews: 0,
+        industryCounts: {},
         lastSignupAt: "",
         users: [],
       });
       a.signups += 1;
       if (r.isPaid) a.paid += 1;
+      a.searches += r.searches;
+      a.profileViews += r.profileViews;
+      a.reviews += r.reviewCount;
+      const userIndustries = fsMap[r.uid]?.behavior?.industries;
+      if (userIndustries && typeof userIndustries === "object") {
+        for (const [k, v] of Object.entries(userIndustries)) {
+          if (typeof v === "number" && v > 0) {
+            a.industryCounts[k] = (a.industryCounts[k] ?? 0) + v;
+          }
+        }
+      }
       if (r.marketingRole && !a.roles.includes(r.marketingRole)) {
         a.roles.push(r.marketingRole);
       }
@@ -364,9 +473,15 @@ export const adminGetAcquisitionReport = onCall(
         createdAt: created,
       });
     }
-    const accounts = Object.values(accountRollup).sort(
-      (a, b) => b.signups - a.signups || (a.lastSignupAt < b.lastSignupAt ? 1 : -1),
-    );
+    const accounts = Object.values(accountRollup)
+      .map(({ industryCounts, ...a }) => ({
+        ...a,
+        topIndustries: topIndustries(industryCounts, 3),
+      }))
+      .sort(
+        (a, b) =>
+          b.signups - a.signups || (a.lastSignupAt < b.lastSignupAt ? 1 : -1),
+      );
 
     return {
       rows,

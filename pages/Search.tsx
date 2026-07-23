@@ -316,9 +316,9 @@ const Search: React.FC<SearchProps> = ({
       <div className="max-w-6xl mx-auto px-6 py-12">
         {q ? (
           <>
-            <h1 className="font-display font-semibold text-2xl tracking-tight mb-1">
+            <h2 className="font-display font-semibold text-2xl tracking-tight mb-1">
               Results for “{q}”
-            </h1>
+            </h2>
             <p className="text-slate-500 text-sm mb-7">
               {results.length + filteredAiCompanies.length} account{results.length + filteredAiCompanies.length !== 1 ? "s" : ""} found
             </p>

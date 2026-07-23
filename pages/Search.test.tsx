@@ -71,7 +71,7 @@ function renderLanding(reviewSummaries: ReviewSummary[]) {
 describe("Search landing (no query)", () => {
   it("renders the hero heading", () => {
     renderLanding([summary, summary2]);
-    expect(screen.getByText(/Find how any account buys/i)).toBeInTheDocument();
+    expect(screen.getByText(/Find how any/i)).toBeInTheDocument();
   });
 
   it("shows a recently-reviewed grid with reviewed companies", () => {

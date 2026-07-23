@@ -251,38 +251,69 @@ const Search: React.FC<SearchProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-6 py-14">
-        {/* Search input bar */}
-        <form onSubmit={handleSearch} className="mb-10">
-          <div className="relative max-w-2xl mx-auto">
-            <svg
-              className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              type="text"
-              value={localQuery}
-              onChange={(e) => setLocalQuery(e.target.value)}
-              placeholder="Search by company name or industry…"
-              className="w-full rounded-card border-2 border-slate-200 bg-white pl-12 pr-32 py-4 text-base focus:border-accent focus:outline-none transition-colors"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-2 bottom-2 bg-navy text-white px-6 rounded-control font-bold text-sm hover:bg-black transition-colors"
-            >
-              Search
-            </button>
+      {/* Navy command hero */}
+      <section className="bg-navy text-white pt-16 pb-14 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 font-mono text-2xs uppercase tracking-[0.16em] text-signal-healthy-bright mb-5">
+            <span className="w-1.5 h-1.5 rounded-full bg-signal-healthy-bright animate-pulse-soft" />
+            Search intelligence
           </div>
-        </form>
+          <h1 className="font-extrabold text-3xl md:text-5xl leading-[1.05] tracking-tight mb-6">
+            Find how any <span className="text-accent-soft">account buys</span>
+          </h1>
+          <form onSubmit={handleSearch} className="max-w-xl mx-auto">
+            <div className="relative">
+              <svg
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                type="text"
+                value={localQuery}
+                onChange={(e) => setLocalQuery(e.target.value)}
+                placeholder="Search any company or industry"
+                aria-label="Company search"
+                className="w-full rounded-card bg-white text-slate-900 placeholder-slate-400 pl-12 pr-28 py-4 text-base shadow-hero focus:outline-none focus:ring-4 focus:ring-accent/40"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 top-2 bottom-2 bg-accent text-white px-6 rounded-control font-bold text-sm hover:bg-accent-700 transition-colors"
+              >
+                Search
+              </button>
+            </div>
+          </form>
+          {industries.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-5">
+              {industries.map((ind) => {
+                const active = q.toLowerCase() === ind.toLowerCase();
+                return (
+                  <Link
+                    key={ind}
+                    to={`/search?q=${encodeURIComponent(ind)}`}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                      active ? "bg-accent text-white" : "bg-white/10 text-slate-200 hover:bg-white/20"
+                    }`}
+                  >
+                    {ind}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
 
+      {/* Content area */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
         {q ? (
           <>
             <h1 className="font-display font-semibold text-2xl tracking-tight mb-1">
@@ -354,20 +385,6 @@ const Search: React.FC<SearchProps> = ({
           </>
         ) : (
           <div className="space-y-8">
-            <h1 className="sr-only">Find how any account buys</h1>
-            {industries.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {industries.map((ind) => (
-                  <Link
-                    key={ind}
-                    to={`/search?q=${encodeURIComponent(ind)}`}
-                    className="bg-white/10 text-slate-200 hover:bg-white/20 px-3 py-1 rounded-full text-xs font-semibold transition-colors"
-                  >
-                    {ind}
-                  </Link>
-                ))}
-              </div>
-            )}
             {recentCompanies.length > 0 ? (
               <div>
                 <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">

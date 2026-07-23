@@ -32,16 +32,16 @@ describe("Navigation", () => {
         <Navigation user={{ name: "Sam", avatar: "" } as any} isAdmin={false} isPaid={false} onSignInClick={noop} onSignUpClick={noop} onLogout={noop} notificationCount={0} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
+    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing");
   });
 
-  it("points the logged-out Search link at /search", () => {
+  it("points the logged-out Search link at the home landing page", () => {
     render(
       <MemoryRouter>
         <Navigation user={null} isAdmin={false} isPaid={false} onSignInClick={noop} onSignUpClick={noop} onLogout={noop} notificationCount={0} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
+    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/");
   });
 });

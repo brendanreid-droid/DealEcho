@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useParams, useNavigate, Link } from "react-router-dom";
 import { Company, Review } from "../types";
 import { getAICompanyPersona, CompanyPersona } from "../services/geminiService";
-import CompanyLogo from "../components/CompanyLogo";
 import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
 import ScoreRing from "../src/components/ScoreRing";
@@ -275,6 +274,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
         healthDelta={healthDelta}
         headline={signal?.headline ?? company.description ?? ""}
         reportCount={hasReviews ? companyReviews.length : (company.reports ?? 0)}
+        logoUrl={company.logoUrl || companyLogoUrl({ name: company.name, domain: company.domain || guessDomainFromName(company.name) })}
       />
 
       <div className="flex flex-wrap gap-3">

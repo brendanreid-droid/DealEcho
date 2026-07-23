@@ -23,7 +23,7 @@ export const Navigation: React.FC<{
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: "Search", path: "/search", icon: "fa-search" },
+    { name: "Search", path: "/", icon: "fa-search" },
     { name: "Write Review", path: "/review/new", icon: "fa-pen-nib" },
     { name: "Control Centre", path: "/control-centre", icon: "fa-user-circle" },
   ];
@@ -37,15 +37,17 @@ export const Navigation: React.FC<{
     navLinks.push({ name: "Admin", path: "/admin", icon: "fa-shield-alt" });
   }
 
+  // The Search nav now points home; highlight it on the landing page and on
+  // any /search results route.
   const isActive = (path: string) =>
-    path === "/search"
-      ? location.pathname.startsWith("/search")
+    path === "/"
+      ? location.pathname === "/" || location.pathname.startsWith("/search")
       : location.pathname === path;
 
   const mobileLinks = user
     ? navLinks
     : [
-        { name: "Search", path: "/search", icon: "fa-search" },
+        { name: "Search", path: "/", icon: "fa-search" },
         { name: "Pricing", path: "/pricing", icon: "fa-tags" },
       ];
 
@@ -61,7 +63,7 @@ export const Navigation: React.FC<{
             {(user
               ? navLinks
               : [
-                  { name: "Search", path: "/search", icon: "fa-search" },
+                  { name: "Search", path: "/", icon: "fa-search" },
                   { name: "Pricing", path: "/pricing", icon: "fa-tags" },
                 ]
             ).map((link) => (

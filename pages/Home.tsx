@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useSEO } from "../src/hooks/useSEO";
 import { ReviewSummary } from "../src/hooks/useReviewSummaries";
 import CompanyCard, { CompanyCardData } from "../src/components/CompanyCard";
@@ -74,6 +74,18 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
       });
   }, [reviewSummaries]);
 
+  // Distinct industries/verticals from reviewed companies, for the hero quick-chips.
+  const industries = useMemo(
+    () =>
+      Array.from(new Set(companies.map((c) => c.industry).filter(Boolean)))
+        .sort()
+        .slice(0, 6),
+    [companies],
+  );
+
+  // Trial CTAs are hidden for logged-in paid members (they already subscribe).
+  const showTrialCta = !user || !isPaid;
+
   return (
     <div className="bg-slate-50 min-h-screen">
       {/* Hero */}
@@ -90,9 +102,11 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
           <p className="text-lg text-slate-300 max-w-xl mx-auto mb-9 leading-relaxed">
             Real intelligence from enterprise sales cycles. See how target accounts actually buy, before you spend a quarter finding out.
           </p>
-          <div className="flex justify-center mb-7">
-            <Button variant="primary" to="/pricing">Start your 30-day trial</Button>
-          </div>
+          {showTrialCta && (
+            <div className="flex justify-center mb-7">
+              <Button variant="primary" to="/pricing">Start your 30-day trial</Button>
+            </div>
+          )}
           <form onSubmit={handleSearch} className="max-w-xl mx-auto">
             <div className="relative">
               <svg
@@ -123,6 +137,19 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
               </button>
             </div>
           </form>
+          {industries.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-5">
+              {industries.map((ind) => (
+                <Link
+                  key={ind}
+                  to={`/search?q=${encodeURIComponent(ind)}`}
+                  className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-slate-200 hover:bg-white/20 transition-colors"
+                >
+                  {ind}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -165,13 +192,15 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
         </div>
       </section>
 
-      {/* Closing CTA */}
-      <CtaBand
-        headline="Stop walking into deals blind."
-        subtext="Full red-flag analysis, buyer personas, and deal mechanics on every account. Cancel anytime."
-        ctaLabel="Start your 30-day trial"
-        to="/pricing"
-      />
+      {/* Closing CTA — hidden for logged-in paid members */}
+      {showTrialCta && (
+        <CtaBand
+          headline="Stop walking into deals blind."
+          subtext="Full red-flag analysis, buyer personas, and deal mechanics on every account. Cancel anytime."
+          ctaLabel="Start your 30-day trial"
+          to="/pricing"
+        />
+      )}
     </div>
   );
 };

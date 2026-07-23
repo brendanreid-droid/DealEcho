@@ -1,5 +1,6 @@
 import React from "react";
 import ScoreRing from "../ScoreRing";
+import CompanyLogo from "../../../components/CompanyLogo";
 
 interface VerdictCardProps {
   name: string;
@@ -8,10 +9,11 @@ interface VerdictCardProps {
   healthDelta: number;
   headline: string;
   reportCount: number;
+  logoUrl?: string;
 }
 
 const VerdictCard: React.FC<VerdictCardProps> = ({
-  name, meta, health, healthDelta, headline, reportCount,
+  name, meta, health, healthDelta, headline, reportCount, logoUrl,
 }) => {
   const declining = healthDelta < 0;
   return (
@@ -19,6 +21,7 @@ const VerdictCard: React.FC<VerdictCardProps> = ({
       <ScoreRing score={health} size={72} showLabel />
       <div>
         <div className="flex flex-wrap items-center gap-3">
+          <CompanyLogo name={name} logoUrl={logoUrl} size="md" />
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">{name}</h1>
           {healthDelta !== 0 && (
             <span

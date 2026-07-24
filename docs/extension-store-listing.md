@@ -101,7 +101,20 @@ All JavaScript is bundled into the package. The manifest sets `content_security_
 Tick all three: data is not sold to third parties; data is not used or transferred for purposes unrelated to the item's single purpose; data is not used or transferred to determine creditworthiness or for lending purposes.
 
 ## Store listing tab - icon
-128x128 PNG: `extension/public/icons/icon-128.png` (already the correct size, upload as-is).
+
+Upload `docs/store-assets/store-icon-128.png`.
+
+128x128 canvas with the art at 96x96 centred and 16px of transparent padding on each
+side, which is what the Chrome Web Store expects - it applies its own framing, so a
+full-bleed icon renders visibly larger and heavier than neighbouring listings.
+
+Do NOT upload `extension/public/icons/icon-128.png` here, and do not replace those files
+with this one. The `extension/public/icons/` set are the manifest/toolbar icons and are
+correctly full-bleed: Chrome drops them into a small toolbar slot with no framing.
+Different job, different padding.
+
+Regenerated from `public/favicon.png` (512x512, same mark as the site favicon) so the
+store icon, site favicon and toolbar icon all stay in sync.
 
 ## Screenshots (1280x800, capture after Task 6 checkpoint)
 1. Matched Pro view on a prospect site - favicon header, metrics, persona, red flags, reviews

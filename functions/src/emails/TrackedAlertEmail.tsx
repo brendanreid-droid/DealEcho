@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Text, Heading, Button, Section, Row, Column } from "@react-email/components";
 import { DealEchoEmailLayout } from "./Layout";
+import { APP_URL } from "../lib/constants";
 
 interface TrackedAlertProps {
   name: string;
@@ -31,15 +32,15 @@ export const TrackedAlertEmail: React.FC<TrackedAlertProps> = ({
 
   return (
     <DealEchoEmailLayout
-      previewTextText={`New buyer intelligence just posted for ${companyName}.`}
+      previewTextText={`A new verified review just landed on ${companyName}.`}
       userEmail={email}
       userUid={userUid}
     >
-      <Text style={alertBadge}>NEW INTELLIGENCE DEPLOYED</Text>
+      <Text style={alertBadge}>NEW REVIEW VERIFIED</Text>
       <Heading style={h1}>Update on {companyName}</Heading>
 
       <Text style={paragraph}>
-        Hi {name.split(" ")[0]}, a new verified buyer report was just vetted and approved for an account you are currently tracking:
+        Hi {name.split(" ")[0]}, a new review just cleared moderation on an account you track:
       </Text>
 
       {/* Mini Scorecard Card */}
@@ -47,7 +48,7 @@ export const TrackedAlertEmail: React.FC<TrackedAlertProps> = ({
         <Row style={{ marginBottom: "16px" }}>
           <Column>
             <Text style={companyTitle}>{companyName}</Text>
-            <Text style={companySub}>Recently Analyzed Account</Text>
+            <Text style={companySub}>Recently analysed account</Text>
           </Column>
           <Column style={{ textAlign: "right" }}>
             <Section style={scoreBadge}>
@@ -57,7 +58,7 @@ export const TrackedAlertEmail: React.FC<TrackedAlertProps> = ({
           </Column>
         </Row>
 
-        <Text style={reviewLabel}>VETTED SYNOPSIS</Text>
+        <Text style={reviewLabel}>WHAT THE SELLER SAID</Text>
         <Text style={reviewText}>"{reviewSummary}"</Text>
 
         <Section style={{ marginTop: "20px" }}>
@@ -81,8 +82,8 @@ export const TrackedAlertEmail: React.FC<TrackedAlertProps> = ({
       </Section>
 
       <Section style={ctaContainer}>
-        <Button href={`https://dealecho.io/company/${companyId}`} style={primaryButton}>
-          Unlock Full Intel Report
+        <Button href={`${APP_URL}/company/${companyId}`} style={primaryButton}>
+          Read the full report
         </Button>
       </Section>
     </DealEchoEmailLayout>

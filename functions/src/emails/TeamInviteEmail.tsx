@@ -18,6 +18,7 @@ export const TeamInviteEmail: React.FC<TeamInviteEmailProps> = ({
   <DealEchoEmailLayout
     previewTextText={`${inviterName} invited you to join their Dealecho Enterprise team.`}
     userEmail={recipientEmail}
+    transactional
   >
     <Heading style={h1}>You've been invited to Dealecho Enterprise</Heading>
 
@@ -27,7 +28,7 @@ export const TeamInviteEmail: React.FC<TeamInviteEmailProps> = ({
     </Text>
 
     <Text style={paragraph}>
-      As an Enterprise member you'll get full Pro access — plus{' '}
+      As an Enterprise member you'll get full Pro access, plus{' '}
       {teamRole === 'manager' ? "the ability to manage your team's seats and members." : 'access to all deal intelligence features.'}
     </Text>
 
@@ -46,7 +47,7 @@ export const TeamInviteEmail: React.FC<TeamInviteEmailProps> = ({
     <Text style={signoff}>
       Good selling,
       <br />
-      <strong>The dealecho Team</strong>
+      <strong>The Dealecho Team</strong>
     </Text>
   </DealEchoEmailLayout>
 );

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Text, Heading, Button, Section } from "@react-email/components";
 import { DealEchoEmailLayout } from "./Layout";
+import { CONTROL_CENTRE_URL } from "../lib/constants";
 
 interface NewsletterEmailProps {
   title: string;
@@ -17,8 +18,8 @@ export const NewsletterEmail: React.FC<NewsletterEmailProps> = ({
   title,
   preheaderText,
   paragraphs,
-  ctaText = "Explore Intel Dashboard",
-  ctaUrl = "https://dealecho.io",
+  ctaText = "Explore Your Control Centre",
+  ctaUrl = CONTROL_CENTRE_URL,
   email,
   uid,
   newsletterId,
@@ -47,7 +48,7 @@ export const NewsletterEmail: React.FC<NewsletterEmailProps> = ({
 
       <Text style={signoff}>
         Good selling,<br />
-        <strong>The dealecho Team</strong>
+        <strong>The Dealecho Team</strong>
       </Text>
 
       {/* Transparent 1x1 GIF tracking pixel */}

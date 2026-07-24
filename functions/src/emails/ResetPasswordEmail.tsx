@@ -12,9 +12,12 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ name, em
   const firstName = name ? name.split(" ")[0] : "there";
 
   return (
-    <DealEchoEmailLayout 
-      previewTextText="Reset your dealecho.io password. Choose a new secure password."
+    <DealEchoEmailLayout
+      previewTextText="Reset your Dealecho password. Choose a new secure password."
       userEmail={email}
+      transactional
+      /* Security email. Nothing competes with the reset itself. */
+      showExtension={false}
     >
       <Heading style={h1}>Reset your password</Heading>
       
@@ -23,8 +26,8 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ name, em
       </Text>
 
       <Text style={paragraph}>
-        We received a request to reset the password for your **dealecho.io** account.
-        If you made this request, please click the button below to choose a new secure password:
+        We received a request to reset the password on your <strong>Dealecho</strong> account.
+        If that was you, choose a new password below:
       </Text>
 
       <Section style={ctaContainer}>
@@ -46,7 +49,7 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ name, em
 
       <Text style={signoff}>
         Good selling,<br />
-        <strong>The dealecho Team</strong>
+        <strong>The Dealecho Team</strong>
       </Text>
     </DealEchoEmailLayout>
   );

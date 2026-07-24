@@ -22,14 +22,18 @@ export async function sendReactEmail({
     }
     const resend = new Resend(resendApiKey || "mock-resend-key");
 
-    // Compile React Email component into plain HTML string
+    // Compile React Email component into an HTML string plus a plain-text
+    // alternative. Sending both improves deliverability and covers clients
+    // that refuse to render HTML.
     const html = await render(component);
-    
+    const text = await render(component, { plainText: true });
+
     const response = await resend.emails.send({
       from,
       to,
       subject,
       html,
+      text,
     });
     
     if (response.error) {

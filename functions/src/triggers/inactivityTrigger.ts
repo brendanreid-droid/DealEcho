@@ -2,28 +2,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { db } from "../lib/firebaseAdmin";
 import { sendReactEmail } from "../lib/email";
 import * as React from "react";
-import { DealEchoEmailLayout } from "../emails/Layout";
-import { Text, Heading, Button, Section } from "@react-email/components";
-
-// React Email template defined inside the file to keep things modular and simple
-const ReengagementEmail: React.FC<{ name: string; email: string }> = ({ name, email }) => (
-  <DealEchoEmailLayout previewTextText="Stay ahead of your pipeline with B2B buyer intelligence." userEmail={email}>
-    <Heading style={{ color: "#0f172a", fontSize: "24px", fontWeight: "850", margin: "0 0 16px 0" }}>
-      We miss you, {name.split(" ")[0]}!
-    </Heading>
-    <Text style={{ color: "#334155", fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0" }}>
-      It's been a while since your last log in on **dealecho.io**. Since you left, our sales intelligence network has added fresh verified buy-side ratings, pricing structures, and stakeholder patterns on key enterprise accounts.
-    </Text>
-    <Text style={{ color: "#334155", fontSize: "14px", lineHeight: "1.6", margin: "0 0 24px 0" }}>
-      Stay ahead of your pipeline. Access the latest buyer intelligence and adjust your closing strategies.
-    </Text>
-    <Section style={{ textAlign: "center", margin: "32px 0" }}>
-      <Button href="https://dealecho.io" style={{ backgroundColor: "#4f46e5", color: "#ffffff", padding: "16px 32px", borderRadius: "14px", fontWeight: "800", textDecoration: "none", display: "inline-block" }}>
-        Re-explore Live Intel
-      </Button>
-    </Section>
-  </DealEchoEmailLayout>
-);
+import { ReengagementEmail } from "../emails/ReengagementEmail";
 
 export const checkInactiveUsers = onSchedule(
   {
@@ -64,6 +43,19 @@ export const checkInactiveUsers = onSchedule(
           return;
         }
 
+        // Re-engagement is marketing mail, so honour the same opt-out that
+        // gates the newsletter.
+        if (userData.notificationPreferences?.weeklyDigest === false) {
+          console.log(`Skipping user ${email} - opted out of marketing email.`);
+          return;
+        }
+
+        // Never nudge a suspended account.
+        if (userData.suspended === true) {
+          console.log(`Skipping suspended user ${email}.`);
+          return;
+        }
+
         // Check if already nudged in the last 30 days to protect user experience
         if (userData.lastNudgedAt) {
           const lastNudgeDate = new Date(userData.lastNudgedAt);
@@ -74,7 +66,7 @@ export const checkInactiveUsers = onSchedule(
           }
         }
 
-        const component = React.createElement(ReengagementEmail, { name, email });
+        const component = React.createElement(ReengagementEmail, { name, email, uid: doc.id });
         
         // Update user document first to mark nudge timestamp (prevents race conditions / double sends)
         await doc.ref.update({
@@ -84,7 +76,7 @@ export const checkInactiveUsers = onSchedule(
         // Send email via Resend React helper
         return sendReactEmail({
           to: email,
-          subject: "Stay ahead of your pipeline with dealecho.io",
+          subject: "Stay ahead of your pipeline with Dealecho",
           component,
         });
       });

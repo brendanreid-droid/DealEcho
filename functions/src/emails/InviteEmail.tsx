@@ -15,34 +15,36 @@ export const InviteEmail: React.FC<InviteEmailProps> = ({ name, email, role, set
   const roleLabels: Record<string, string> = {
     free: "Free (Pioneer Plan)",
     paid: "Sales Pro Member (Paid)",
-    admin: "dealecho Administrator",
+    admin: "Dealecho Administrator",
     free_full: "Free Full (Complimentary Full Access)",
+    enterprise: "Enterprise Team Manager",
   };
   const roleLabel = roleLabels[role] || role;
 
   return (
-    <DealEchoEmailLayout 
-      previewTextText="You have been invited to join dealecho.io. Activate your account now."
+    <DealEchoEmailLayout
+      previewTextText="You have been invited to join Dealecho. Activate your account now."
       userEmail={email}
+      transactional
     >
-      <Heading style={h1}>Welcome to dealecho, {firstName}!</Heading>
-      
+      <Heading style={h1}>Welcome to Dealecho, {firstName}!</Heading>
+
       <Text style={paragraph}>
-        An administrator has manually created an account for you on **dealecho.io**, the premier intelligence layer for enterprise B2B sales cycles.
+        An administrator has set up a <strong>Dealecho</strong> account for you. Dealecho is where B2B sellers put on record what actually happened inside an enterprise deal, so the next rep in doesn't walk in blind.
       </Text>
 
       <Text style={paragraph}>
-        Your account has been pre-configured with the following membership level:
+        Your account is already set to this membership level:
       </Text>
 
       <Section style={roleContainer}>
         <Text style={roleText}>
-          Membership Type: <span style={roleHighlight}>{roleLabel}</span>
+          Membership: <span style={roleHighlight}>{roleLabel}</span>
         </Text>
       </Section>
 
       <Text style={paragraph}>
-        To finalize your setup and choose your secure password, please click the account activation button below:
+        To finalise your setup and choose a password, activate your account below:
       </Text>
 
       <Section style={ctaContainer}>
@@ -59,7 +61,7 @@ export const InviteEmail: React.FC<InviteEmailProps> = ({ name, email, role, set
 
       <Text style={signoff}>
         Good selling,<br />
-        <strong>The dealecho Team</strong>
+        <strong>The Dealecho Team</strong>
       </Text>
     </DealEchoEmailLayout>
   );

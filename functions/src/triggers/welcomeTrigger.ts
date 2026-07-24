@@ -38,12 +38,13 @@ export const sendWelcomeEmail = functions
     const welcomeComponent = React.createElement(WelcomeEmail, {
       name,
       email,
+      uid: user.uid,
     });
 
     try {
       await sendReactEmail({
         to: email,
-        subject: "Welcome to dealecho.io - Let's optimize your sales intelligence",
+        subject: "Welcome to Dealecho - Let's optimise your sales intelligence",
         component: welcomeComponent,
       });
     } catch (err) {

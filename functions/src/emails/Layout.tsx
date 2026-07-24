@@ -8,13 +8,24 @@ import {
   Text,
   Link,
   Hr,
+  Img,
 } from "@react-email/components";
+import { ExtensionCallout } from "./ExtensionCallout";
+import { CONTROL_CENTRE_URL, APP_URL, EMAIL_LOGO_URL } from "../lib/constants";
 
 interface EmailLayoutProps {
   previewTextText: string;
   children: React.ReactNode;
   userEmail?: string;
   userUid?: string;
+  /** Security/account mail (resets, activations). Hides the unsubscribe link. */
+  transactional?: boolean;
+  /**
+   * The extension prompt rides along on every email by default. Set false only
+   * where it would compete with the message (e.g. a template that already makes
+   * the extension its primary call to action).
+   */
+  showExtension?: boolean;
 }
 
 export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
@@ -22,6 +33,8 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
   children,
   userEmail,
   userUid,
+  transactional = false,
+  showExtension = true,
 }) => {
   return (
     <Html>
@@ -31,33 +44,44 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
         <span style={{ display: "none", fontSize: 0 }}>{previewTextText}</span>
         
         <Container style={container}>
-          {/* Header Banner matching DealEcho slate-900 / navy */}
+          {/* Header banner. Background matches the lockup PNG so the two blend. */}
           <Section style={headerSection}>
-            <Text style={logoText}>DEAL<span style={{ color: "#818cf8" }}>ECHO</span></Text>
+            <Img
+              src={EMAIL_LOGO_URL}
+              width="200"
+              height="56"
+              alt="Dealecho"
+              style={logoImage}
+            />
             <Text style={taglineText}>Sales Intelligence Hub</Text>
           </Section>
 
           {/* Email Body Content */}
           <Section style={bodyContentSection}>
             {children}
+            {showExtension && <ExtensionCallout />}
           </Section>
 
           {/* Footer Section */}
           <Section style={footerSection}>
             <Hr style={divider} />
             <Text style={footerText}>
-              &copy; {new Date().getFullYear()} dealecho.io. All rights reserved.
+              &copy; {new Date().getFullYear()} Dealecho Pty Ltd. All rights reserved.
             </Text>
             <Text style={footerSubtext}>
-              You received this email because you are a registered member of dealecho.io.
+              {transactional
+                ? "This is an account security email sent to you as a registered member of Dealecho."
+                : "You received this email because you are a registered member of Dealecho."}
               {userEmail && ` Sent to ${userEmail}.`}
             </Text>
             <Text style={footerLinks}>
-              <Link href="https://dealecho.io" style={footerLink}>Dashboard</Link>
-              {" • "}
-              <Link href="https://dealecho.io/pricing" style={footerLink}>Pricing</Link>
-              {" • "}
-              <Link href={`https://dealecho.io/unsubscribe?email=${encodeURIComponent(userEmail || "")}&uid=${userUid || ""}`} style={footerLink}>Unsubscribe / Preferences</Link>
+              <Link href={CONTROL_CENTRE_URL} style={footerLink}>Control Centre</Link>
+              {!transactional && (
+                <>
+                  {" • "}
+                  <Link href={`${APP_URL}/unsubscribe?email=${encodeURIComponent(userEmail || "")}&uid=${userUid || ""}`} style={footerLink}>Unsubscribe / Preferences</Link>
+                </>
+              )}
             </Text>
           </Section>
         </Container>
@@ -84,17 +108,15 @@ const container = {
 };
 
 const headerSection = {
-  backgroundColor: "#101426",
-  padding: "32px 40px",
+  backgroundColor: "#0e1426",
+  padding: "30px 40px 26px 40px",
   textAlign: "center" as const,
 };
 
-const logoText = {
-  color: "#ffffff",
-  fontSize: "24px",
-  fontWeight: "900",
-  letterSpacing: "0.05em",
-  margin: "0 0 4px 0",
+const logoImage = {
+  display: "block",
+  margin: "0 auto 8px auto",
+  border: "0",
 };
 
 const taglineText = {

@@ -32,7 +32,7 @@ const Privacy: React.FC = () => {
             Privacy Policy
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-accent-soft font-bold">July 9, 2026</span>
+            Last Updated: <span className="text-accent-soft font-bold">July 24, 2026</span>
           </p>
         </div>
 
@@ -41,7 +41,7 @@ const Privacy: React.FC = () => {
           
           {/* Welcome/Agreement */}
           <p className="text-slate-300 italic border-l-4 border-accent/30 pl-4 py-1">
-            Dealecho (ABN 92 122 197 793) trading as Dealecho.io ("Dealecho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using Dealecho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
+            Dealecho Pty Ltd (ACN 700 682 346, ABN 39 700 682 346) trading as Dealecho.io ("Dealecho", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information in accordance with the <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs). By accessing or using Dealecho.io (the "Services"), you consent to the collection, use, and disclosure of your personal information as described in this policy.
           </p>
 
           <hr className="border-white/10" />

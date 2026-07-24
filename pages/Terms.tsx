@@ -32,7 +32,7 @@ const Terms: React.FC = () => {
             Terms of Use
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-accent-soft font-bold">July 9, 2026</span>
+            Last Updated: <span className="text-accent-soft font-bold">July 24, 2026</span>
           </p>
         </div>
 
@@ -41,7 +41,7 @@ const Terms: React.FC = () => {
           
           {/* Welcome Message */}
           <p className="text-slate-300 italic border-l-4 border-accent/30 pl-4 py-1">
-            Welcome to Dealecho.io (the "Services"). These Terms of Use ("Terms") constitute a legally binding agreement between you and Dealecho (ABN 92 122 197 793) trading as Dealecho.io ("Dealecho", "we", "us", or "our") governing your access to and use of our website, mobile application, database, and any related intelligence tools.
+            Welcome to Dealecho.io (the "Services"). These Terms of Use ("Terms") constitute a legally binding agreement between you and Dealecho Pty Ltd (ACN 700 682 346, ABN 39 700 682 346) trading as Dealecho.io ("Dealecho", "we", "us", or "our") governing your access to and use of our website, mobile application, database, and any related intelligence tools.
           </p>
 
           <hr className="border-white/10" />

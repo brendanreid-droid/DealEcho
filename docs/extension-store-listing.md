@@ -28,7 +28,34 @@ Productivity → Workflow & Planning (Chrome); Productivity (Edge)
 https://www.dealecho.io/privacy
 
 ## Data-use disclosure form answers
-- Collects: authentication information (email for sign-in), website content (hostname + highlighted text, ONLY on user action)
+
+Chrome defines "collect" as transmitting data OFF the user's device. Local-only
+`chrome.storage` writes do not count.
+
+Tick exactly these three:
+
+- **Personally identifiable information** - email address. Sign-in transmits it to Firebase
+  Auth, and the Google SSO scope (`email profile openid`) returns email, name and profile photo.
+- **Authentication information** - password entered in the extension login form, transmitted to
+  `identitytoolkit.googleapis.com`, plus the Firebase session token.
+- **Website content** - the active tab's hostname and any text the user highlights, sent to the
+  lookup endpoint to identify the company.
+
+Leave unticked, with reasons (in case a reviewer asks):
+
+- **Health**, **Personal communications** - not touched at all.
+- **Financial and payment information** - the extension never contacts Stripe; it only reads an
+  `isPro` boolean to gate Pro fields.
+- **User activity** - no click, scroll, mouse-position or keystroke tracking anywhere in the source.
+- **Web history** - Google defines this as a *list* of visited pages with titles and visit times.
+  The extension keeps a single current-tab hostname, overwritten on each change and cleared when the
+  browser closes. No page titles, no history list.
+- **Location** - no GPS, region or IP-handling code in the extension or its backend endpoints. IP
+  reaches Google Cloud infrastructure logs automatically on any network request, which Google's FAQ
+  treats as standard infrastructure rather than collection. Ticking this would over-disclose and
+  invite questions about location features that do not exist.
+
+Other answers:
 - Purpose: app functionality only
 - Data NOT sold; NOT used for unrelated purposes; NOT used for creditworthiness/lending
 - No remote code execution

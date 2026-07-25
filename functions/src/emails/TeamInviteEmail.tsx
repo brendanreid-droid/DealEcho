@@ -39,9 +39,7 @@ export const TeamInviteEmail: React.FC<TeamInviteEmailProps> = ({
     </Section>
 
     <Text style={subtext}>
-      This invite link expires in 7 days. If you didn't expect this email, you can safely ignore it.
-      <br />
-      <span style={linkText}>{acceptUrl}</span>
+      This invite expires in 7 days. If you didn't expect this email, you can safely ignore it.
     </Text>
 
     <Text style={signoff}>
@@ -57,5 +55,4 @@ const paragraph = { color: '#334155', fontSize: '15px', lineHeight: '1.6', margi
 const ctaContainer = { textAlign: 'center' as const, margin: '32px 0 24px 0' };
 const primaryButton = { backgroundColor: '#4f46e5', borderRadius: '14px', color: '#ffffff', fontSize: '14px', fontWeight: '800', textDecoration: 'none', textAlign: 'center' as const, display: 'inline-block', padding: '16px 32px' };
 const subtext = { color: '#64748b', fontSize: '12px', lineHeight: '1.6', margin: '24px 0 0 0' };
-const linkText = { color: '#4f46e5', fontSize: '11px', wordBreak: 'break-all' as const };
 const signoff = { color: '#334155', fontSize: '14px', lineHeight: '1.6', marginTop: '32px' };

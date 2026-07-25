@@ -18,12 +18,12 @@ export const ReengagementEmail: React.FC<ReengagementEmailProps> = ({ name, emai
     <Heading style={h1}>It's been a month, {name.split(" ")[0]}</Heading>
 
     <Text style={paragraph}>
-      Since your last login, sellers have filed new verified reviews on enterprise accounts:
-      how the buying team negotiated, where the scope moved, and what the process actually cost them.
+      New verified reviews have landed on enterprise accounts since your last login:
+      how the buying team negotiated, where the scope moved, and what the process actually cost.
     </Text>
 
     <Text style={paragraph}>
-      Worth a read before you commit another quarter to a deal.
+      Worth a look before you commit another quarter to a deal.
     </Text>
 
     <Section style={ctaContainer}>

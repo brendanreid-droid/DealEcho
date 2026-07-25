@@ -37,14 +37,8 @@ export const ResetPasswordEmail: React.FC<ResetPasswordEmailProps> = ({ name, em
       </Section>
 
       <Text style={paragraph}>
-        For your security, this password reset link is time-sensitive and will expire in 1 hour. 
-        If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
-      </Text>
-
-      <Text style={subtext}>
-        If you are having trouble clicking the button above, copy and paste the following URL into your browser's address bar:
-        <br />
-        <span style={linkText}>{resetLink}</span>
+        For your security, this link expires in 1 hour.
+        If you did not request a password reset, you can safely ignore this email and your password will stay the same.
       </Text>
 
       <Text style={signoff}>
@@ -85,19 +79,6 @@ const primaryButton = {
   textAlign: "center" as const,
   display: "inline-block",
   padding: "16px 32px",
-};
-
-const subtext = {
-  color: "#64748b",
-  fontSize: "12px",
-  lineHeight: "1.6",
-  margin: "24px 0 0 0",
-};
-
-const linkText = {
-  color: "#4f46e5",
-  fontSize: "11px",
-  wordBreak: "break-all" as const,
 };
 
 const signoff = {

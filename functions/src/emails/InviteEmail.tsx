@@ -30,7 +30,7 @@ export const InviteEmail: React.FC<InviteEmailProps> = ({ name, email, role, set
       <Heading style={h1}>Welcome to Dealecho, {firstName}!</Heading>
 
       <Text style={paragraph}>
-        An administrator has set up a <strong>Dealecho</strong> account for you. Dealecho is where B2B sellers put on record what actually happened inside an enterprise deal, so the next rep in doesn't walk in blind.
+        An administrator has set up a <strong>Dealecho</strong> account for you. Dealecho equips sales executives with a platform that holds buying teams accountable and adds a layer of intelligence to their pipeline.
       </Text>
 
       <Text style={paragraph}>
@@ -54,9 +54,7 @@ export const InviteEmail: React.FC<InviteEmailProps> = ({ name, email, role, set
       </Section>
 
       <Text style={subtext}>
-        For security, this link will expire. If the button above does not work, please copy and paste the following URL into your browser address bar:
-        <br />
-        <span style={linkText}>{setupLink}</span>
+        For your security, this activation link will expire.
       </Text>
 
       <Text style={signoff}>
@@ -124,12 +122,6 @@ const subtext = {
   fontSize: "12px",
   lineHeight: "1.6",
   margin: "24px 0 0 0",
-};
-
-const linkText = {
-  color: "#4f46e5",
-  fontSize: "11px",
-  wordBreak: "break-all" as const,
 };
 
 const signoff = {

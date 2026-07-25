@@ -59,11 +59,11 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ name, email, uid }) 
       <Heading style={h1}>You're in, {firstName}</Heading>
 
       <Text style={paragraph}>
-        <strong>Dealecho</strong> is where B2B sellers put on record what actually happened inside an enterprise deal, so the next rep in doesn't walk in blind.
+        <strong>Dealecho</strong> equips sales executives with a platform that holds buying teams accountable and adds a layer of intelligence to their pipeline.
       </Text>
 
       <Text style={paragraph}>
-        You can now see how a buying team behaves before you commit a quarter to them: how fast they respond, how they negotiate, and how clear their scope really is.
+        See how an account behaves before you commit a quarter to it: how fast they respond, how they negotiate, how clear their scope really is. And when a buyer wastes your time, leave an honest review so it counts.
       </Text>
 
       <Text style={checklistIntro}>Four steps to get you set up</Text>

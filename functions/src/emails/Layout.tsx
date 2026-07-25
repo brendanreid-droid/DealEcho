@@ -66,7 +66,7 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
           <Section style={footerSection}>
             <Hr style={divider} />
             <Text style={footerText}>
-              &copy; {new Date().getFullYear()} Dealecho Pty Ltd. All rights reserved.
+              &copy; {new Date().getFullYear()} Dealecho Pty Ltd
             </Text>
             <Text style={footerSubtext}>
               {transactional

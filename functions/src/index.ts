@@ -32,7 +32,7 @@ export { submitReview, resubmitReview } from "./reviewSubmission";
 export { searchCompanyEntities } from "./searchCompanies";
 export { lookupCompanyReviews } from "./extension/lookupCompanyReviews";
 export { issueCustomToken } from "./extension/issueCustomToken";
-export { getAccountThemes } from "./accountThemes";
+export { getAccountFlags } from "./accountFlags";
 // redeploy trigger: lookupCompanyReviews score-breakdown metrics (2026-06-28)
 
 // Automated Lifecycle Email Triggers (Resend)

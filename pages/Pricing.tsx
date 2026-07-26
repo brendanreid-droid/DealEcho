@@ -256,7 +256,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
           Invest in your <span className="text-accent">closing rate</span>.
         </h1>
         <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
-          Unlock deal mechanics, account-specific questions, and unlimited account tracking.
+          Unlock deal mechanics, flags to qualify, and unlimited account tracking.
         </p>
 
         <div className="flex items-center justify-center gap-4 pt-8">

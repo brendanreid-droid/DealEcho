@@ -63,8 +63,9 @@ export function pointId(flagId: string, point: string): string {
 
 import { DealMechanics, FrictionStat } from "./dealMechanics";
 
-/** Sellers scan. More than this and the list stops being read. */
-export const MAX_FLAGS = 7;
+/** Sellers scan. Risks get the larger share - they drive the next call. */
+export const MAX_RISK_FLAGS = 5;
+export const MAX_STRENGTH_FLAGS = 3;
 
 /**
  * How many corroborating reports a flag needs, as a function of how many
@@ -544,7 +545,24 @@ export function mergeFlags(structured: AccountFlag[], ai: AccountFlag[]): Accoun
   const seen = new Set(structured.map((f) => f.id));
   const usable = (f: AccountFlag) => hasNumber(f) && f.qualify.length > 0;
 
-  return [...structured.filter(usable), ...ai.filter((f) => !seen.has(f.id) && usable(f))]
-    .sort((a, b) => rank(b) - rank(a))
-    .slice(0, MAX_FLAGS);
+  return [...structured.filter(usable), ...ai.filter((f) => !seen.has(f.id) && usable(f))].sort(
+    (a, b) => rank(b) - rank(a),
+  );
+}
+
+export interface GroupedFlags {
+  risks: AccountFlag[];
+  strengths: AccountFlag[];
+}
+
+/**
+ * Split the merged list by polarity and cap each group separately. Capping the
+ * combined list would let a run of strengths push a critical risk off the page.
+ */
+export function groupFlags(structured: AccountFlag[], ai: AccountFlag[]): GroupedFlags {
+  const all = mergeFlags(structured, ai);
+  return {
+    risks: all.filter((f) => f.polarity === "risk").slice(0, MAX_RISK_FLAGS),
+    strengths: all.filter((f) => f.polarity === "strength").slice(0, MAX_STRENGTH_FLAGS),
+  };
 }

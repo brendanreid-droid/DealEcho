@@ -2,12 +2,14 @@ import { describe, it, expect } from "vitest";
 import {
   pointId,
   getStructuredFlags,
-  MAX_FLAGS,
   mergeFlags,
   rank,
   AccountFlag,
   evidenceBar,
   capSeverity,
+  groupFlags,
+  MAX_RISK_FLAGS,
+  MAX_STRENGTH_FLAGS,
 } from "./accountFlags";
 import { DealMechanics } from "./dealMechanics";
 
@@ -166,7 +168,7 @@ describe("getStructuredFlags", () => {
 const flag = (over: Partial<AccountFlag>): AccountFlag => ({
   id: "x", label: "X", severity: "caution", stat: "2 of 9 deals",
   qualify: ["something"], reviewIds: ["a"], strength: 0.2,
-  priority: 50, source: "mechanics", ...over,
+  priority: 50, source: "mechanics", polarity: "risk", ...over,
 });
 
 describe("mergeFlags", () => {
@@ -182,9 +184,9 @@ describe("mergeFlags", () => {
     expect(out[1].id).toBe("security-review");
   });
 
-  it("caps the list", () => {
+  it("no longer caps the combined list - grouping applies the per-polarity cap instead", () => {
     const many = Array.from({ length: 12 }, (_, i) => flag({ id: `f${i}`, priority: 100 - i }));
-    expect(mergeFlags(many, [])).toHaveLength(MAX_FLAGS);
+    expect(mergeFlags(many, [])).toHaveLength(12);
   });
 
   it("includes AI flags alongside structured ones", () => {
@@ -415,5 +417,40 @@ describe("green flags", () => {
       expect(f.stat).toMatch(/\d/);
       expect(f.qualify.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("groupFlags", () => {
+  it("splits by polarity and ranks within each group", () => {
+    const out = groupFlags(
+      [
+        flag({ id: "weak", priority: 90, strength: 0.2 }),
+        flag({ id: "strong", priority: 82, strength: 0.9 }),
+        flag({ id: "good", polarity: "strength", priority: 70, strength: 1 }),
+      ],
+      [],
+    );
+    expect(out.risks.map((f) => f.id)).toEqual(["strong", "weak"]);
+    expect(out.strengths.map((f) => f.id)).toEqual(["good"]);
+  });
+
+  it("caps each group independently so strengths cannot crowd out risks", () => {
+    const risks = Array.from({ length: 9 }, (_, i) => flag({ id: `r${i}`, priority: 100 - i }));
+    const strengths = Array.from({ length: 9 }, (_, i) =>
+      flag({ id: `s${i}`, polarity: "strength", priority: 100 - i }),
+    );
+    const out = groupFlags([...risks, ...strengths], []);
+    expect(out.risks).toHaveLength(MAX_RISK_FLAGS);
+    expect(out.strengths).toHaveLength(MAX_STRENGTH_FLAGS);
+  });
+
+  it("still drops a flag with no number in its stat", () => {
+    const out = groupFlags([flag({ id: "bad", stat: "several deals" })], []);
+    expect(out.risks).toEqual([]);
+  });
+
+  it("puts AI flags in the risk group", () => {
+    const out = groupFlags([], [flag({ id: "ai-1", source: "reports" })]);
+    expect(out.risks.map((f) => f.id)).toEqual(["ai-1"]);
   });
 });

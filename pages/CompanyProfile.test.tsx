@@ -42,7 +42,7 @@ describe("CompanyProfile spine", () => {
     expect(await screen.findByText("Snowflake")).toBeInTheDocument();
     // One review is below MIN_MECHANICS_REVIEWS, so there is nothing to flag -
     // the section still renders, it just says so.
-    expect(screen.getByRole("heading", { name: /Flags to qualify/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Flags$/ })).toBeInTheDocument();
     expect(screen.getByText(/No red flags detected/)).toBeInTheDocument();
     expect(await screen.findByText(/They ghosted us/)).toBeInTheDocument();
     expect(screen.getByText(/Unlock deal mechanics/)).toBeInTheDocument();
@@ -93,6 +93,7 @@ const briefReviews: Review[] = [
     stakeholderCount: "6-10",
     wentDark: true,
     closeSlippage: "Pushed 3+ times",
+    verbalToSignature: "< 1 Week",
   },
   {
     ...review,
@@ -107,6 +108,7 @@ const briefReviews: Review[] = [
     stakeholderCount: "6-10",
     wentDark: false,
     closeSlippage: "Never pushed",
+    verbalToSignature: "< 1 Week",
   },
   {
     ...review,
@@ -143,9 +145,15 @@ describe("CompanyProfile deal mechanics brief", () => {
 
     // The flag engine: the security-review rule fired off the repeated friction
     // event, and its stat carries the real denominator through the memo chain.
-    expect(screen.getByRole("heading", { name: /Flags to qualify/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Flags$/ })).toBeInTheDocument();
     expect(screen.getByText("Security review is a gate")).toBeInTheDocument();
     expect(screen.getByText("2 of 3 deals")).toBeInTheDocument();
+
+    // Both reports with a verbal-to-signature answer said "< 1 Week", so the
+    // strength group renders alongside the risk group for Pro users.
+    expect(screen.getByText("In your favour")).toBeInTheDocument();
+    expect(screen.getByText("Signature follows the verbal quickly")).toBeInTheDocument();
+    expect(screen.getByText("< 1 Week typical, across 2 reports")).toBeInTheDocument();
   });
 
   it("gates the mechanics panel and the flag detail behind Sales Pro", async () => {
@@ -155,18 +163,26 @@ describe("CompanyProfile deal mechanics brief", () => {
 
     // The flags themselves stay visible to free users - the upsell is the point
     // of the section - but the stats and qualification points do not.
-    expect(screen.getByRole("heading", { name: /Flags to qualify/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Flags$/ })).toBeInTheDocument();
     expect(screen.getByText("Security review is a gate")).toBeInTheDocument();
     expect(screen.getByText(/Unlock \d+ flags with Sales Pro/)).toBeInTheDocument();
     expect(screen.queryByText("2 of 3 deals")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+
+    // The strength group and its label are the advert for Sales Pro too - a
+    // free user should see that the product has real "good news" data, not
+    // just a complaints board - but the stat and qualification points behind
+    // it stay gated exactly like the risk group's.
+    expect(screen.getByText("In your favour")).toBeInTheDocument();
+    expect(screen.getByText("Signature follows the verbal quickly")).toBeInTheDocument();
+    expect(screen.queryByText("< 1 Week typical, across 2 reports")).not.toBeInTheDocument();
   });
 });
 
 describe("CompanyProfile flag evidence deep-link", () => {
   it("narrows the evidence list to the reviews backing a flag, then restores it", async () => {
     renderBrief(true);
-    await screen.findByRole("heading", { name: /Flags to qualify/ });
+    await screen.findByRole("heading", { name: /^Flags$/ });
 
     // All three reviews are listed before any flag is clicked through.
     expect(screen.getByText("3 verified reports")).toBeInTheDocument();

@@ -4,12 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import CompanyProfile from "./CompanyProfile";
 import { Review } from "../types";
 
-vi.mock("../services/geminiService", () => ({
-  getAICompanyPersona: vi.fn().mockResolvedValue({
-    summary: "Technical-led account.", keyTraits: [], strategicAdvice: "", teamPlaybooks: [],
-    meddpicc: { metrics: "m", economicBuyer: "CFO veto", decisionCriteria: "c", decisionProcess: "p",
-      paperProcess: "MSA", identifyPain: "pain", champion: "VP Eng", competition: "incumbent" },
-  }),
+// Layer B is the only network call on this page. Stub it so the spine tests
+// stay offline; the panel itself is covered by ThemeList's own suite.
+vi.mock("../services/accountThemes", () => ({
+  getAccountThemes: vi.fn().mockResolvedValue([]),
 }));
 
 const review: Review = {
@@ -39,18 +37,20 @@ function renderPage(isPaid: boolean) {
 }
 
 describe("CompanyProfile spine", () => {
-  it("shows flags gate and evidence to logged-in free users, but no playbook", async () => {
+  it("shows flags gate and evidence to logged-in free users, but gates the brief", async () => {
     renderPage(false);
     expect(await screen.findByText("Snowflake")).toBeInTheDocument();
     expect(screen.getByText(/unlock \d+ flags/i)).toBeInTheDocument();
     expect(await screen.findByText(/They ghosted us/)).toBeInTheDocument();
-    expect(screen.queryByText("CFO veto")).not.toBeInTheDocument();
+    expect(screen.getByText(/Unlock deal mechanics/)).toBeInTheDocument();
   });
 
-  it("shows evidence and playbook to Pro users", async () => {
+  it("shows evidence and drops the upsell for Pro users", async () => {
     renderPage(true);
     expect(await screen.findByText(/They ghosted us/)).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText("CFO veto")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText(/Unlock deal mechanics/)).not.toBeInTheDocument(),
+    );
   });
 
   it("hides evidence from logged-out visitors", async () => {

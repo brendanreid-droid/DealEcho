@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useParams, useNavigate, Link } from "react-router-dom";
 import { Company, Review } from "../types";
-import { getAICompanyPersona, CompanyPersona } from "../services/geminiService";
 import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
 import ScoreRing from "../src/components/ScoreRing";
@@ -10,9 +9,14 @@ import { MappedUser } from "../src/hooks/useAuth";
 import VerdictCard from "../src/components/intel/VerdictCard";
 import FlagList from "../src/components/intel/FlagList";
 import TrendStrip from "../src/components/intel/TrendStrip";
-import Playbook from "../src/components/intel/Playbook";
+import DealMechanicsPanel from "../src/components/intel/DealMechanics";
+import QuestionList from "../src/components/intel/QuestionList";
+import ThemeList from "../src/components/intel/ThemeList";
 import EvidenceList from "../src/components/intel/EvidenceList";
 import { getAccountSignal, AccountSignal } from "../services/accountSignal";
+import { getDealMechanics } from "../services/dealMechanics";
+import { getQualificationQuestions } from "../services/qualificationQuestions";
+import { getAccountThemes, AccountTheme } from "../services/accountThemes";
 import Button from "../src/components/ui/Button";
 import { TCV_BRACKETS } from "../src/constants/dealData";
 import { normalizeTcvBracket } from "../src/utils/reviewSchema";
@@ -41,9 +45,8 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const [company, setCompany] = useState<Company | null>(
     location.state?.company || null,
   );
-  const [aiPersona, setAiPersona] = useState<CompanyPersona | null>(null);
+  const [themes, setThemes] = useState<AccountTheme[]>([]);
   const [signal, setSignal] = useState<AccountSignal | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [showReviewRuleModal, setShowReviewRuleModal] = useState(false);
@@ -190,33 +193,26 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     schema: seoSchema,
   });
 
-  // Update AI Persona when the filtered set of reviews changes
-  useEffect(() => {
-    if (isPaid && company && filteredReviews.length > 0) {
-      // Synchronously check if cached to avoid loading spinner flash for instant premium experience!
-      const reviewsSignature = filteredReviews
-        .map((r) => `${r.id}_${r.createdAt}`)
-        .sort()
-        .join("|");
-      const normalizedCompany = company.name.trim().toLowerCase();
-      const cacheKey = `dealecho_persona_cache:${normalizedCompany}:${reviewsSignature}`;
-      let isCached = false;
-      try {
-        isCached = !!sessionStorage.getItem(cacheKey);
-      } catch (e) {
-        // Fail silently
-      }
+  // Layers A and C are pure derivations of the filtered review set — no network,
+  // no loading state, recomputed synchronously whenever the filters change.
+  const mechanics = useMemo(() => getDealMechanics(filteredReviews), [filteredReviews]);
 
-      if (!isCached) {
-        setIsAiLoading(true);
-      }
-      getAICompanyPersona(company.name, filteredReviews)
-        .then(setAiPersona)
-        .finally(() => setIsAiLoading(false));
+  const questions = useMemo(
+    () => (mechanics ? getQualificationQuestions(mechanics) : []),
+    [mechanics],
+  );
+
+  // Layer B is the only AI call. Keyed on the company and its review count,
+  // NOT on the filter state - themes are a property of the account, and
+  // refetching per filter combination is what made the old persona expensive
+  // and inconsistent between users.
+  useEffect(() => {
+    if (isPaid && company && companyReviews.length > 0) {
+      getAccountThemes(company.id).then(setThemes);
     } else {
-      setAiPersona(null);
+      setThemes([]);
     }
-  }, [isPaid, company, filteredReviews]);
+  }, [isPaid, company?.id, companyReviews.length]);
 
   useEffect(() => {
     if (company && companyReviews.length > 0) {
@@ -307,10 +303,16 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       )}
 
       {isPro ? (
-        aiPersona && <Playbook persona={aiPersona} />
+        <>
+          {mechanics && <DealMechanicsPanel mechanics={mechanics} />}
+          <QuestionList companyId={company.id} questions={questions} />
+          <ThemeList themes={themes} />
+        </>
       ) : (
         <Link to="/pricing" className="block bg-navy text-white rounded-card p-6 text-center">
-          <span className="text-sm font-semibold">Unlock the AI playbook and full review evidence with Sales Pro</span>
+          <span className="text-sm font-semibold">
+            Unlock deal mechanics, account questions, and full review evidence with Sales Pro
+          </span>
         </Link>
       )}
 

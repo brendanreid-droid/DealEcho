@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AccountFlag, pointId } from "../../../services/accountFlags";
+import { AccountFlag, GroupedFlags, pointId } from "../../../services/accountFlags";
 import FlagCard from "./FlagCard";
 
 const storageKey = (companyId: string) => `dealecho_qq:${companyId}`;
@@ -25,13 +25,40 @@ const saveChecked = (companyId: string, ids: string[]): void => {
 
 interface Props {
   companyId: string;
-  flags: AccountFlag[];
+  grouped: GroupedFlags;
   isPro: boolean;
   /** Filter the evidence list below to the reviews backing a flag. */
   onShowEvidence: (reviewIds: string[]) => void;
 }
 
-const FlagList: React.FC<Props> = ({ companyId, flags, isPro, onShowEvidence }) => {
+/** One group of flags under a heading. Omitted entirely when the group is empty. */
+const FlagGroup: React.FC<{
+  heading: string;
+  flags: AccountFlag[];
+  checked: string[];
+  onToggle: (id: string) => void;
+  isPro: boolean;
+  onShowEvidence: (reviewIds: string[]) => void;
+}> = ({ heading, flags, checked, onToggle, isPro, onShowEvidence }) => {
+  if (flags.length === 0) return null;
+  return (
+    <div className="space-y-2">
+      <h3 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{heading}</h3>
+      {flags.map((f) => (
+        <FlagCard
+          key={f.id}
+          flag={f}
+          checked={checked}
+          onToggle={onToggle}
+          showDetail={isPro}
+          onShowEvidence={onShowEvidence}
+        />
+      ))}
+    </div>
+  );
+};
+
+const FlagList: React.FC<Props> = ({ companyId, grouped, isPro, onShowEvidence }) => {
   const [checked, setChecked] = useState<string[]>(() => loadChecked(companyId));
 
   // The route updates :companyId without remounting the profile page, so the
@@ -49,36 +76,45 @@ const FlagList: React.FC<Props> = ({ companyId, flags, isPro, onShowEvidence }) 
     [checked, companyId],
   );
 
-  if (flags.length === 0) {
+  const { risks, strengths } = grouped;
+
+  if (risks.length === 0 && strengths.length === 0) {
     return <p className="text-sm text-slate-400">No red flags detected across recent reports.</p>;
   }
 
-  const points = flags.flatMap((f) => f.qualify.map((p) => pointId(f.id, p)));
+  const allFlags = [...risks, ...strengths];
+  const points = allFlags.flatMap((f) => f.qualify.map((p) => pointId(f.id, p)));
   const done = points.filter((p) => checked.includes(p)).length;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {isPro && (
         <p className="text-2xs text-slate-400 text-right" aria-live="polite">
           {done} of {points.length} qualified
         </p>
       )}
-      {flags.map((f) => (
-        <FlagCard
-          key={f.id}
-          flag={f}
-          checked={checked}
-          onToggle={toggle}
-          showDetail={isPro}
-          onShowEvidence={onShowEvidence}
-        />
-      ))}
+      <FlagGroup
+        heading="Watch for"
+        flags={risks}
+        checked={checked}
+        onToggle={toggle}
+        isPro={isPro}
+        onShowEvidence={onShowEvidence}
+      />
+      <FlagGroup
+        heading="In your favour"
+        flags={strengths}
+        checked={checked}
+        onToggle={toggle}
+        isPro={isPro}
+        onShowEvidence={onShowEvidence}
+      />
       {!isPro && (
         <Link
           to="/pricing"
           className="block text-center bg-navy text-white rounded-control px-4 py-3 text-2xs font-semibold uppercase tracking-widest hover:bg-navy-800 transition-colors"
         >
-          Unlock {flags.length} flags with Sales Pro
+          Unlock {risks.length + strengths.length} flags with Sales Pro
         </Link>
       )}
     </div>

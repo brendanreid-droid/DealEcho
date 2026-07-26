@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pointId, getStructuredFlags, MAX_FLAGS } from "./accountFlags";
+import { pointId, getStructuredFlags, MAX_FLAGS, mergeFlags, rank, AccountFlag } from "./accountFlags";
 import { DealMechanics } from "./dealMechanics";
 
 describe("pointId", () => {
@@ -137,5 +137,65 @@ describe("getStructuredFlags", () => {
     expect(
       getStructuredFlags({ ...empty, paymentTerms: { value: "Net 90", count: 5, total: 7 } }).length,
     ).toBe(1);
+  });
+});
+
+const flag = (over: Partial<AccountFlag>): AccountFlag => ({
+  id: "x", label: "X", severity: "caution", stat: "2 of 9 deals",
+  qualify: ["something"], reviewIds: ["a"], strength: 0.2,
+  priority: 50, source: "mechanics", ...over,
+});
+
+describe("mergeFlags", () => {
+  it("ranks a strongly observed lower-priority flag above a weakly observed higher-priority one", () => {
+    const out = mergeFlags(
+      [
+        flag({ id: "security-review", priority: 90, strength: 2 / 9 }),
+        flag({ id: "close-slippage", priority: 82, strength: 8 / 9 }),
+      ],
+      [],
+    );
+    expect(out[0].id).toBe("close-slippage");
+    expect(out[1].id).toBe("security-review");
+  });
+
+  it("caps the list", () => {
+    const many = Array.from({ length: 12 }, (_, i) => flag({ id: `f${i}`, priority: 100 - i }));
+    expect(mergeFlags(many, [])).toHaveLength(MAX_FLAGS);
+  });
+
+  it("includes AI flags alongside structured ones", () => {
+    const out = mergeFlags([flag({ id: "ghosting" })], [flag({ id: "ai-1", source: "reports" })]);
+    expect(out.map((f) => f.id).sort()).toEqual(["ai-1", "ghosting"]);
+  });
+
+  it("drops an AI flag whose id collides with a structured flag", () => {
+    const out = mergeFlags(
+      [flag({ id: "ghosting", stat: "4 of 9 deals" })],
+      [flag({ id: "ghosting", stat: "made up", source: "reports" })],
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0].source).toBe("mechanics");
+  });
+
+  it("drops any flag whose stat carries no number", () => {
+    const out = mergeFlags([], [flag({ id: "ai-2", stat: "several deals", source: "reports" })]);
+    expect(out).toEqual([]);
+  });
+
+  it("drops any flag with no qualification points", () => {
+    const out = mergeFlags([], [flag({ id: "ai-3", qualify: [], source: "reports" })]);
+    expect(out).toEqual([]);
+  });
+
+  it("sorts critical flags above caution at equal rank", () => {
+    const out = mergeFlags(
+      [
+        flag({ id: "a", severity: "caution", priority: 50, strength: 0.5 }),
+        flag({ id: "b", severity: "critical", priority: 50, strength: 0.5 }),
+      ],
+      [],
+    );
+    expect(out[0].id).toBe("b");
   });
 });

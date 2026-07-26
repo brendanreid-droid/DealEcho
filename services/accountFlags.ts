@@ -324,3 +324,31 @@ const RULES: Rule[] = [
 export function getStructuredFlags(m: DealMechanics): AccountFlag[] {
   return RULES.map((rule) => rule(m)).filter((f): f is AccountFlag => f !== null);
 }
+
+const SEVERITY_WEIGHT: Record<FlagSeverity, number> = {
+  critical: 200,
+  caution: 100,
+  watch: 0,
+};
+
+/** Severity band, then category weight, then up to 20 points for observed strength. */
+export function rank(f: AccountFlag): number {
+  return SEVERITY_WEIGHT[f.severity] + f.priority + f.strength * 20;
+}
+
+/** A flag with no number in its stat would apply to any account. Drop it. */
+const hasNumber = (f: AccountFlag): boolean => /\d/.test(f.stat);
+
+/**
+ * Combine both sources into the rendered list. Structured flags win id
+ * collisions - they are deterministic, and their numbers come from checkbox
+ * fields rather than a model's reading of prose.
+ */
+export function mergeFlags(structured: AccountFlag[], ai: AccountFlag[]): AccountFlag[] {
+  const seen = new Set(structured.map((f) => f.id));
+  const usable = (f: AccountFlag) => hasNumber(f) && f.qualify.length > 0;
+
+  return [...structured.filter(usable), ...ai.filter((f) => !seen.has(f.id) && usable(f))]
+    .sort((a, b) => rank(b) - rank(a))
+    .slice(0, MAX_FLAGS);
+}

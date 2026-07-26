@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { HelpCircle } from "lucide-react";
 import { QualificationQuestion } from "../../../services/qualificationQuestions";
 
@@ -30,15 +30,19 @@ interface Props {
 const QuestionList: React.FC<Props> = ({ companyId, questions }) => {
   const [checked, setChecked] = useState<string[]>(() => loadChecked(companyId));
 
+  // The route updates :companyId without remounting the profile page, so the
+  // ticked set has to follow the prop or one account's answers leak onto another.
+  useEffect(() => {
+    setChecked(loadChecked(companyId));
+  }, [companyId]);
+
   const toggle = useCallback(
     (id: string) => {
-      setChecked((prev) => {
-        const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-        saveChecked(companyId, next);
-        return next;
-      });
+      const next = checked.includes(id) ? checked.filter((x) => x !== id) : [...checked, id];
+      setChecked(next);
+      saveChecked(companyId, next);
     },
-    [companyId],
+    [checked, companyId],
   );
 
   if (questions.length === 0) return null;
@@ -53,7 +57,7 @@ const QuestionList: React.FC<Props> = ({ companyId, questions }) => {
       <h2 id="questions-heading" className="flex items-center gap-2 text-sm font-semibold text-slate-900">
         <HelpCircle size={15} className="text-accent" aria-hidden="true" />
         Ask this account
-        <span className="ml-auto text-2xs font-normal text-slate-400">
+        <span className="ml-auto text-2xs font-normal text-slate-400" aria-live="polite">
           {answered} of {questions.length} answered
         </span>
       </h2>

@@ -66,4 +66,15 @@ describe("QuestionList", () => {
     const { container } = render(<QuestionList companyId="c1" questions={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("reloads checked state when companyId changes without remounting", () => {
+    localStorage.setItem("dealecho_qq:c1", JSON.stringify(["security-review"]));
+    localStorage.setItem("dealecho_qq:c2", JSON.stringify(["ghosting"]));
+    const { rerender } = render(<QuestionList companyId="c1" questions={questions} />);
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
+
+    rerender(<QuestionList companyId="c2" questions={questions} />);
+    expect(screen.getAllByRole("checkbox")[0]).not.toBeChecked();
+    expect(screen.getAllByRole("checkbox")[1]).toBeChecked();
+  });
 });

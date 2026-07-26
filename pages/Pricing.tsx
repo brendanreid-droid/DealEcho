@@ -18,11 +18,11 @@ interface PricingProps {
 
 const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
   useSEO({
-    title: "Dealecho Pricing - Unlock Advanced B2B Buyer Intelligence & Playbooks",
+    title: "Dealecho Pricing - Unlock Deal Mechanics and Buyer Intelligence",
     description:
-      "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, AI MEDDPICC strategic blueprints, and stakeholder buying team personas.",
+      "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, deal mechanics on every account, and qualification questions built from verified seller reports.",
     keywords:
-      "Sales Pro pricing, sales intelligence subscription, MEDDPICC trial, B2B deal close rate, Dealecho",
+      "Sales Pro pricing, sales intelligence subscription, deal mechanics, procurement intelligence, B2B deal close rate, Dealecho",
   });
 
   const [isAnnual, setIsAnnual] = useState(false);
@@ -174,9 +174,9 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
 
   const proFeatures = [
     "Unlimited tracked accounts",
-    "AI account persona intelligence",
-    "Deep-dive MEDDPICC blueprints",
-    "Departmental playbooks",
+    "Deal mechanics - how this buyer actually buys",
+    "Account-specific qualification questions",
+    "Recurring themes cited to verified reports",
     "Live notification alerts",
     "Browser extension - intel on any site or CRM",
   ];
@@ -257,7 +257,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
           Invest in your <span className="text-accent">closing rate</span>.
         </h1>
         <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
-          Unlock deep-dive AI personas, MEDDPICC blueprints, and unlimited account tracking.
+          Unlock deal mechanics, account-specific questions, and unlimited account tracking.
         </p>
 
         <div className="flex items-center justify-center gap-4 pt-8">

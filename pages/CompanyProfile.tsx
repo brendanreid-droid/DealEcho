@@ -186,10 +186,12 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
 
   useSEO({
     title: company ? `${company.name} B2B Buyer Intelligence & Ratings | Dealecho` : "B2B Target Account Sales Intel | Dealecho",
-    description: company 
-      ? `Access verified sales reviews, aggregate buyer responsiveness, negotiation scores, and MEDDPICC buying team personas for ${company.name}.`
-      : "Access B2B sales cycle insights, buyer personas, and MEDDPICC deal execution ratings for enterprise target accounts.",
-    keywords: company ? `${company.name} sales, ${company.name} reviews, ${company.name} MEDDPICC, B2B sales intelligence` : "B2B sales intelligence, MEDDPICC, account planning",
+    description: company
+      ? `Access verified sales reviews, aggregate buyer responsiveness, negotiation scores, and deal mechanics for ${company.name}.`
+      : "Access B2B sales cycle insights, deal mechanics, and buyer execution ratings for enterprise target accounts.",
+    keywords: company
+      ? `${company.name} sales, ${company.name} reviews, ${company.name} procurement, B2B sales intelligence`
+      : "B2B sales intelligence, deal mechanics, account planning",
     schema: seoSchema,
   });
 

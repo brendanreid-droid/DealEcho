@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getQualificationQuestions, MAX_QUESTIONS } from "./qualificationQuestions";
+import { getQualificationQuestions, MAX_QUESTIONS, rank } from "./qualificationQuestions";
 import { DealMechanics } from "./dealMechanics";
 
 const empty: DealMechanics = {
@@ -196,7 +196,39 @@ describe("rule bank coverage", () => {
     });
     expect(qs).toHaveLength(MAX_QUESTIONS);
     for (let i = 1; i < qs.length; i++) {
-      expect(qs[i - 1].priority).toBeGreaterThanOrEqual(qs[i].priority);
+      expect(rank(qs[i - 1])).toBeGreaterThanOrEqual(rank(qs[i]));
     }
+  });
+});
+
+describe("minimum rule sample size", () => {
+  it("does not fire a rate rule when only one review answered the field", () => {
+    const qs = getQualificationQuestions({ ...empty, ghostRate: { count: 1, total: 1, reviewIds: ["a"] } });
+    expect(qs.find((x) => x.id === "ghosting")).toBeUndefined();
+  });
+
+  it("does not fire a modal rule when only one review answered the field", () => {
+    const qs = getQualificationQuestions({
+      ...empty,
+      procurementEntry: { value: "Early (before shortlist)", count: 1, total: 1 },
+    });
+    expect(qs.find((x) => x.id === "procurement-early")).toBeUndefined();
+  });
+
+  it("does not fire a rate rule at exactly one third", () => {
+    const qs = getQualificationQuestions({ ...empty, ghostRate: { count: 3, total: 9, reviewIds: ["a"] } });
+    expect(qs.find((x) => x.id === "ghosting")).toBeUndefined();
+  });
+});
+
+describe("ranking by signal strength", () => {
+  it("ranks a strongly-observed lower-priority rule above a weakly-observed higher-priority one", () => {
+    const qs = getQualificationQuestions({
+      ...empty,
+      friction: [{ event: "Security questionnaire", count: 2, total: 9, reviewIds: ["a"] }],
+      slippageRate: { count: 8, total: 9, reviewIds: ["a"] },
+    });
+    expect(qs[0].id).toBe("close-slippage");
+    expect(qs[1].id).toBe("security-review");
   });
 });

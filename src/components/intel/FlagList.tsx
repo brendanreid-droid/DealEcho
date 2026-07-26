@@ -27,9 +27,11 @@ interface Props {
   companyId: string;
   flags: AccountFlag[];
   isPro: boolean;
+  /** Filter the evidence list below to the reviews backing a flag. */
+  onShowEvidence: (reviewIds: string[]) => void;
 }
 
-const FlagList: React.FC<Props> = ({ companyId, flags, isPro }) => {
+const FlagList: React.FC<Props> = ({ companyId, flags, isPro, onShowEvidence }) => {
   const [checked, setChecked] = useState<string[]>(() => loadChecked(companyId));
 
   // The route updates :companyId without remounting the profile page, so the
@@ -62,7 +64,14 @@ const FlagList: React.FC<Props> = ({ companyId, flags, isPro }) => {
         </p>
       )}
       {flags.map((f) => (
-        <FlagCard key={f.id} flag={f} checked={checked} onToggle={toggle} showDetail={isPro} />
+        <FlagCard
+          key={f.id}
+          flag={f}
+          checked={checked}
+          onToggle={toggle}
+          showDetail={isPro}
+          onShowEvidence={onShowEvidence}
+        />
       ))}
       {!isPro && (
         <Link

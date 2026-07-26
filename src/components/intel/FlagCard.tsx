@@ -20,9 +20,11 @@ interface Props {
   onToggle: (id: string) => void;
   /** Pro users see the stat and the qualification points. */
   showDetail: boolean;
+  /** Filter the evidence list below to the reviews backing this flag. */
+  onShowEvidence: (reviewIds: string[]) => void;
 }
 
-const FlagCard: React.FC<Props> = ({ flag, checked, onToggle, showDetail }) => (
+const FlagCard: React.FC<Props> = ({ flag, checked, onToggle, showDetail, onShowEvidence }) => (
   <div className={`bg-white border border-slate-200 border-l-[3px] ${ACCENT[flag.severity]} p-4`}>
     <div className="flex items-baseline justify-between gap-3">
       <span className={`text-sm font-semibold ${TEXT[flag.severity]}`}>{flag.label}</span>
@@ -35,10 +37,22 @@ const FlagCard: React.FC<Props> = ({ flag, checked, onToggle, showDetail }) => (
 
     {showDetail ? (
       <>
-        <div className="mt-1 flex flex-wrap gap-2 text-2xs text-slate-400">
-          <span>
-            {flag.reviewIds.length} report{flag.reviewIds.length !== 1 ? "s" : ""}
-          </span>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-2xs text-slate-400">
+          {/*
+            Modal-driven flags (payment terms, committee size) aggregate a field
+            across reviews and carry no per-review provenance, so there is
+            nothing to link to. Rendering "0 reports" next to a flag whose stat
+            reads "6 of 8 deals" just looks broken.
+          */}
+          {flag.reviewIds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onShowEvidence(flag.reviewIds)}
+              className="underline underline-offset-2 hover:text-accent transition-colors"
+            >
+              {flag.reviewIds.length} report{flag.reviewIds.length !== 1 ? "s" : ""}
+            </button>
+          )}
           {flag.source === "reports" && <span>From written reports</span>}
         </div>
         <ul className="mt-2 space-y-1">

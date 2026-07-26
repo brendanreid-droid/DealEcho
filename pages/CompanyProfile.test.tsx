@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import CompanyProfile from "./CompanyProfile";
 import { Review } from "../types";
@@ -160,5 +160,25 @@ describe("CompanyProfile deal mechanics brief", () => {
     expect(screen.getByText(/Unlock \d+ flags with Sales Pro/)).toBeInTheDocument();
     expect(screen.queryByText("2 of 3 deals")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  });
+});
+
+describe("CompanyProfile flag evidence deep-link", () => {
+  it("narrows the evidence list to the reviews backing a flag, then restores it", async () => {
+    renderBrief(true);
+    await screen.findByRole("heading", { name: /Flags to qualify/ });
+
+    // All three reviews are listed before any flag is clicked through.
+    expect(screen.getByText("3 verified reports")).toBeInTheDocument();
+
+    // The security flag is backed by the two reviews reporting a questionnaire.
+    fireEvent.click(screen.getByRole("button", { name: "2 reports" }));
+
+    expect(screen.getByText("2 verified reports")).toBeInTheDocument();
+    expect(screen.getByText(/Showing the 2 reports behind one flag/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Show all" }));
+    expect(screen.getByText("3 verified reports")).toBeInTheDocument();
+    expect(screen.queryByText(/Showing the 2 reports/)).not.toBeInTheDocument();
   });
 });

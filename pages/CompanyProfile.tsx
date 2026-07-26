@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useLocation, useParams, useNavigate, Link } from "react-router-dom";
 import { Company, Review } from "../types";
 import { useSEO } from "../src/hooks/useSEO";
@@ -48,6 +48,15 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [showReviewRuleModal, setShowReviewRuleModal] = useState(false);
+  const [evidenceIds, setEvidenceIds] = useState<string[] | null>(null);
+  const evidenceRef = useRef<HTMLElement | null>(null);
+
+  const showEvidenceFor = useCallback((reviewIds: string[]) => {
+    setEvidenceIds(reviewIds);
+    // Optional call: jsdom does not implement scrollIntoView, and a missing
+    // scroll should never break the filter itself.
+    evidenceRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  }, []);
 
   // Numeric order for TCV bracket sorting, derived from the shared bracket
   // list so new brackets can't silently drop out of the sort again.
@@ -105,9 +114,18 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     return companyReviews.filter((r) => r.buyingTeam.includes(selectedTeam));
   }, [companyReviews, selectedTeam]);
 
+  // Reviews backing a flag the user clicked through from. Narrows the evidence
+  // list on top of the stakeholder filter, so "7 of 9 deals" is one click from
+  // the nine reports that say so.
+  const evidenceReviews = useMemo(() => {
+    if (!evidenceIds) return filteredReviews;
+    const wanted = new Set(evidenceIds);
+    return filteredReviews.filter((r) => wanted.has(r.id));
+  }, [filteredReviews, evidenceIds]);
+
   // Sorted reviews based on user selection
   const sortedReviews = useMemo(() => {
-    const sorted = [...filteredReviews];
+    const sorted = [...evidenceReviews];
     switch (sortOrder) {
       case "newest":
         return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -120,7 +138,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       default:
         return sorted;
     }
-  }, [filteredReviews, sortOrder]);
+  }, [evidenceReviews, sortOrder]);
 
   // Aggregated Stats for Header
   const statsSummary = useMemo(() => {
@@ -212,6 +230,8 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     } else {
       setAiFlags([]);
     }
+    // A flag's evidence selection belongs to the account it came from.
+    setEvidenceIds(null);
   }, [isPaid, company?.id, companyReviews.length]);
 
   useEffect(() => {
@@ -294,7 +314,12 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
         <h2 id="flags-heading" className="text-sm font-semibold text-slate-500">
           Flags to qualify
         </h2>
-        <FlagList companyId={company.id} flags={flags} isPro={isPro} />
+        <FlagList
+          companyId={company.id}
+          flags={flags}
+          isPro={isPro}
+          onShowEvidence={showEvidenceFor}
+        />
       </section>
 
       {isPro && signal && (
@@ -315,8 +340,21 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       )}
 
       {user && hasReviews && (
-        <section aria-labelledby="evidence-heading" className="space-y-3">
+        <section ref={evidenceRef} aria-labelledby="evidence-heading" className="space-y-3">
           <h2 id="evidence-heading" className="text-sm font-semibold text-slate-500">Evidence</h2>
+          {evidenceIds && (
+            <div className="flex items-center gap-3 bg-slate-100 rounded-control px-3 py-2">
+              <span className="text-2xs font-semibold text-slate-600">
+                Showing the {evidenceIds.length} report{evidenceIds.length !== 1 ? "s" : ""} behind one flag
+              </span>
+              <button
+                onClick={() => setEvidenceIds(null)}
+                className="ml-auto text-2xs font-semibold text-accent underline underline-offset-2"
+              >
+                Show all
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedTeam("all")}

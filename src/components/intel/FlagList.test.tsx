@@ -21,7 +21,7 @@ const flags: AccountFlag[] = [
 const renderList = (props: Partial<React.ComponentProps<typeof FlagList>> = {}) =>
   render(
     <MemoryRouter>
-      <FlagList companyId="c1" flags={flags} isPro {...props} />
+      <FlagList companyId="c1" flags={flags} isPro onShowEvidence={() => {}} {...props} />
     </MemoryRouter>,
   );
 
@@ -59,7 +59,7 @@ describe("FlagList", () => {
 
     rerender(
       <MemoryRouter>
-        <FlagList companyId="c2" flags={flags} isPro />
+        <FlagList companyId="c2" flags={flags} isPro onShowEvidence={() => {}} />
       </MemoryRouter>,
     );
     expect(screen.getByText("0 of 2 qualified")).toBeInTheDocument();

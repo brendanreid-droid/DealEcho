@@ -10,6 +10,29 @@
 
 ---
 
+## ⚠️ As-built corrections — read before re-running any task
+
+This plan was executed on 2026-07-26. Review rounds found defects in the plan itself. **Do not re-run Tasks 9, 11 or 12 from the text below without applying these**, and prefer the committed code as the source of truth.
+
+**Layer B took review text from the client, which was a cache-poisoning hole (Critical).** Tasks 9, 11 and 12 as written have the client POST `{ companyId, reviews: [{id, content}] }`, and the result is cached under `account_themes/{companyId}` shared by every viewer. The endpoint had no auth check, so anyone could submit a fabricated corpus for a real company and every genuine visitor would be served attacker-authored themes citing reviews that do not exist — for the full 7-day TTL. As built:
+- the callable accepts `{ companyId }` only and reads approved reviews from Firestore itself
+- it requires `request.auth` and `isProRole(...)`, matching `extension/lookupCompanyReviews.ts`
+- review text is sanitised before entering the prompt, because content containing a literal `[r7] ...` mimics the citation marker and wins a fabricated attribution that `validateThemes` cannot catch — verifying an ID exists is not verifying the review says the thing
+- the Firestore read is inside the try/catch, and empty results are never cached
+- the client service takes one argument: `getAccountThemes(companyId)`
+
+**Layer C rules could fire on a sample of one.** Per-field denominators are independent of review count, so a 9-review account could render "1 of 1 reported deals". As built, `MIN_RULE_SAMPLE = 2` floors the rate and modal rules, and ranking blends observed frequency via `rank()` rather than using fixed category priority alone.
+
+**Task 9's `region` option was dropped** — `functions/src/index.ts` sets it globally via `setGlobalOptions` and no other `onCall` sets it per-function.
+
+**Test and build commands in this plan are wrong.** The root vitest config excludes `functions/**`, so `npx vitest run functions/src/*.test.ts` from the root silently runs the wrong files. Use `cd functions && npx vitest run src/<file>.test.ts` and `cd functions && npm run build`. `npm run build -w functions` fails outright — the root `package.json` has no `workspaces` field, despite CLAUDE.md documenting it.
+
+**Task 12's claim that `pages/CompanyProfile.test.tsx` passes untouched is wrong** — it mocked `services/geminiService` and asserted on Playbook content.
+
+**Task 14's repo-wide MEDDPICC grep over-reaches.** Three mentions are intentional and remain: seed review text in `mockReviews.ts`, the protected extension feature's test double in `personaCache.test.ts`, and the design-rationale comment in `services/qualificationQuestions.ts`. The correct check is `grep -rni "meddpic\|meddic" pages/ src/`.
+
+---
+
 ## Background For The Implementer
 
 **What exists today (being replaced):**

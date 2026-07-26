@@ -10,13 +10,11 @@ import VerdictCard from "../src/components/intel/VerdictCard";
 import FlagList from "../src/components/intel/FlagList";
 import TrendStrip from "../src/components/intel/TrendStrip";
 import DealMechanicsPanel from "../src/components/intel/DealMechanics";
-import QuestionList from "../src/components/intel/QuestionList";
-import ThemeList from "../src/components/intel/ThemeList";
 import EvidenceList from "../src/components/intel/EvidenceList";
 import { getAccountSignal, AccountSignal } from "../services/accountSignal";
 import { getDealMechanics } from "../services/dealMechanics";
-import { getQualificationQuestions } from "../services/qualificationQuestions";
-import { getAccountThemes, AccountTheme } from "../services/accountThemes";
+import { getStructuredFlags, mergeFlags, AccountFlag } from "../services/accountFlags";
+import { getAiFlags } from "../services/aiFlags";
 import Button from "../src/components/ui/Button";
 import { TCV_BRACKETS } from "../src/constants/dealData";
 import { normalizeTcvBracket } from "../src/utils/reviewSchema";
@@ -45,7 +43,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const [company, setCompany] = useState<Company | null>(
     location.state?.company || null,
   );
-  const [themes, setThemes] = useState<AccountTheme[]>([]);
+  const [aiFlags, setAiFlags] = useState<AccountFlag[]>([]);
   const [signal, setSignal] = useState<AccountSignal | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
@@ -199,20 +197,20 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   // no loading state, recomputed synchronously whenever the filters change.
   const mechanics = useMemo(() => getDealMechanics(filteredReviews), [filteredReviews]);
 
-  const questions = useMemo(
-    () => (mechanics ? getQualificationQuestions(mechanics) : []),
-    [mechanics],
+  const flags = useMemo(
+    () => mergeFlags(mechanics ? getStructuredFlags(mechanics) : [], aiFlags),
+    [mechanics, aiFlags],
   );
 
-  // Layer B is the only AI call. Keyed on the company and its review count,
-  // NOT on the filter state - themes are a property of the account, and
-  // refetching per filter combination is what made the old persona expensive
-  // and inconsistent between users.
+  // The only AI call. Keyed on the company and its review count, NOT on the
+  // filter state - free-text flags are a property of the account, and the
+  // server caches them on a corpus fingerprint so an unchanged corpus always
+  // returns the same flags.
   useEffect(() => {
     if (isPaid && company && companyReviews.length > 0) {
-      getAccountThemes(company.id).then(setThemes);
+      getAiFlags(company.id).then(setAiFlags);
     } else {
-      setThemes([]);
+      setAiFlags([]);
     }
   }, [isPaid, company?.id, companyReviews.length]);
 
@@ -293,8 +291,10 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       </div>
 
       <section aria-labelledby="flags-heading" className="space-y-2">
-        <h2 id="flags-heading" className="text-sm font-semibold text-slate-500">Red flags</h2>
-        <FlagList flags={signal?.flags ?? []} isPro={isPro} />
+        <h2 id="flags-heading" className="text-sm font-semibold text-slate-500">
+          Flags to qualify
+        </h2>
+        <FlagList companyId={company.id} flags={flags} isPro={isPro} />
       </section>
 
       {isPro && signal && (
@@ -305,15 +305,11 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       )}
 
       {isPro ? (
-        <>
-          {mechanics && <DealMechanicsPanel mechanics={mechanics} />}
-          <QuestionList companyId={company.id} questions={questions} />
-          <ThemeList themes={themes} />
-        </>
+        mechanics && <DealMechanicsPanel mechanics={mechanics} />
       ) : (
         <Link to="/pricing" className="block bg-navy text-white rounded-card p-6 text-center">
           <span className="text-sm font-semibold">
-            Unlock deal mechanics, account questions, and full review evidence with Sales Pro
+            Unlock deal mechanics, flags to qualify, and full review evidence with Sales Pro
           </span>
         </Link>
       )}

@@ -4,10 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import CompanyProfile from "./CompanyProfile";
 import { Review } from "../types";
 
-// Layer B is the only network call on this page. Stub it so the spine tests
-// stay offline; the panel itself is covered by ThemeList's own suite.
-vi.mock("../services/accountThemes", () => ({
-  getAccountThemes: vi.fn().mockResolvedValue([]),
+// The free-text flags are the only network call on this page. Stub them so the
+// spine tests stay offline; the structured flags carry the panel without them.
+vi.mock("../services/aiFlags", () => ({
+  getAiFlags: vi.fn().mockResolvedValue([]),
 }));
 
 const review: Review = {
@@ -37,10 +37,13 @@ function renderPage(isPaid: boolean) {
 }
 
 describe("CompanyProfile spine", () => {
-  it("shows flags gate and evidence to logged-in free users, but gates the brief", async () => {
+  it("shows the flags section and evidence to logged-in free users, but gates the brief", async () => {
     renderPage(false);
     expect(await screen.findByText("Snowflake")).toBeInTheDocument();
-    expect(screen.getByText(/unlock \d+ flags/i)).toBeInTheDocument();
+    // One review is below MIN_MECHANICS_REVIEWS, so there is nothing to flag -
+    // the section still renders, it just says so.
+    expect(screen.getByRole("heading", { name: /Flags to qualify/ })).toBeInTheDocument();
+    expect(screen.getByText(/No red flags detected/)).toBeInTheDocument();
     expect(await screen.findByText(/They ghosted us/)).toBeInTheDocument();
     expect(screen.getByText(/Unlock deal mechanics/)).toBeInTheDocument();
   });
@@ -130,7 +133,7 @@ function renderBrief(isPaid: boolean) {
 }
 
 describe("CompanyProfile deal mechanics brief", () => {
-  it("mounts the mechanics panel and the questions it derives for Pro users", async () => {
+  it("mounts the mechanics panel and the flags it derives for Pro users", async () => {
     renderBrief(true);
 
     // Layer A: gated on getDealMechanics returning non-null, which needs 3+ reviews.
@@ -138,18 +141,24 @@ describe("CompanyProfile deal mechanics brief", () => {
     expect(screen.getByText("6-12 Months")).toBeInTheDocument();
     expect(screen.getByText("Early (before shortlist)")).toBeInTheDocument();
 
-    // Layer C: the security-review rule fired off the repeated friction event,
-    // and its rationale carries the real denominator through the memo chain.
-    expect(screen.getByRole("heading", { name: /Ask this account/ })).toBeInTheDocument();
-    expect(screen.getByText(/Which security review tier/)).toBeInTheDocument();
-    expect(screen.getByText(/2 of 3 sellers hit a security questionnaire/)).toBeInTheDocument();
+    // The flag engine: the security-review rule fired off the repeated friction
+    // event, and its stat carries the real denominator through the memo chain.
+    expect(screen.getByRole("heading", { name: /Flags to qualify/ })).toBeInTheDocument();
+    expect(screen.getByText("Security review is a gate")).toBeInTheDocument();
+    expect(screen.getByText("2 of 3 deals")).toBeInTheDocument();
   });
 
-  it("gates both panels behind Sales Pro", async () => {
+  it("gates the mechanics panel and the flag detail behind Sales Pro", async () => {
     renderBrief(false);
     expect(await screen.findByText(/Unlock deal mechanics/)).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /How this buyer buys/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /Ask this account/ })).not.toBeInTheDocument();
-    expect(screen.queryByText(/Which security review tier/)).not.toBeInTheDocument();
+
+    // The flags themselves stay visible to free users - the upsell is the point
+    // of the section - but the stats and qualification points do not.
+    expect(screen.getByRole("heading", { name: /Flags to qualify/ })).toBeInTheDocument();
+    expect(screen.getByText("Security review is a gate")).toBeInTheDocument();
+    expect(screen.getByText(/Unlock \d+ flags with Sales Pro/)).toBeInTheDocument();
+    expect(screen.queryByText("2 of 3 deals")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 });

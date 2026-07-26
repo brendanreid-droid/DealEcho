@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { pointId, getStructuredFlags, MAX_FLAGS, mergeFlags, rank, AccountFlag } from "./accountFlags";
+import {
+  pointId,
+  getStructuredFlags,
+  MAX_FLAGS,
+  mergeFlags,
+  rank,
+  AccountFlag,
+  evidenceBar,
+  capSeverity,
+} from "./accountFlags";
 import { DealMechanics } from "./dealMechanics";
 
 describe("pointId", () => {
@@ -82,7 +91,7 @@ describe("getStructuredFlags", () => {
     for (const f of flags) expect(f.stat).toMatch(/\d/);
   });
 
-  it("does not fire a friction flag on a single report", () => {
+  it("does not fire a friction flag on a single report once the field has a larger sample", () => {
     const flags = getStructuredFlags({
       ...empty,
       friction: [{ event: "Security questionnaire", count: 1, total: 9, reviewIds: ["a"] }],
@@ -90,28 +99,28 @@ describe("getStructuredFlags", () => {
     expect(flags.find((x) => x.id === "security-review")).toBeUndefined();
   });
 
-  it("fires the reverse auction flag on a single report because it is critical", () => {
+  it("fires the reverse auction flag on a single report, but caps its severity to caution", () => {
     const flags = getStructuredFlags({
       ...empty,
       friction: [{ event: "Reverse auction / e-procurement", count: 1, total: 9, reviewIds: ["a"] }],
     });
-    expect(flags.find((x) => x.id === "reverse-auction")!.severity).toBe("critical");
+    expect(flags.find((x) => x.id === "reverse-auction")!.severity).toBe("caution");
   });
 
-  it("does not fire a rate flag when only one review answered the field", () => {
+  it("fires a rate flag from a single review when that is the field's whole sample", () => {
     const flags = getStructuredFlags({
       ...empty,
       ghostRate: { count: 1, total: 1, reviewIds: ["a"] },
     });
-    expect(flags.find((x) => x.id === "ghosting")).toBeUndefined();
+    expect(flags.find((x) => x.id === "ghosting")).toBeDefined();
   });
 
-  it("does not fire a modal flag when only one review answered the field", () => {
+  it("fires a modal flag from a single review when that is the field's whole sample", () => {
     const flags = getStructuredFlags({
       ...empty,
       procurementEntry: { value: "Early (before shortlist)", count: 1, total: 1 },
     });
-    expect(flags.find((x) => x.id === "procurement-early")).toBeUndefined();
+    expect(flags.find((x) => x.id === "procurement-early")).toBeDefined();
   });
 
   it("does not fire a rate flag at exactly one third", () => {
@@ -197,5 +206,104 @@ describe("mergeFlags", () => {
       [],
     );
     expect(out[0].id).toBe("b");
+  });
+});
+
+describe("evidenceBar", () => {
+  it("needs a single report when that is all the evidence there is", () => {
+    expect(evidenceBar(1)).toBe(1);
+    expect(evidenceBar(2)).toBe(1);
+  });
+
+  it("needs two reports on a mid-sized sample", () => {
+    expect(evidenceBar(3)).toBe(2);
+    expect(evidenceBar(8)).toBe(2);
+  });
+
+  it("needs three reports once the sample is large", () => {
+    expect(evidenceBar(9)).toBe(3);
+    expect(evidenceBar(50)).toBe(3);
+  });
+
+  it("never returns less than one, even for an empty sample", () => {
+    expect(evidenceBar(0)).toBe(1);
+  });
+});
+
+describe("capSeverity", () => {
+  it("caps a critical flag to caution when it stands on one or two reports", () => {
+    expect(capSeverity("critical", 1)).toBe("caution");
+    expect(capSeverity("critical", 2)).toBe("caution");
+  });
+
+  it("leaves severity alone once three reports back it", () => {
+    expect(capSeverity("critical", 3)).toBe("critical");
+  });
+
+  it("never promotes a lesser severity", () => {
+    expect(capSeverity("watch", 1)).toBe("watch");
+    expect(capSeverity("watch", 20)).toBe("watch");
+    expect(capSeverity("caution", 1)).toBe("caution");
+  });
+});
+
+describe("adaptive bar applied to the rule bank", () => {
+  it("raises a friction flag from a single report on a single-report field", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      friction: [{ event: "Security questionnaire", count: 1, total: 1, reviewIds: ["a"] }],
+    });
+    expect(flags.find((x) => x.id === "security-review")).toBeDefined();
+  });
+
+  it("still suppresses a single report once the field has a larger sample", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      friction: [{ event: "Security questionnaire", count: 1, total: 9, reviewIds: ["a"] }],
+    });
+    expect(flags.find((x) => x.id === "security-review")).toBeUndefined();
+  });
+
+  it("keys the bar off the field's own denominator, not the account total", () => {
+    // 9 reviews on the account, but only one answered the friction question.
+    const flags = getStructuredFlags({
+      ...empty,
+      sampleSize: 9,
+      friction: [{ event: "Security questionnaire", count: 1, total: 1, reviewIds: ["a"] }],
+    });
+    expect(flags.find((x) => x.id === "security-review")).toBeDefined();
+  });
+
+  it("caps a thin critical flag to caution", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      ghostRate: { count: 1, total: 1, reviewIds: ["a"] },
+    });
+    const f = flags.find((x) => x.id === "ghosting")!;
+    expect(f.severity).toBe("caution");
+  });
+
+  it("leaves a well-evidenced critical flag critical", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      ghostRate: { count: 4, total: 9, reviewIds: ["a", "b", "c", "d"] },
+    });
+    expect(flags.find((x) => x.id === "ghosting")!.severity).toBe("critical");
+  });
+
+  it("raises a modal flag from a single answered field", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      paymentTerms: { value: "Net 90", count: 1, total: 1 },
+    });
+    expect(flags.find((x) => x.id === "payment-terms")).toBeDefined();
+  });
+
+  it("still fires reverse auction on one report out of many", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      friction: [{ event: "Reverse auction / e-procurement", count: 1, total: 9, reviewIds: ["a"] }],
+    });
+    expect(flags.find((x) => x.id === "reverse-auction")).toBeDefined();
   });
 });

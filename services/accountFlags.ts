@@ -62,21 +62,53 @@ import { DealMechanics, FrictionStat } from "./dealMechanics";
 export const MAX_FLAGS = 7;
 
 /**
- * A rate or modal rule needs at least this many reviews to have ANSWERED the
- * underlying field. Per-field denominators are independent of the review count,
- * so a 9-review account can still have a 1-of-1 modal.
+ * How many corroborating reports a flag needs, as a function of how many
+ * reviews answered THAT FIELD - not how many reviews the account has. Schema
+ * v2 fields are optional, so a 9-review account can still have a field only one
+ * person filled in.
+ *
+ * A constant bar is wrong at both ends. On a one-review account "1 of 1" is all
+ * the evidence that exists, and suppressing it makes the product look empty
+ * rather than making the account safer. On a twenty-review account two reports
+ * agreeing is noise.
+ *
+ * An explicit table rather than a formula - these want tuning by feel against
+ * real accounts, and `clamp(ceil(n / 3), 1, 3)` is unreadable in six months.
  */
-export const MIN_RULE_SAMPLE = 2;
-
-/** Find a friction event that hit at least `min` reports. */
-export function friction(m: DealMechanics, event: string, min: number): FrictionStat | null {
-  const f = m.friction.find((x) => x.event === event);
-  return f && f.count >= min ? f : null;
+export function evidenceBar(fieldTotal: number): number {
+  if (fieldTotal <= 2) return 1;
+  if (fieldTotal <= 8) return 2;
+  return 3;
 }
 
-/** True when a rate cleared `threshold` (0-1) on a sample of at least MIN_RULE_SAMPLE. */
+/** Below this many corroborating reports, a flag cannot claim to be critical. */
+const CONFIDENT_EVIDENCE = 3;
+
+/**
+ * A flag standing on one or two reports is one person's experience. It is
+ * still worth showing - but it must not render identically to a pattern across
+ * nine deals, which is what dropping the bar would otherwise do.
+ */
+export function capSeverity(severity: FlagSeverity, backing: number): FlagSeverity {
+  if (severity === "critical" && backing < CONFIDENT_EVIDENCE) return "caution";
+  return severity;
+}
+
+/**
+ * Find a friction event that cleared the adaptive bar for its own sample.
+ * `alwaysOne` is for findings severe enough that a single confirmed sighting
+ * is worth knowing regardless of sample size.
+ */
+export function friction(m: DealMechanics, event: string, alwaysOne = false): FrictionStat | null {
+  const f = m.friction.find((x) => x.event === event);
+  if (!f) return null;
+  const bar = alwaysOne ? 1 : evidenceBar(f.total);
+  return f.count >= bar ? f : null;
+}
+
+/** True when a rate cleared `threshold` (0-1) on a sample that clears its own bar. */
 export function rateOver(s: { count: number; total: number }, threshold: number): boolean {
-  return s.total >= MIN_RULE_SAMPLE && s.count / s.total > threshold;
+  return s.total > 0 && s.count >= evidenceBar(s.total) && s.count / s.total > threshold;
 }
 
 type Rule = (m: DealMechanics) => AccountFlag | null;
@@ -87,19 +119,19 @@ function frictionFlag(
   opts: {
     id: string;
     event: string;
-    min: number;
+    alwaysOne?: boolean;
     label: string;
     severity: FlagSeverity;
     priority: number;
     qualify: string[];
   },
 ): AccountFlag | null {
-  const f = friction(m, opts.event, opts.min);
+  const f = friction(m, opts.event, opts.alwaysOne);
   if (!f) return null;
   return {
     id: opts.id,
     label: opts.label,
-    severity: opts.severity,
+    severity: capSeverity(opts.severity, f.count),
     stat: `${f.count} of ${f.total} deals`,
     qualify: opts.qualify,
     reviewIds: f.reviewIds,
@@ -114,7 +146,7 @@ const RULES: Rule[] = [
     frictionFlag(m, {
       id: "reverse-auction",
       event: "Reverse auction / e-procurement",
-      min: 1,
+      alwaysOne: true,
       label: "Deals go to reverse auction",
       severity: "critical",
       priority: 100,
@@ -128,7 +160,6 @@ const RULES: Rule[] = [
     frictionFlag(m, {
       id: "security-review",
       event: "Security questionnaire",
-      min: 2,
       label: "Security review is a gate",
       severity: "caution",
       priority: 90,
@@ -142,7 +173,6 @@ const RULES: Rule[] = [
     frictionFlag(m, {
       id: "legal-redlines",
       event: "Legal redlines on MSA",
-      min: 2,
       label: "MSA redlines are routine",
       severity: "caution",
       priority: 80,
@@ -156,7 +186,6 @@ const RULES: Rule[] = [
     frictionFlag(m, {
       id: "poc-required",
       event: "Pilot / POC required",
-      min: 2,
       label: "A pilot is expected before signature",
       severity: "caution",
       priority: 78,
@@ -170,7 +199,6 @@ const RULES: Rule[] = [
     frictionFlag(m, {
       id: "soc2-evidence",
       event: "SOC 2 / pen test required",
-      min: 2,
       label: "Third-party security evidence required",
       severity: "caution",
       priority: 75,
@@ -184,7 +212,6 @@ const RULES: Rule[] = [
     frictionFlag(m, {
       id: "vendor-portal",
       event: "Vendor onboarding portal",
-      min: 2,
       label: "Vendor onboarding adds time at PO stage",
       severity: "watch",
       priority: 60,
@@ -198,7 +225,6 @@ const RULES: Rule[] = [
     frictionFlag(m, {
       id: "reference-calls",
       event: "Reference calls required",
-      min: 2,
       label: "Customer references become a gate",
       severity: "watch",
       priority: 55,
@@ -209,7 +235,7 @@ const RULES: Rule[] = [
     }),
   (m) => {
     const s = m.procurementEntry;
-    if (!s || s.total < MIN_RULE_SAMPLE || s.value !== "Early (before shortlist)") return null;
+    if (!s || s.count < evidenceBar(s.total) || s.value !== "Early (before shortlist)") return null;
     return {
       id: "procurement-early",
       label: "Procurement engages before shortlist",
@@ -231,7 +257,7 @@ const RULES: Rule[] = [
     return {
       id: "ghosting",
       label: "Buyer goes quiet mid-cycle",
-      severity: "critical",
+      severity: capSeverity("critical", m.ghostRate.count),
       stat: `${m.ghostRate.count} of ${m.ghostRate.total} deals`,
       qualify: [
         "who to contact when the thread goes cold",
@@ -249,7 +275,7 @@ const RULES: Rule[] = [
     return {
       id: "close-slippage",
       label: "Close dates slip repeatedly",
-      severity: "critical",
+      severity: capSeverity("critical", m.slippageRate.count),
       stat: `${m.slippageRate.count} of ${m.slippageRate.total} deals pushed twice or more`,
       qualify: [
         "what has to be true for this to sign in the quarter",
@@ -264,7 +290,7 @@ const RULES: Rule[] = [
   },
   (m) => {
     const s = m.verbalToSignature;
-    if (!s || s.total < MIN_RULE_SAMPLE || (s.value !== "1-3 Months" && s.value !== "3+ Months")) {
+    if (!s || s.count < evidenceBar(s.total) || (s.value !== "1-3 Months" && s.value !== "3+ Months")) {
       return null;
     }
     return {
@@ -285,7 +311,7 @@ const RULES: Rule[] = [
   },
   (m) => {
     const s = m.stakeholderCount;
-    if (!s || s.total < MIN_RULE_SAMPLE || (s.value !== "6-10" && s.value !== "10+")) return null;
+    if (!s || s.count < evidenceBar(s.total) || (s.value !== "6-10" && s.value !== "10+")) return null;
     return {
       id: "stakeholder-sprawl",
       label: "Large buying committee",
@@ -303,7 +329,7 @@ const RULES: Rule[] = [
   },
   (m) => {
     const s = m.paymentTerms;
-    if (!s || s.total < MIN_RULE_SAMPLE || !["Net 60", "Net 90", "Net 120+"].includes(s.value)) {
+    if (!s || s.count < evidenceBar(s.total) || !["Net 60", "Net 90", "Net 120+"].includes(s.value)) {
       return null;
     }
     return {

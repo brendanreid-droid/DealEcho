@@ -23,23 +23,10 @@ describe("getAccountSignal", () => {
     expect(sig.headline.length).toBeGreaterThan(0);
   });
 
-  it("raises a ghosting flag for very low responsiveness", async () => {
-    const sig = await getAccountSignal("Acme", [
-      r({ id: "g", communicationRating: 1, content: "They ghosted us after the POC." }),
-    ]);
-    const ghost = sig.flags.find((f) => f.type === "ghosting");
-    expect(ghost).toBeDefined();
-    expect(ghost!.reviewIds).toContain("g");
-    expect(ghost!.evidence).toContain("ghosted");
-  });
-
-  it("sorts critical flags before caution flags", async () => {
-    const sig = await getAccountSignal("Acme", [
-      r({ id: "x", negotiationLevel: 2, content: "Procurement opened at a 40% discount demand." }),
-      r({ id: "y", content: "The champion left the company two weeks before signature." }),
-    ]);
-    expect(sig.flags.length).toBeGreaterThanOrEqual(2);
-    expect(sig.flags[0].severity).toBe("critical");
+  it("no longer produces flags - the flag engine lives in services/accountFlags.ts", async () => {
+    const sig = await getAccountSignal("Acme", [r({ id: "g" })]);
+    // @ts-expect-error flags was removed from AccountSignal
+    expect(sig.flags).toBeUndefined();
   });
 
   it("computes a downward trend when later reviews score worse", async () => {

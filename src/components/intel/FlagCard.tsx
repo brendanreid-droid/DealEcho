@@ -1,38 +1,89 @@
 import React from "react";
-import { Flag, FlagType } from "../../../services/accountSignal";
+import { AccountFlag, pointId } from "../../../services/accountFlags";
 
-const LABELS: Record<FlagType, string> = {
-  ghosting: "Ghosting",
-  tire_kicker: "Tire kicker",
-  ip_risk: "IP risk",
-  brutal_procurement: "Brutal procurement",
-  champion_loss: "Champion loss",
-  scope_creep: "Scope creep",
-  legal_friction: "Legal friction",
-  budget_freeze: "Budget freeze",
+const ACCENT: Record<AccountFlag["severity"], string> = {
+  critical: "border-l-signal-risk",
+  caution: "border-l-signal-caution",
+  watch: "border-l-slate-300",
 };
 
-const FlagCard: React.FC<{ flag: Flag; showEvidence: boolean }> = ({ flag, showEvidence }) => {
-  const critical = flag.severity === "critical";
-  const accent = critical ? "border-l-signal-risk" : "border-l-signal-caution";
-  const text = critical ? "text-signal-risk" : "text-signal-caution";
-  return (
-    <div className={`bg-white border border-slate-200 border-l-[3px] ${accent} rounded-none p-4`}>
-      <div className={`text-sm font-semibold ${text}`}>
-        {LABELS[flag.type]} · {flag.severity} · {flag.reviewIds.length} report
-        {flag.reviewIds.length !== 1 ? "s" : ""}
-      </div>
-      {showEvidence ? (
-        flag.evidence && (
-          <p className="text-2xs text-slate-500 italic mt-1">"{flag.evidence}"</p>
-        )
-      ) : (
-        <p className="text-2xs text-slate-300 italic mt-1 select-none" aria-hidden="true">
-          ░░░░░░░ ░░░░░ ░░░░░░░░░ ░░░░ ░░░░░░░
-        </p>
+const TEXT: Record<AccountFlag["severity"], string> = {
+  critical: "text-signal-risk",
+  caution: "text-signal-caution",
+  watch: "text-slate-500",
+};
+
+interface Props {
+  flag: AccountFlag;
+  /** Point ids already ticked for this company. */
+  checked: string[];
+  onToggle: (id: string) => void;
+  /** Pro users see the stat and the qualification points. */
+  showDetail: boolean;
+  /** Filter the evidence list below to the reviews backing this flag. */
+  onShowEvidence: (reviewIds: string[]) => void;
+}
+
+const FlagCard: React.FC<Props> = ({ flag, checked, onToggle, showDetail, onShowEvidence }) => (
+  <div className={`bg-white border border-slate-200 border-l-[3px] ${ACCENT[flag.severity]} p-4`}>
+    <div className="flex items-baseline justify-between gap-3">
+      <span className={`text-sm font-semibold ${TEXT[flag.severity]}`}>{flag.label}</span>
+      {showDetail && (
+        <span className="shrink-0 text-2xs font-semibold text-slate-500 tabular-nums">
+          {flag.stat}
+        </span>
       )}
     </div>
-  );
-};
+
+    {showDetail ? (
+      <>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-2xs text-slate-400">
+          {/*
+            Modal-driven flags (payment terms, committee size) aggregate a field
+            across reviews and carry no per-review provenance, so there is
+            nothing to link to. Rendering "0 reports" next to a flag whose stat
+            reads "6 of 8 deals" just looks broken.
+          */}
+          {flag.reviewIds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onShowEvidence(flag.reviewIds)}
+              className="underline underline-offset-2 hover:text-accent transition-colors"
+            >
+              {flag.reviewIds.length} report{flag.reviewIds.length !== 1 ? "s" : ""}
+            </button>
+          )}
+          {flag.source === "reports" && <span>From written reports</span>}
+        </div>
+        <ul className="mt-2 space-y-1">
+          {flag.qualify.map((point) => {
+            const id = pointId(flag.id, point);
+            return (
+              <li key={id} className="flex gap-2">
+                <input
+                  type="checkbox"
+                  id={id}
+                  checked={checked.includes(id)}
+                  onChange={() => onToggle(id)}
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-accent"
+                />
+                <label
+                  htmlFor={id}
+                  className={`text-2xs ${checked.includes(id) ? "text-slate-400 line-through" : "text-slate-600"}`}
+                >
+                  {point}
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    ) : (
+      <p className="text-2xs text-slate-300 italic mt-1 select-none" aria-hidden="true">
+        ░░░░░░░ ░░░░░ ░░░░░░░░░ ░░░░ ░░░░░░░
+      </p>
+    )}
+  </div>
+);
 
 export default FlagCard;

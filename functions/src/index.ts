@@ -29,9 +29,10 @@ export {
 // export { moderateNewReview } from "./moderation";
 export { onReviewWritten } from "./reviewModeration";
 export { submitReview, resubmitReview } from "./reviewSubmission";
-export { searchCompanyEntities, getAICompanyPersona } from "./searchCompanies";
+export { searchCompanyEntities } from "./searchCompanies";
 export { lookupCompanyReviews } from "./extension/lookupCompanyReviews";
 export { issueCustomToken } from "./extension/issueCustomToken";
+export { getAccountFlags } from "./accountFlags";
 // redeploy trigger: lookupCompanyReviews score-breakdown metrics (2026-06-28)
 
 // Automated Lifecycle Email Triggers (Resend)

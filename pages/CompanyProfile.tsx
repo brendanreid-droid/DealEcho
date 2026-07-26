@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useLocation, useParams, useNavigate, Link } from "react-router-dom";
 import { Company, Review } from "../types";
-import { getAICompanyPersona, CompanyPersona } from "../services/geminiService";
 import { useSEO } from "../src/hooks/useSEO";
 import Icon from "../src/components/Icon";
 import ScoreRing from "../src/components/ScoreRing";
@@ -10,9 +9,12 @@ import { MappedUser } from "../src/hooks/useAuth";
 import VerdictCard from "../src/components/intel/VerdictCard";
 import FlagList from "../src/components/intel/FlagList";
 import TrendStrip from "../src/components/intel/TrendStrip";
-import Playbook from "../src/components/intel/Playbook";
+import DealMechanicsPanel from "../src/components/intel/DealMechanics";
 import EvidenceList from "../src/components/intel/EvidenceList";
 import { getAccountSignal, AccountSignal } from "../services/accountSignal";
+import { getDealMechanics } from "../services/dealMechanics";
+import { getStructuredFlags, mergeFlags, AccountFlag } from "../services/accountFlags";
+import { getAiFlags } from "../services/aiFlags";
 import Button from "../src/components/ui/Button";
 import { TCV_BRACKETS } from "../src/constants/dealData";
 import { normalizeTcvBracket } from "../src/utils/reviewSchema";
@@ -41,12 +43,20 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   const [company, setCompany] = useState<Company | null>(
     location.state?.company || null,
   );
-  const [aiPersona, setAiPersona] = useState<CompanyPersona | null>(null);
+  const [aiFlags, setAiFlags] = useState<AccountFlag[]>([]);
   const [signal, setSignal] = useState<AccountSignal | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [showReviewRuleModal, setShowReviewRuleModal] = useState(false);
+  const [evidenceIds, setEvidenceIds] = useState<string[] | null>(null);
+  const evidenceRef = useRef<HTMLElement | null>(null);
+
+  const showEvidenceFor = useCallback((reviewIds: string[]) => {
+    setEvidenceIds(reviewIds);
+    // Optional call: jsdom does not implement scrollIntoView, and a missing
+    // scroll should never break the filter itself.
+    evidenceRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  }, []);
 
   // Numeric order for TCV bracket sorting, derived from the shared bracket
   // list so new brackets can't silently drop out of the sort again.
@@ -104,9 +114,18 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
     return companyReviews.filter((r) => r.buyingTeam.includes(selectedTeam));
   }, [companyReviews, selectedTeam]);
 
+  // Reviews backing a flag the user clicked through from. Narrows the evidence
+  // list on top of the stakeholder filter, so "7 of 9 deals" is one click from
+  // the nine reports that say so.
+  const evidenceReviews = useMemo(() => {
+    if (!evidenceIds) return filteredReviews;
+    const wanted = new Set(evidenceIds);
+    return filteredReviews.filter((r) => wanted.has(r.id));
+  }, [filteredReviews, evidenceIds]);
+
   // Sorted reviews based on user selection
   const sortedReviews = useMemo(() => {
-    const sorted = [...filteredReviews];
+    const sorted = [...evidenceReviews];
     switch (sortOrder) {
       case "newest":
         return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -119,7 +138,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       default:
         return sorted;
     }
-  }, [filteredReviews, sortOrder]);
+  }, [evidenceReviews, sortOrder]);
 
   // Aggregated Stats for Header
   const statsSummary = useMemo(() => {
@@ -183,40 +202,37 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
 
   useSEO({
     title: company ? `${company.name} B2B Buyer Intelligence & Ratings | Dealecho` : "B2B Target Account Sales Intel | Dealecho",
-    description: company 
-      ? `Access verified sales reviews, aggregate buyer responsiveness, negotiation scores, and MEDDPICC buying team personas for ${company.name}.`
-      : "Access B2B sales cycle insights, buyer personas, and MEDDPICC deal execution ratings for enterprise target accounts.",
-    keywords: company ? `${company.name} sales, ${company.name} reviews, ${company.name} MEDDPICC, B2B sales intelligence` : "B2B sales intelligence, MEDDPICC, account planning",
+    description: company
+      ? `Access verified sales reviews, aggregate buyer responsiveness, negotiation scores, and deal mechanics for ${company.name}.`
+      : "Access B2B sales cycle insights, deal mechanics, and buyer execution ratings for enterprise target accounts.",
+    keywords: company
+      ? `${company.name} sales, ${company.name} reviews, ${company.name} procurement, B2B sales intelligence`
+      : "B2B sales intelligence, deal mechanics, account planning",
     schema: seoSchema,
   });
 
-  // Update AI Persona when the filtered set of reviews changes
-  useEffect(() => {
-    if (isPaid && company && filteredReviews.length > 0) {
-      // Synchronously check if cached to avoid loading spinner flash for instant premium experience!
-      const reviewsSignature = filteredReviews
-        .map((r) => `${r.id}_${r.createdAt}`)
-        .sort()
-        .join("|");
-      const normalizedCompany = company.name.trim().toLowerCase();
-      const cacheKey = `dealecho_persona_cache:${normalizedCompany}:${reviewsSignature}`;
-      let isCached = false;
-      try {
-        isCached = !!sessionStorage.getItem(cacheKey);
-      } catch (e) {
-        // Fail silently
-      }
+  // Layers A and C are pure derivations of the filtered review set — no network,
+  // no loading state, recomputed synchronously whenever the filters change.
+  const mechanics = useMemo(() => getDealMechanics(filteredReviews), [filteredReviews]);
 
-      if (!isCached) {
-        setIsAiLoading(true);
-      }
-      getAICompanyPersona(company.name, filteredReviews)
-        .then(setAiPersona)
-        .finally(() => setIsAiLoading(false));
+  const flags = useMemo(
+    () => mergeFlags(mechanics ? getStructuredFlags(mechanics) : [], aiFlags),
+    [mechanics, aiFlags],
+  );
+
+  // The only AI call. Keyed on the company and its review count, NOT on the
+  // filter state - free-text flags are a property of the account, and the
+  // server caches them on a corpus fingerprint so an unchanged corpus always
+  // returns the same flags.
+  useEffect(() => {
+    if (isPaid && company && companyReviews.length > 0) {
+      getAiFlags(company.id).then(setAiFlags);
     } else {
-      setAiPersona(null);
+      setAiFlags([]);
     }
-  }, [isPaid, company, filteredReviews]);
+    // A flag's evidence selection belongs to the account it came from.
+    setEvidenceIds(null);
+  }, [isPaid, company?.id, companyReviews.length]);
 
   useEffect(() => {
     if (company && companyReviews.length > 0) {
@@ -295,8 +311,15 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       </div>
 
       <section aria-labelledby="flags-heading" className="space-y-2">
-        <h2 id="flags-heading" className="text-sm font-semibold text-slate-500">Red flags</h2>
-        <FlagList flags={signal?.flags ?? []} isPro={isPro} />
+        <h2 id="flags-heading" className="text-sm font-semibold text-slate-500">
+          Flags to qualify
+        </h2>
+        <FlagList
+          companyId={company.id}
+          flags={flags}
+          isPro={isPro}
+          onShowEvidence={showEvidenceFor}
+        />
       </section>
 
       {isPro && signal && (
@@ -307,16 +330,31 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       )}
 
       {isPro ? (
-        aiPersona && <Playbook persona={aiPersona} />
+        mechanics && <DealMechanicsPanel mechanics={mechanics} />
       ) : (
         <Link to="/pricing" className="block bg-navy text-white rounded-card p-6 text-center">
-          <span className="text-sm font-semibold">Unlock the AI playbook and full review evidence with Sales Pro</span>
+          <span className="text-sm font-semibold">
+            Unlock deal mechanics, flags to qualify, and full review evidence with Sales Pro
+          </span>
         </Link>
       )}
 
       {user && hasReviews && (
-        <section aria-labelledby="evidence-heading" className="space-y-3">
+        <section ref={evidenceRef} aria-labelledby="evidence-heading" className="space-y-3">
           <h2 id="evidence-heading" className="text-sm font-semibold text-slate-500">Evidence</h2>
+          {evidenceIds && (
+            <div className="flex items-center gap-3 bg-slate-100 rounded-control px-3 py-2">
+              <span className="text-2xs font-semibold text-slate-600">
+                Showing the {evidenceIds.length} report{evidenceIds.length !== 1 ? "s" : ""} behind one flag
+              </span>
+              <button
+                onClick={() => setEvidenceIds(null)}
+                className="ml-auto text-2xs font-semibold text-accent underline underline-offset-2"
+              >
+                Show all
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedTeam("all")}

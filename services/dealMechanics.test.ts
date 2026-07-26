@@ -180,3 +180,44 @@ describe("getDealMechanics", () => {
     expect(m!.procurementEntry).toBeNull();
   });
 });
+
+describe("getDealMechanics rating averages", () => {
+  it("returns a brief for a single review now that the gate is 1", () => {
+    expect(MIN_MECHANICS_REVIEWS).toBe(1);
+    const m = getDealMechanics([r({ id: "a" })]);
+    expect(m).not.toBeNull();
+    expect(m!.sampleSize).toBe(1);
+  });
+
+  it("returns null for an empty review set", () => {
+    expect(getDealMechanics([])).toBeNull();
+  });
+
+  it("averages each rating with its own count", () => {
+    const m = getDealMechanics([
+      r({ id: "a", communicationRating: 5, negotiationLevel: 4, timeWasterLevel: 5, clarityOfScope: 4 }),
+      r({ id: "b", communicationRating: 3, negotiationLevel: 2, timeWasterLevel: 3, clarityOfScope: 2 }),
+    ]);
+    expect(m!.ratings.communication).toEqual({ average: 4, total: 2 });
+    expect(m!.ratings.negotiation).toEqual({ average: 3, total: 2 });
+    expect(m!.ratings.intent).toEqual({ average: 4, total: 2 });
+    expect(m!.ratings.scope).toEqual({ average: 3, total: 2 });
+  });
+
+  it("excludes a review from a rating's denominator when that rating is missing", () => {
+    const m = getDealMechanics([
+      r({ id: "a", communicationRating: 4 }),
+      r({ id: "b", communicationRating: undefined as unknown as number }),
+    ]);
+    expect(m!.ratings.communication).toEqual({ average: 4, total: 1 });
+  });
+
+  it("rounds an average to one decimal place", () => {
+    const m = getDealMechanics([
+      r({ id: "a", communicationRating: 5 }),
+      r({ id: "b", communicationRating: 4 }),
+      r({ id: "c", communicationRating: 4 }),
+    ]);
+    expect(m!.ratings.communication.average).toBe(4.3);
+  });
+});

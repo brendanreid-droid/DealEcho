@@ -20,7 +20,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
   useSEO({
     title: "Dealecho Pricing - Unlock Deal Mechanics and Buyer Intelligence",
     description:
-      "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, deal mechanics on every account, and qualification questions built from verified seller reports.",
+      "Scale your closing rate. Start a 30-day free trial of Sales Pro to access unlimited account tracking, deal mechanics on every account, and flags to qualify built from verified seller reports.",
     keywords:
       "Sales Pro pricing, sales intelligence subscription, deal mechanics, procurement intelligence, B2B deal close rate, Dealecho",
   });
@@ -175,8 +175,7 @@ const Pricing: React.FC<PricingProps> = ({ user, isPaid, onSignUpClick }) => {
   const proFeatures = [
     "Unlimited tracked accounts",
     "Deal mechanics - how this buyer actually buys",
-    "Account-specific qualification questions",
-    "Recurring themes cited to verified reports",
+    "Flags to qualify - what to nail down, with the evidence",
     "Live notification alerts",
     "Browser extension - intel on any site or CRM",
   ];

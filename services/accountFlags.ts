@@ -16,6 +16,9 @@ export type FlagSeverity = "critical" | "caution" | "watch";
 /** Where a flag came from. The UI marks free-text flags so sellers can weigh them. */
 export type FlagSource = "mechanics" | "reports";
 
+/** Whether this is something to watch for or something working in your favour. */
+export type FlagPolarity = "risk" | "strength";
+
 export interface AccountFlag {
   /** Stable kebab-case identifier. Structured flags use a fixed id; AI flags hash their label. */
   id: string;
@@ -33,6 +36,8 @@ export interface AccountFlag {
   /** Category weight. Higher sorts first. */
   priority: number;
   source: FlagSource;
+  /** Whether this is something to watch for or something working in your favour. */
+  polarity: FlagPolarity;
 }
 
 /**
@@ -138,7 +143,45 @@ function frictionFlag(
     strength: f.count / f.total,
     priority: opts.priority,
     source: "mechanics",
+    polarity: "risk",
   };
+}
+
+/** A rating at or above this is a genuine strength rather than "fine". */
+const STRONG_RATING = 4;
+
+/**
+ * Build a rule from one of the four execution ratings. All four are
+ * HIGH-IS-GOOD despite the legacy field names - see the comment on `Ratings`
+ * in services/dealMechanics.ts. Returned as a single-element array so the call
+ * site can spread it inline with the other rules.
+ */
+function ratingFlag(opts: {
+  id: string;
+  key: keyof DealMechanics["ratings"];
+  label: string;
+  noun: string;
+  priority: number;
+  qualify: string[];
+}): Rule[] {
+  return [
+    (m) => {
+      const s = m.ratings[opts.key];
+      if (s.total < 2 || s.average < STRONG_RATING) return null;
+      return {
+        id: opts.id,
+        label: opts.label,
+        severity: "watch",
+        stat: `${s.average} out of 5 for ${opts.noun}, across ${s.total} reports`,
+        qualify: opts.qualify,
+        reviewIds: [],
+        strength: (s.average - STRONG_RATING) / (5 - STRONG_RATING),
+        priority: opts.priority,
+        source: "mechanics",
+        polarity: "strength",
+      };
+    },
+  ];
 }
 
 const RULES: Rule[] = [
@@ -250,6 +293,7 @@ const RULES: Rule[] = [
       strength: s.count / s.total,
       priority: 88,
       source: "mechanics",
+      polarity: "risk",
     };
   },
   (m) => {
@@ -268,6 +312,7 @@ const RULES: Rule[] = [
       strength: m.ghostRate.count / m.ghostRate.total,
       priority: 85,
       source: "mechanics",
+      polarity: "risk",
     };
   },
   (m) => {
@@ -286,6 +331,7 @@ const RULES: Rule[] = [
       strength: m.slippageRate.count / m.slippageRate.total,
       priority: 82,
       source: "mechanics",
+      polarity: "risk",
     };
   },
   (m) => {
@@ -307,6 +353,7 @@ const RULES: Rule[] = [
       strength: s.count / s.total,
       priority: 70,
       source: "mechanics",
+      polarity: "risk",
     };
   },
   (m) => {
@@ -325,6 +372,7 @@ const RULES: Rule[] = [
       strength: s.count / s.total,
       priority: 65,
       source: "mechanics",
+      polarity: "risk",
     };
   },
   (m) => {
@@ -342,8 +390,130 @@ const RULES: Rule[] = [
       strength: s.count / s.total,
       priority: 50,
       source: "mechanics",
+      polarity: "risk",
     };
   },
+
+  // ── Strengths ────────────────────────────────────────────────────────────
+  // Same evidence bar as the risks. A buyer who runs a clean process is a
+  // finding too - a panel that only ever shows red cannot tell a good account
+  // from a bad one, which is the entire job.
+  (m) => {
+    if (m.frictionAnswered < 2 || m.friction.length > 0) return null;
+    return {
+      id: "clean-procurement",
+      label: "No procurement gauntlet reported",
+      severity: "watch",
+      stat: `0 friction events across ${m.frictionAnswered} reports`,
+      qualify: [
+        "whether your contract size stays under their review threshold",
+        "what changed for sellers who did hit a review",
+      ],
+      reviewIds: [],
+      strength: 1,
+      priority: 70,
+      source: "mechanics",
+      polarity: "strength",
+    };
+  },
+  (m) => {
+    const s = m.ghostRate;
+    if (s.total < 2 || s.count > 0) return null;
+    return {
+      id: "stays-engaged",
+      label: "Buyer stays engaged through the cycle",
+      severity: "watch",
+      stat: `0 of ${s.total} deals went dark`,
+      qualify: ["who kept the thread moving", "what cadence they expect"],
+      reviewIds: [],
+      strength: 1,
+      priority: 75,
+      source: "mechanics",
+      polarity: "strength",
+    };
+  },
+  (m) => {
+    const s = m.slippageRate;
+    if (s.total < 2 || s.count > 0) return null;
+    return {
+      id: "dates-hold",
+      label: "Close dates hold",
+      severity: "watch",
+      stat: `0 of ${s.total} deals pushed`,
+      qualify: ["what their approval calendar looks like", "whether budget is already allocated"],
+      reviewIds: [],
+      strength: 1,
+      priority: 80,
+      source: "mechanics",
+      polarity: "strength",
+    };
+  },
+  (m) => {
+    const s = m.paymentTerms;
+    if (!s || s.count < evidenceBar(s.total) || s.value !== "Net 30") return null;
+    return {
+      id: "fair-terms",
+      label: "Standard terms are Net 30",
+      severity: "watch",
+      stat: `${s.count} of ${s.total} reports`,
+      qualify: ["whether that holds at your contract size"],
+      reviewIds: [],
+      strength: s.count / s.total,
+      priority: 55,
+      source: "mechanics",
+      polarity: "strength",
+    };
+  },
+  (m) => {
+    const s = m.verbalToSignature;
+    if (!s || s.count < evidenceBar(s.total) || (s.value !== "< 1 Week" && s.value !== "1-4 Weeks")) {
+      return null;
+    }
+    return {
+      id: "fast-signature",
+      label: "Signature follows the verbal quickly",
+      severity: "watch",
+      stat: `${s.value} typical, across ${s.total} reports`,
+      qualify: ["who holds signing authority at your deal size"],
+      reviewIds: [],
+      strength: s.count / s.total,
+      priority: 60,
+      source: "mechanics",
+      polarity: "strength",
+    };
+  },
+  ...ratingFlag({
+    id: "responsive-buyer",
+    key: "communication",
+    label: "Responsive buyer",
+    noun: "responsiveness",
+    priority: 72,
+    qualify: ["which channel they actually reply on", "who your day-to-day contact will be"],
+  }),
+  ...ratingFlag({
+    id: "easy-negotiation",
+    key: "negotiation",
+    label: "Negotiation runs clean",
+    noun: "negotiation ease",
+    priority: 68,
+    qualify: ["what they expect on commercials up front"],
+  }),
+  ...ratingFlag({
+    id: "serious-buyer",
+    key: "intent",
+    label: "Buyers here are serious",
+    noun: "buyer intent",
+    priority: 76,
+    qualify: ["what triggered their evaluation", "whether budget already exists"],
+  }),
+  ...ratingFlag({
+    id: "clear-scope",
+    key: "scope",
+    label: "Scope is clear up front",
+    noun: "scope clarity",
+    priority: 64,
+    qualify: ["whether requirements are already written down"],
+  }),
 ];
 
 /** Deterministic flags from structured v2 fields. Unranked and uncapped - see mergeFlags. */

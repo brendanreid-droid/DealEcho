@@ -52,6 +52,13 @@ const empty: DealMechanics = {
   slippageRate: { count: 0, total: 0, reviewIds: [] },
   medianCycle: null,
   outcomeMix: [],
+  ratings: {
+    communication: { average: 0, total: 0 },
+    negotiation: { average: 0, total: 0 },
+    intent: { average: 0, total: 0 },
+    scope: { average: 0, total: 0 },
+  },
+  frictionAnswered: 0,
 };
 
 describe("getStructuredFlags", () => {
@@ -139,13 +146,20 @@ describe("getStructuredFlags", () => {
     expect(flags.find((x) => x.id === "procurement-early")).toBeUndefined();
   });
 
-  it("flags payment terms only at Net 60 or worse", () => {
+  it("flags payment terms as a risk only at Net 60 or worse", () => {
+    // Net 30 is not a risk finding - it fires the "fair-terms" strength instead
+    // (see the green flags describe block), not the "payment-terms" risk.
     expect(
-      getStructuredFlags({ ...empty, paymentTerms: { value: "Net 30", count: 5, total: 7 } }),
-    ).toEqual([]);
+      getStructuredFlags({
+        ...empty,
+        paymentTerms: { value: "Net 30", count: 5, total: 7 },
+      }).find((x) => x.id === "payment-terms"),
+    ).toBeUndefined();
     expect(
-      getStructuredFlags({ ...empty, paymentTerms: { value: "Net 90", count: 5, total: 7 } }).length,
-    ).toBe(1);
+      getStructuredFlags({ ...empty, paymentTerms: { value: "Net 90", count: 5, total: 7 } }).find(
+        (x) => x.id === "payment-terms",
+      ),
+    ).toBeDefined();
   });
 });
 
@@ -305,5 +319,101 @@ describe("adaptive bar applied to the rule bank", () => {
       friction: [{ event: "Reverse auction / e-procurement", count: 1, total: 9, reviewIds: ["a"] }],
     });
     expect(flags.find((x) => x.id === "reverse-auction")).toBeDefined();
+  });
+});
+
+describe("green flags", () => {
+  it("marks every structured risk flag with risk polarity", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      ghostRate: { count: 4, total: 9, reviewIds: ["a"] },
+    });
+    expect(flags.every((f) => f.polarity === "risk")).toBe(true);
+  });
+
+  it("flags a clean procurement run when nobody reported friction", () => {
+    const f = getStructuredFlags({ ...empty, frictionAnswered: 5 } as any).find(
+      (x) => x.id === "clean-procurement",
+    );
+    expect(f).toBeDefined();
+    expect(f!.polarity).toBe("strength");
+    expect(f!.stat).toMatch(/\d/);
+  });
+
+  it("flags a responsive buyer from the communication rating", () => {
+    const f = getStructuredFlags({
+      ...empty,
+      ratings: { ...empty.ratings, communication: { average: 4.6, total: 9 } },
+    }).find((x) => x.id === "responsive-buyer")!;
+    expect(f.polarity).toBe("strength");
+    expect(f.stat).toContain("4.6");
+  });
+
+  it("does not flag a responsive buyer on a middling rating", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      ratings: { ...empty.ratings, communication: { average: 3.4, total: 9 } },
+    });
+    expect(flags.find((x) => x.id === "responsive-buyer")).toBeUndefined();
+  });
+
+  it("does not flag a rating that clears the bar on too thin a sample", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      ratings: { ...empty.ratings, scope: { average: 5, total: 0 } },
+    });
+    expect(flags.find((x) => x.id === "clear-scope")).toBeUndefined();
+  });
+
+  it("flags dates holding when the close date never moved", () => {
+    const f = getStructuredFlags({
+      ...empty,
+      slippageRate: { count: 0, total: 6, reviewIds: [] },
+    }).find((x) => x.id === "dates-hold")!;
+    expect(f.polarity).toBe("strength");
+    expect(f.stat).toBe("0 of 6 deals pushed");
+  });
+
+  it("flags an engaged buyer when nobody went dark", () => {
+    const f = getStructuredFlags({
+      ...empty,
+      ghostRate: { count: 0, total: 5, reviewIds: [] },
+    }).find((x) => x.id === "stays-engaged")!;
+    expect(f.polarity).toBe("strength");
+  });
+
+  it("does not flag dates holding or engagement on an unanswered field", () => {
+    const flags = getStructuredFlags(empty);
+    expect(flags.find((x) => x.id === "dates-hold")).toBeUndefined();
+    expect(flags.find((x) => x.id === "stays-engaged")).toBeUndefined();
+  });
+
+  it("flags fair payment terms", () => {
+    const f = getStructuredFlags({
+      ...empty,
+      paymentTerms: { value: "Net 30", count: 5, total: 6 },
+    }).find((x) => x.id === "fair-terms")!;
+    expect(f.polarity).toBe("strength");
+  });
+
+  it("every green flag carries a number and at least one point", () => {
+    const flags = getStructuredFlags({
+      ...empty,
+      frictionAnswered: 5,
+      slippageRate: { count: 0, total: 6, reviewIds: [] },
+      ghostRate: { count: 0, total: 5, reviewIds: [] },
+      paymentTerms: { value: "Net 30", count: 5, total: 6 },
+      ratings: {
+        communication: { average: 4.6, total: 9 },
+        negotiation: { average: 4.2, total: 9 },
+        intent: { average: 4.4, total: 9 },
+        scope: { average: 4.1, total: 9 },
+      },
+    } as any).filter((f) => f.polarity === "strength");
+    expect(flags.length).toBeGreaterThan(3);
+    for (const f of flags) {
+      expect(f.stat).toMatch(/\d/);
+      expect(f.qualify.length).toBeGreaterThan(0);
+    }
   });
 });

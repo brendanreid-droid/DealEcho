@@ -156,6 +156,8 @@ export interface DealMechanics {
   medianCycle: string | null;
   outcomeMix: { outcome: string; count: number }[];
   ratings: Ratings;
+  /** Reviews that answered the friction question at all. An empty array is a real answer. */
+  frictionAnswered: number;
 }
 
 const SLIPPED = ["Pushed twice", "Pushed 3+ times"];
@@ -193,5 +195,6 @@ export function getDealMechanics(reviews: Review[]): DealMechanics | null {
       intent: ratingStat(reviews, (r) => r.timeWasterLevel),
       scope: ratingStat(reviews, (r) => r.clarityOfScope),
     },
+    frictionAnswered: reviews.filter((r) => Array.isArray(r.frictionEvents)).length,
   };
 }

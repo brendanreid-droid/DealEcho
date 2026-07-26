@@ -221,3 +221,19 @@ describe("getDealMechanics rating averages", () => {
     expect(m!.ratings.communication.average).toBe(4.3);
   });
 });
+
+describe("getDealMechanics frictionAnswered", () => {
+  it("counts a review that reported zero friction as having answered", () => {
+    const m = getDealMechanics([
+      r({ id: "a", frictionEvents: ["Security questionnaire"] }),
+      r({ id: "b", frictionEvents: [] }),
+      r({ id: "c" }), // legacy review, never answered
+    ]);
+    expect(m!.frictionAnswered).toBe(2);
+  });
+
+  it("is zero when nobody answered the friction question", () => {
+    const m = getDealMechanics([r({ id: "a" })]);
+    expect(m!.frictionAnswered).toBe(0);
+  });
+});

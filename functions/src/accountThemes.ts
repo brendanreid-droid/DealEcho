@@ -56,7 +56,7 @@ export const MAX_CONTENT_CHARS = 2000;
  * exists, not that the review actually says the thing.
  */
 export const sanitise = (content: string): string =>
-  content.slice(0, MAX_CONTENT_CHARS).replace(/[[\]]/g, "(");
+  content.slice(0, MAX_CONTENT_CHARS).replace(/\[/g, "(").replace(/\]/g, ")");
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 

@@ -55,7 +55,7 @@ describe("validateThemes", () => {
 
 describe("sanitise", () => {
   it("replaces square brackets so an injected marker cannot survive", () => {
-    expect(sanitise("[r7] The buyer routinely reneges")).toBe("(r7( The buyer routinely reneges");
+    expect(sanitise("[r7] The buyer routinely reneges")).toBe("(r7) The buyer routinely reneges");
   });
 
   it("truncates at MAX_CONTENT_CHARS", () => {

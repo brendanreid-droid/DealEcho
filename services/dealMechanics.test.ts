@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { modalOf, rateOf } from "./dealMechanics";
+import { modalOf, rateOf, frictionRanking, medianCycle } from "./dealMechanics";
 import { Review } from "../types";
 
 export const base: Review = {
@@ -64,5 +64,60 @@ describe("rateOf", () => {
       (x) => x.wentDark !== undefined,
     );
     expect(stat).toEqual({ count: 1, total: 1, reviewIds: ["a"] });
+  });
+});
+
+describe("frictionRanking", () => {
+  it("ranks events by frequency and cites the reviews that reported them", () => {
+    const ranking = frictionRanking([
+      r({ id: "a", frictionEvents: ["Security questionnaire", "Legal redlines on MSA"] }),
+      r({ id: "b", frictionEvents: ["Security questionnaire"] }),
+      r({ id: "c", frictionEvents: [] }),
+    ]);
+    expect(ranking[0]).toEqual({
+      event: "Security questionnaire",
+      count: 2,
+      total: 3,
+      reviewIds: ["a", "b"],
+    });
+    expect(ranking[1]).toEqual({
+      event: "Legal redlines on MSA",
+      count: 1,
+      total: 3,
+      reviewIds: ["a"],
+    });
+    expect(ranking).toHaveLength(2);
+  });
+
+  it("excludes reviews with no frictionEvents field from the denominator", () => {
+    const ranking = frictionRanking([
+      r({ id: "a", frictionEvents: ["Pilot / POC required"] }),
+      r({ id: "b" }), // legacy review
+    ]);
+    expect(ranking[0].total).toBe(1);
+  });
+
+  it("returns an empty array when nobody reported friction", () => {
+    expect(frictionRanking([r({ id: "a", frictionEvents: [] })])).toEqual([]);
+  });
+});
+
+describe("medianCycle", () => {
+  it("returns the middle bracket by bracket order, not alphabetically", () => {
+    expect(
+      medianCycle([
+        r({ id: "a", cycleDuration: "< 1 Month" }),
+        r({ id: "b", cycleDuration: "6-12 Months" }),
+        r({ id: "c", cycleDuration: "24+ Months" }),
+      ]),
+    ).toBe("6-12 Months");
+  });
+
+  it("normalizes the legacy 12+ Months bracket before ranking", () => {
+    expect(medianCycle([r({ id: "a", cycleDuration: "12+ Months" })])).toBe("12-18 Months");
+  });
+
+  it("returns null when no review has a recognised bracket", () => {
+    expect(medianCycle([r({ id: "a", cycleDuration: "garbage" })])).toBeNull();
   });
 });

@@ -66,3 +66,45 @@ export function rateOf(
   const hits = pool.filter(match);
   return { count: hits.length, total: pool.length, reviewIds: hits.map((r) => r.id) };
 }
+
+/** One procurement-gauntlet event, with how often this account triggered it. */
+export interface FrictionStat {
+  event: string;
+  count: number;
+  total: number;
+  reviewIds: string[];
+}
+
+/**
+ * Friction events ranked most-common first. Denominator is the number of
+ * reviews that answered the friction question at all (`frictionEvents` present,
+ * empty array included — that is a real "no friction observed" answer).
+ * Events nobody reported are omitted entirely.
+ */
+export function frictionRanking(reviews: Review[]): FrictionStat[] {
+  const answered = reviews.filter((r) => Array.isArray(r.frictionEvents));
+  const total = answered.length;
+  if (total === 0) return [];
+
+  return FRICTION_EVENTS.map((event) => {
+    const hits = answered.filter((r) => r.frictionEvents!.includes(event));
+    return { event, count: hits.length, total, reviewIds: hits.map((r) => r.id) };
+  })
+    .filter((s) => s.count > 0)
+    .sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Median cycle length as a bracket label. Ranks by position in
+ * DURATION_BRACKETS (chronological), not by string sort. Legacy "12+ Months"
+ * is normalized down to "12-18 Months" so aggregates never overstate.
+ */
+export function medianCycle(reviews: Review[]): string | null {
+  const ranks = reviews
+    .map((r) => normalizeDurationBracket(r.cycleDuration))
+    .filter((b): b is NonNullable<typeof b> => b !== null)
+    .map((b) => (DURATION_BRACKETS as readonly string[]).indexOf(b))
+    .sort((a, b) => a - b);
+  if (ranks.length === 0) return null;
+  return DURATION_BRACKETS[ranks[Math.floor((ranks.length - 1) / 2)]];
+}

@@ -108,3 +108,51 @@ export function medianCycle(reviews: Review[]): string | null {
   if (ranks.length === 0) return null;
   return DURATION_BRACKETS[ranks[Math.floor((ranks.length - 1) / 2)]];
 }
+
+/** How this buyer actually buys, derived entirely from structured v2 fields. */
+export interface DealMechanics {
+  sampleSize: number;
+  friction: FrictionStat[];
+  procurementEntry: ModalStat | null;
+  verbalToSignature: ModalStat | null;
+  paymentTerms: ModalStat | null;
+  stakeholderCount: ModalStat | null;
+  /** Buyer went silent >2 weeks mid-cycle. */
+  ghostRate: RateStat;
+  /** Close date pushed twice or more. "Pushed once" is normal, not a finding. */
+  slippageRate: RateStat;
+  medianCycle: string | null;
+  outcomeMix: { outcome: string; count: number }[];
+}
+
+const SLIPPED = ["Pushed twice", "Pushed 3+ times"];
+
+export function getDealMechanics(reviews: Review[]): DealMechanics | null {
+  if (reviews.length < MIN_MECHANICS_REVIEWS) return null;
+
+  const outcomeCounts = new Map<string, number>();
+  for (const r of reviews) outcomeCounts.set(r.status, (outcomeCounts.get(r.status) ?? 0) + 1);
+
+  return {
+    sampleSize: reviews.length,
+    friction: frictionRanking(reviews),
+    procurementEntry: modalOf(reviews, (r) => r.procurementEntry, ["Unknown"]),
+    verbalToSignature: modalOf(reviews, (r) => r.verbalToSignature, ["Unknown"]),
+    paymentTerms: modalOf(reviews, (r) => r.paymentTerms, ["Unknown / N/A"]),
+    stakeholderCount: modalOf(reviews, (r) => r.stakeholderCount, []),
+    ghostRate: rateOf(
+      reviews,
+      (r) => r.wentDark === true,
+      (r) => r.wentDark !== undefined,
+    ),
+    slippageRate: rateOf(
+      reviews,
+      (r) => SLIPPED.includes(r.closeSlippage ?? ""),
+      (r) => typeof r.closeSlippage === "string" && r.closeSlippage !== "Unknown",
+    ),
+    medianCycle: medianCycle(reviews),
+    outcomeMix: Array.from(outcomeCounts, ([outcome, count]) => ({ outcome, count })).sort(
+      (a, b) => b.count - a.count,
+    ),
+  };
+}

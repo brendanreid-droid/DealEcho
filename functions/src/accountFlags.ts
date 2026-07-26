@@ -13,6 +13,7 @@ export interface AccountFlag {
   strength: number;
   priority: number;
   source: "mechanics" | "reports";
+  polarity: "risk" | "strength";
 }
 
 export interface CorpusEntry {
@@ -96,6 +97,8 @@ export function validateAiFlags(raw: unknown, knownIds: string[]): AccountFlag[]
       strength: valid.length / Math.max(knownIds.length, 1),
       priority: AI_PRIORITY,
       source: "reports",
+      // The free-text prompt asks for risks only - see the prompt in getAccountFlags.
+      polarity: "risk",
     });
     if (out.length === MAX_AI_FLAGS) break;
   }

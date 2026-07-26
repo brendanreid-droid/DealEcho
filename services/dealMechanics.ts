@@ -11,8 +11,12 @@ import { normalizeDurationBracket } from "../src/utils/reviewSchema";
  * carries its OWN denominator. Never divide by reviews.length.
  */
 
-/** Below this many reviews a pattern is one person's bad week, not a finding. */
-export const MIN_MECHANICS_REVIEWS = 3;
+/**
+ * A brief needs at least one review. The per-flag evidence bar in
+ * services/accountFlags.ts is what scales confidence with sample size - this
+ * gate only stops an empty account rendering an empty panel.
+ */
+export const MIN_MECHANICS_REVIEWS = 1;
 
 /** Most common known value for a field, with the count of reviews that answered it. */
 export interface ModalStat {
@@ -109,6 +113,34 @@ export function medianCycle(reviews: Review[]): string | null {
   return DURATION_BRACKETS[ranks[Math.floor((ranks.length - 1) / 2)]];
 }
 
+/** Average of one 1-5 rating, with the number of reviews that supplied it. */
+export interface RatingStat {
+  average: number;
+  total: number;
+}
+
+/**
+ * The four execution ratings. ALL ARE HIGH-IS-GOOD despite the legacy field
+ * names on Review (see types.ts:31-33) - a 5 for `negotiation` means the
+ * negotiation was easy, not brutal. Never invert these.
+ */
+export interface Ratings {
+  communication: RatingStat;
+  negotiation: RatingStat;
+  intent: RatingStat;
+  scope: RatingStat;
+}
+
+/** Average one rating across the reviews that actually supplied it. */
+export function ratingStat(reviews: Review[], pick: (r: Review) => number | undefined): RatingStat {
+  const values = reviews
+    .map(pick)
+    .filter((v): v is number => typeof v === "number" && Number.isFinite(v) && v > 0);
+  if (values.length === 0) return { average: 0, total: 0 };
+  const sum = values.reduce((a, v) => a + v, 0);
+  return { average: Number((sum / values.length).toFixed(1)), total: values.length };
+}
+
 /** How this buyer actually buys, derived entirely from structured v2 fields. */
 export interface DealMechanics {
   sampleSize: number;
@@ -123,6 +155,9 @@ export interface DealMechanics {
   slippageRate: RateStat;
   medianCycle: string | null;
   outcomeMix: { outcome: string; count: number }[];
+  ratings: Ratings;
+  /** Reviews that answered the friction question at all. An empty array is a real answer. */
+  frictionAnswered: number;
 }
 
 const SLIPPED = ["Pushed twice", "Pushed 3+ times"];
@@ -154,5 +189,12 @@ export function getDealMechanics(reviews: Review[]): DealMechanics | null {
     outcomeMix: Array.from(outcomeCounts, ([outcome, count]) => ({ outcome, count })).sort(
       (a, b) => b.count - a.count,
     ),
+    ratings: {
+      communication: ratingStat(reviews, (r) => r.communicationRating),
+      negotiation: ratingStat(reviews, (r) => r.negotiationLevel),
+      intent: ratingStat(reviews, (r) => r.timeWasterLevel),
+      scope: ratingStat(reviews, (r) => r.clarityOfScope),
+    },
+    frictionAnswered: reviews.filter((r) => Array.isArray(r.frictionEvents)).length,
   };
 }

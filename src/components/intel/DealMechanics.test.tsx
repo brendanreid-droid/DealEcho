@@ -17,6 +17,13 @@ const mechanics: DealMechanics = {
   slippageRate: { count: 4, total: 9, reviewIds: ["a"] },
   medianCycle: "6-12 Months",
   outcomeMix: [{ outcome: "Lost", count: 5 }, { outcome: "Won", count: 4 }],
+  ratings: {
+    communication: { average: 0, total: 0 },
+    negotiation: { average: 0, total: 0 },
+    intent: { average: 0, total: 0 },
+    scope: { average: 0, total: 0 },
+  },
+  frictionAnswered: 9,
 };
 
 describe("DealMechanicsPanel", () => {

@@ -9,19 +9,25 @@ const flags: AccountFlag[] = [
   {
     id: "ghosting", label: "Buyer goes quiet mid-cycle", severity: "critical",
     stat: "4 of 9 deals", qualify: ["who to contact when the thread goes cold"],
-    reviewIds: ["a"], strength: 4 / 9, priority: 85, source: "mechanics",
+    reviewIds: ["a"], strength: 4 / 9, priority: 85, source: "mechanics", polarity: "risk",
   },
   {
     id: "security-review", label: "Security review is a gate", severity: "caution",
     stat: "7 of 9 deals", qualify: ["which review tier applies"],
-    reviewIds: ["b"], strength: 7 / 9, priority: 90, source: "mechanics",
+    reviewIds: ["b"], strength: 7 / 9, priority: 90, source: "mechanics", polarity: "risk",
   },
 ];
 
 const renderList = (props: Partial<React.ComponentProps<typeof FlagList>> = {}) =>
   render(
     <MemoryRouter>
-      <FlagList companyId="c1" flags={flags} isPro onShowEvidence={() => {}} {...props} />
+      <FlagList
+        companyId="c1"
+        grouped={{ risks: flags, strengths: [] }}
+        isPro
+        onShowEvidence={() => {}}
+        {...props}
+      />
     </MemoryRouter>,
   );
 
@@ -59,7 +65,7 @@ describe("FlagList", () => {
 
     rerender(
       <MemoryRouter>
-        <FlagList companyId="c2" flags={flags} isPro onShowEvidence={() => {}} />
+        <FlagList companyId="c2" grouped={{ risks: flags, strengths: [] }} isPro onShowEvidence={() => {}} />
       </MemoryRouter>,
     );
     expect(screen.getByText("0 of 2 qualified")).toBeInTheDocument();
@@ -72,7 +78,46 @@ describe("FlagList", () => {
   });
 
   it("says so when there are no flags", () => {
-    renderList({ flags: [] });
+    renderList({ grouped: { risks: [], strengths: [] } });
     expect(screen.getByText(/No red flags detected/)).toBeInTheDocument();
+  });
+});
+
+describe("FlagList grouping", () => {
+  const grouped = {
+    risks: [flags[0]],
+    strengths: [
+      {
+        id: "dates-hold", label: "Close dates hold", severity: "watch" as const,
+        stat: "0 of 6 deals pushed", qualify: ["what their approval calendar looks like"],
+        reviewIds: [], strength: 1, priority: 80, source: "mechanics" as const,
+        polarity: "strength" as const,
+      },
+    ],
+  };
+
+  it("renders both groups under their own headings", () => {
+    render(
+      <MemoryRouter>
+        <FlagList companyId="c1" grouped={grouped} isPro onShowEvidence={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Watch for")).toBeInTheDocument();
+    expect(screen.getByText("In your favour")).toBeInTheDocument();
+    expect(screen.getByText("Close dates hold")).toBeInTheDocument();
+  });
+
+  it("omits a group heading when that group is empty", () => {
+    render(
+      <MemoryRouter>
+        <FlagList
+          companyId="c1"
+          grouped={{ risks: grouped.risks, strengths: [] }}
+          isPro
+          onShowEvidence={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText("In your favour")).not.toBeInTheDocument();
   });
 });

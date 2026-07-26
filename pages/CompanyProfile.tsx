@@ -13,7 +13,7 @@ import DealMechanicsPanel from "../src/components/intel/DealMechanics";
 import EvidenceList from "../src/components/intel/EvidenceList";
 import { getAccountSignal, AccountSignal } from "../services/accountSignal";
 import { getDealMechanics } from "../services/dealMechanics";
-import { getStructuredFlags, mergeFlags, AccountFlag } from "../services/accountFlags";
+import { getStructuredFlags, groupFlags, AccountFlag } from "../services/accountFlags";
 import { getAiFlags } from "../services/aiFlags";
 import Button from "../src/components/ui/Button";
 import { TCV_BRACKETS } from "../src/constants/dealData";
@@ -215,8 +215,8 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   // no loading state, recomputed synchronously whenever the filters change.
   const mechanics = useMemo(() => getDealMechanics(filteredReviews), [filteredReviews]);
 
-  const flags = useMemo(
-    () => mergeFlags(mechanics ? getStructuredFlags(mechanics) : [], aiFlags),
+  const grouped = useMemo(
+    () => groupFlags(mechanics ? getStructuredFlags(mechanics) : [], aiFlags),
     [mechanics, aiFlags],
   );
 
@@ -312,11 +312,11 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
 
       <section aria-labelledby="flags-heading" className="space-y-2">
         <h2 id="flags-heading" className="text-sm font-semibold text-slate-500">
-          Flags to qualify
+          Flags
         </h2>
         <FlagList
           companyId={company.id}
-          flags={flags}
+          grouped={grouped}
           isPro={isPro}
           onShowEvidence={showEvidenceFor}
         />

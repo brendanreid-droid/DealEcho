@@ -13,6 +13,7 @@ const flag: AccountFlag = {
   strength: 7 / 9,
   priority: 90,
   source: "mechanics",
+  polarity: "risk",
 };
 
 describe("FlagCard", () => {
@@ -99,5 +100,28 @@ describe("FlagCard evidence link", () => {
       <FlagCard flag={flag} checked={[]} onToggle={() => {}} showDetail={false} onShowEvidence={() => {}} />,
     );
     expect(screen.queryByRole("button", { name: /report/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("FlagCard polarity", () => {
+  it("renders a strength with the positive accent, not the risk accent", () => {
+    const { container } = render(
+      <FlagCard
+        flag={{ ...flag, polarity: "strength", severity: "watch" }}
+        checked={[]}
+        onToggle={() => {}}
+        showDetail
+        onShowEvidence={() => {}}
+      />,
+    );
+    expect(container.querySelector(".border-l-signal-healthy")).not.toBeNull();
+    expect(container.querySelector(".border-l-signal-risk")).toBeNull();
+  });
+
+  it("keeps the risk accent for a risk flag", () => {
+    const { container } = render(
+      <FlagCard flag={flag} checked={[]} onToggle={() => {}} showDetail onShowEvidence={() => {}} />,
+    );
+    expect(container.querySelector(".border-l-signal-healthy")).toBeNull();
   });
 });

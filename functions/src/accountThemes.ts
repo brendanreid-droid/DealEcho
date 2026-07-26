@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import { GoogleGenAI, Type } from "@google/genai";
 import { db } from "./lib/firebaseAdmin";
+import { isProRole } from "./extension/gating";
 
 /** One recurring theme across review free text, with the reviews that support it. */
 export interface AccountTheme {
@@ -39,6 +40,24 @@ export function validateThemes(raw: unknown, knownIds: string[]): AccountTheme[]
   return out;
 }
 
+/** Legacy reviews predate moderation and count as approved. Mirrors reviewModeration.ts:219. */
+export const isApproved = (d: FirebaseFirestore.DocumentData): boolean =>
+  !d["moderationStatus"] || d["moderationStatus"] === "approved";
+
+/** Cap the corpus so one company cannot drive an unbounded prompt. */
+export const MAX_CORPUS_REVIEWS = 60;
+/** Cap each review so one long review cannot dominate or blow the context. */
+export const MAX_CONTENT_CHARS = 2000;
+
+/**
+ * Review text is user-submitted and gets interpolated next to `[id]` citation
+ * markers. Square brackets are stripped so planted text cannot imitate a
+ * marker and win a fabricated attribution - validateThemes checks that an ID
+ * exists, not that the review actually says the thing.
+ */
+export const sanitise = (content: string): string =>
+  content.slice(0, MAX_CONTENT_CHARS).replace(/[[\]]/g, "(");
+
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 /** Themes go stale slowly; the reviewCount check catches real change sooner. */
@@ -58,35 +77,68 @@ interface ThemeInput {
  * companyId + reviewCount. Degrades to an empty theme list on any failure -
  * Layers A and C render fine without this.
  *
+ * Trust model: the client sends only a companyId. The server reads the
+ * reviews for that company itself and builds the corpus server-side - a
+ * client-supplied corpus would let anyone poison the shared cache for a real
+ * company with fabricated review text and citations that resolve to nothing.
+ *
  * Region is inherited from the global `setGlobalOptions` call in index.ts
  * (australia-southeast1), matching every other onCall in this codebase.
  */
 export const getAccountThemes = onCall(
   { cors: true, secrets: [GEMINI_API_KEY] },
   async (request) => {
-    const { companyId, reviews } = request.data ?? {};
-    if (!companyId || typeof companyId !== "string") {
-      throw new HttpsError("invalid-argument", "companyId is required");
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in to use Dealecho.");
     }
-    if (!Array.isArray(reviews)) {
-      throw new HttpsError("invalid-argument", "reviews array is required");
+    if (!isProRole(request.auth.token.role as string | undefined)) {
+      throw new HttpsError("permission-denied", "Sales Pro required.");
     }
 
-    const corpus: ThemeInput[] = reviews
-      .filter((r: any) => r && typeof r.id === "string" && typeof r.content === "string" && r.content.trim())
-      .map((r: any) => ({ id: r.id, content: String(r.content).trim() }));
+    const companyId = request.data?.companyId;
+    if (typeof companyId !== "string" || companyId.trim().length === 0 || companyId.length >= 200) {
+      throw new HttpsError("invalid-argument", "companyId is required");
+    }
+
+    const cacheRef = db.doc(`account_themes/${companyId}`);
+
+    // A Firestore outage here must degrade to an empty theme list, not break
+    // the page - this panel is a bonus on top of Layers A and C, never load-bearing.
+    let corpus: ThemeInput[];
+    let cached: any = null;
+    try {
+      const [reviewsSnap, cacheSnap] = await Promise.all([
+        db.collection("reviews").where("companyId", "==", companyId).get(),
+        cacheRef.get(),
+      ]);
+
+      corpus = reviewsSnap.docs
+        .map((doc) => ({ id: doc.id, data: doc.data() }))
+        .filter(
+          ({ data }) => isApproved(data) && typeof data.content === "string" && data.content.trim().length > 0,
+        )
+        .slice(0, MAX_CORPUS_REVIEWS)
+        .map(({ id, data }) => ({ id, content: String(data.content).trim() }));
+
+      cached = cacheSnap.exists ? cacheSnap.data() : null;
+    } catch (error) {
+      console.error("Failed to read reviews or cache for theme extraction:", error);
+      return { themes: [] };
+    }
 
     if (corpus.length < MIN_THEME_REVIEWS) return { themes: [] };
 
-    const cacheRef = db.doc(`account_themes/${companyId}`);
-    const snap = await cacheRef.get();
-    const cached = snap.exists ? (snap.data() as any) : null;
+    const knownIds = corpus.map((r) => r.id);
+
     if (
       cached &&
       cached.reviewCount === corpus.length &&
       Date.now() - (cached.generatedAt ?? 0) < THEMES_TTL_MS
     ) {
-      return { themes: cached.themes ?? [] };
+      // Re-validate even cached themes - defence in depth, not a live hole,
+      // since the corpus is now server-derived. No path should return an
+      // unvalidated theme.
+      return { themes: validateThemes(cached.themes, knownIds) };
     }
 
     const apiKey = GEMINI_API_KEY.value();
@@ -96,7 +148,7 @@ export const getAccountThemes = onCall(
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const body = corpus.map((r) => `[${r.id}] ${r.content}`).join("\n\n");
+    const body = corpus.map((r) => `[${r.id}] ${sanitise(r.content)}`).join("\n\n");
 
     try {
       const response = await ai.models.generateContent({
@@ -140,12 +192,16 @@ export const getAccountThemes = onCall(
 
       const text = (response.text ?? "").replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(text || "{}");
-      const themes = validateThemes(parsed.themes, corpus.map((r) => r.id));
+      const themes = validateThemes(parsed.themes, knownIds);
 
-      await cacheRef.set(
-        { themes, generatedAt: Date.now(), reviewCount: corpus.length },
-        { merge: true },
-      );
+      // Do not cache an empty result - that would lock the panel empty for
+      // the full TTL until the review count happens to change.
+      if (themes.length > 0) {
+        await cacheRef.set(
+          { themes, generatedAt: Date.now(), reviewCount: corpus.length },
+          { merge: true },
+        );
+      }
       return { themes };
     } catch (error: any) {
       console.error("Theme extraction failed:", error);

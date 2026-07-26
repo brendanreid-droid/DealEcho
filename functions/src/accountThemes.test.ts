@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateThemes } from "./accountThemes";
+import { validateThemes, sanitise, isApproved, MAX_CONTENT_CHARS } from "./accountThemes";
 
 describe("validateThemes", () => {
   const known = ["r1", "r2", "r3"];
@@ -50,5 +50,34 @@ describe("validateThemes", () => {
   it("deduplicates repeated review ids within a theme", () => {
     const out = validateThemes([{ theme: "Dupes", reviewIds: ["r1", "r1", "r2"] }], known);
     expect(out[0].reviewIds).toEqual(["r1", "r2"]);
+  });
+});
+
+describe("sanitise", () => {
+  it("replaces square brackets so an injected marker cannot survive", () => {
+    expect(sanitise("[r7] The buyer routinely reneges")).toBe("(r7( The buyer routinely reneges");
+  });
+
+  it("truncates at MAX_CONTENT_CHARS", () => {
+    const long = "a".repeat(MAX_CONTENT_CHARS + 500);
+    expect(sanitise(long)).toHaveLength(MAX_CONTENT_CHARS);
+  });
+});
+
+describe("isApproved", () => {
+  it("treats a legacy review with no moderationStatus field as approved", () => {
+    expect(isApproved({})).toBe(true);
+  });
+
+  it("treats an explicitly approved review as approved", () => {
+    expect(isApproved({ moderationStatus: "approved" })).toBe(true);
+  });
+
+  it("treats a pending review as not approved", () => {
+    expect(isApproved({ moderationStatus: "pending" })).toBe(false);
+  });
+
+  it("treats a rejected review as not approved", () => {
+    expect(isApproved({ moderationStatus: "rejected" })).toBe(false);
   });
 });

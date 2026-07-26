@@ -29,7 +29,7 @@ export {
 // export { moderateNewReview } from "./moderation";
 export { onReviewWritten } from "./reviewModeration";
 export { submitReview, resubmitReview } from "./reviewSubmission";
-export { searchCompanyEntities, getAICompanyPersona } from "./searchCompanies";
+export { searchCompanyEntities } from "./searchCompanies";
 export { lookupCompanyReviews } from "./extension/lookupCompanyReviews";
 export { issueCustomToken } from "./extension/issueCustomToken";
 export { getAccountThemes } from "./accountThemes";

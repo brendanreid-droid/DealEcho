@@ -57,8 +57,15 @@ describe("validateAiFlags", () => {
     expect(validateAiFlags([raw()], known)[0].id).toMatch(/^ai-[0-9a-f]{8}$/);
   });
 
-  it("drops invented review ids but keeps the flag", () => {
-    expect(validateAiFlags([raw({ reviewIds: ["r1", "r99"] })], known)[0].reviewIds).toEqual(["r1"]);
+  it("drops invented review ids and keeps the flag when two real citations remain", () => {
+    expect(validateAiFlags([raw({ reviewIds: ["r1", "r2", "r99"] })], known)[0].reviewIds).toEqual([
+      "r1",
+      "r2",
+    ]);
+  });
+
+  it("drops a flag that falls below two citations once invented ids are stripped", () => {
+    expect(validateAiFlags([raw({ reviewIds: ["r1", "r99"] })], known)).toEqual([]);
   });
 
   it("drops a flag when every citation is invented", () => {

@@ -76,17 +76,11 @@ export function validateAiFlags(raw: unknown, knownIds: string[]): AccountFlag[]
       : [];
     if (qualify.length === 0) continue;
 
-    // Require at least two citations to have been asserted at all - this is
-    // the "two citations, not one" rule: a single-review claim never reaches
-    // the corpus-membership check below. Then drop the flag only if none of
-    // the asserted citations turn out to be real; a still-invented citation
-    // is stripped, not enough on its own to sink an otherwise-cited flag.
     const ids = Array.isArray(e["reviewIds"]) ? e["reviewIds"] : [];
-    if (ids.length < MIN_AI_CITATIONS) continue;
     const valid = Array.from(
       new Set(ids.filter((id: unknown): id is string => typeof id === "string" && known.has(id))),
     );
-    if (valid.length === 0) continue;
+    if (valid.length < MIN_AI_CITATIONS) continue;
 
     const severity = SEVERITIES.includes(e["severity"] as FlagSeverity)
       ? (e["severity"] as FlagSeverity)

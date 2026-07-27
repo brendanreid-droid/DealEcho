@@ -1,5 +1,5 @@
 import { useEffect, useState, CSSProperties } from "react";
-import type { User } from "firebase/auth";
+import type { User } from "firebase/auth/web-extension";
 import { CONTEXT_STORAGE_KEY, PageContext } from "../shared/messages";
 import { subscribeToAuth, signIn, signOut, signInWithGoogle } from "../lib/authClient";
 import { buildLookupInput } from "../lib/query";

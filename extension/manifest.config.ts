@@ -3,7 +3,7 @@ import { defineManifest } from "@crxjs/vite-plugin";
 export default defineManifest({
   manifest_version: 3,
   name: "Dealecho - Sales Intelligence",
-  version: "0.1.0",
+  version: "0.1.1",
   description: "See Dealecho deal intelligence for any company, on prospect sites or in your CRM.",
   action: {
     default_title: "Dealecho",

@@ -5,7 +5,7 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
   type User,
-} from "firebase/auth";
+} from "firebase/auth/web-extension";
 import { auth } from "./firebase";
 
 export function signIn(email: string, password: string): Promise<void> {

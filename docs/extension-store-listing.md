@@ -97,6 +97,16 @@ Answer: **No, I am not using remote code.**
 
 All JavaScript is bundled into the package. The manifest sets `content_security_policy.extension_pages` to `script-src 'self'`, which forbids loading or evaluating any external script. The bundle contains no `eval()`, no `new Function()`, and no `importScripts()`. Google sign-in is performed via `chrome.identity.launchWebAuthFlow`, which hands off to the browser's own auth window rather than loading remote script into the extension.
 
+**Rejection history (v0.1.0, ref "Blue Argon"):** the first submission was rejected for
+remotely-hosted code. The Firebase Auth SDK's standard `firebase/auth` entrypoint bundles
+string literals for `apis.google.com/js/api.js` and the reCAPTCHA scripts (used by its
+popup/redirect and phone-auth flows). This extension never calls those flows, and the CSP
+blocked them regardless, but Chrome's static scanner flags the URL strings themselves.
+Fixed in v0.1.1 by importing from `firebase/auth/web-extension` (the MV3-specific
+entrypoint) in `firebase.ts`, `authClient.ts` and `App.tsx`. That build ships the popup
+script URLs as empty strings, so the flagged literals no longer exist in the bundle.
+Verify after any Firebase upgrade: `grep -rE "apis\.google\.com|recaptcha/(api|enterprise)\.js" extension/dist/assets` must return nothing.
+
 ### Data usage certification
 Tick all three: data is not sold to third parties; data is not used or transferred for purposes unrelated to the item's single purpose; data is not used or transferred to determine creditworthiness or for lending purposes.
 

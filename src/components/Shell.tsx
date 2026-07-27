@@ -229,7 +229,7 @@ export const Footer: React.FC = () => (
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-6 border-t border-slate-100 text-xs text-slate-400">
-        <span>© {new Date().getFullYear()} dealecho.io. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} dealecho.io</span>
         <span className="flex items-center gap-2">
           <Icon name="fa-shield-alt" size={13} className="text-slate-400" />
           Reviews are moderated &amp; anonymised

@@ -14,6 +14,8 @@
  * Attribution must never break the app: every path is wrapped in try/catch.
  */
 
+import { getConsent } from "./consent";
+
 export interface Touch {
   utm_source?: string;
   utm_medium?: string;
@@ -87,9 +89,11 @@ function parseTouchFromUrl(): Touch | null {
   return touch;
 }
 
-/** Call once on app boot. Records a utm-tagged visit into the attribution cookie. */
+/** Call once on app boot. Records a utm-tagged visit into the attribution cookie.
+ *  No-op unless the visitor has consented to marketing cookies. */
 export function captureAttribution(): void {
   try {
+    if (!getConsent()?.marketing) return; // marketing cookie requires opt-in
     const touch = parseTouchFromUrl();
     if (!touch) return; // nothing to record on this load
     const existing = getAttribution();

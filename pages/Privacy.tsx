@@ -32,7 +32,7 @@ const Privacy: React.FC = () => {
             Privacy Policy
           </h1>
           <p className="text-slate-400 text-sm font-medium">
-            Last Updated: <span className="text-accent-soft font-bold">July 24, 2026</span>
+            Last Updated: <span className="text-accent-soft font-bold">July 27, 2026</span>
           </p>
         </div>
 
@@ -265,10 +265,40 @@ const Privacy: React.FC = () => {
 
           <hr className="border-white/10" />
 
-          {/* Section 9 */}
+          {/* Section 9 - Cookies */}
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
               <span className="text-accent-soft font-bold">9.</span>
+              <span>Cookies and Tracking Technologies</span>
+            </h2>
+            <div className="space-y-3 text-slate-400">
+              <p>
+                We use cookies and similar first-party storage technologies on Dealecho.io. Cookies are small text files stored by your browser. We group them into the categories below, and you can control the optional categories at any time.
+              </p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>
+                  <strong className="text-slate-200">Strictly necessary:</strong> Required for the site to function - keeping you signed in (via Firebase Authentication) and remembering your cookie choices. These are always active and do not require your consent.
+                </li>
+                <li>
+                  <strong className="text-slate-200">Analytics (optional):</strong> We use Google Analytics 4 to understand how visitors use the platform so we can improve it. This sets cookies such as <em>_ga</em> and <em>_ga_*</em>. Analytics data is processed by Google; see Google's privacy policy for details.
+                </li>
+                <li>
+                  <strong className="text-slate-200">Marketing (optional):</strong> We record which marketing campaign referred you (from <em>utm_</em> parameters and the referring page) in a first-party cookie named <em>dealecho_attribution</em>, so we can measure campaign effectiveness. We do not use third-party advertising cookies.
+                </li>
+              </ul>
+              <h3 className="font-bold text-slate-200 mt-4 mb-1">Managing Your Consent</h3>
+              <p>
+                On your first visit we ask for your consent before setting any optional (analytics or marketing) cookies. We do not set these cookies unless and until you opt in. You can accept all, reject the optional categories, or choose per-category. You can change your choice at any time using the <strong className="text-slate-200">"Cookie Preferences"</strong> link in the site footer, or by clearing cookies in your browser settings. Declining optional cookies does not affect your ability to use the Services.
+              </p>
+            </div>
+          </section>
+
+          <hr className="border-white/10" />
+
+          {/* Section 10 */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center space-x-3">
+              <span className="text-accent-soft font-bold">10.</span>
               <span>Privacy Complaints and Contact Information</span>
             </h2>
             <div className="space-y-2 text-slate-400">

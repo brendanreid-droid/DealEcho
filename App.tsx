@@ -51,6 +51,7 @@ import {
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRedirectBridge from "./src/components/AuthRedirectBridge";
 import { Navigation, Footer } from "./src/components/Shell";
+import CookieConsent from "./src/components/CookieConsent";
 
 import { useAuth } from "./src/hooks/useAuth";
 import { useReviews } from "./src/hooks/useReviews";
@@ -461,6 +462,7 @@ const App: React.FC = () => {
           />
         )}
         <Footer />
+        <CookieConsent />
       </div>
     </BrowserRouter>
   );

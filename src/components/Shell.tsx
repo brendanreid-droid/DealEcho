@@ -7,6 +7,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Icon from "./Icon";
+import { openCookiePreferences } from "./CookieConsent";
 
 // ── Navigation (68px header, fixed nav semantics, mobile menu with auth) ──
 export const Navigation: React.FC<{
@@ -224,6 +225,7 @@ export const Footer: React.FC = () => (
           <ul className="space-y-2 text-sm">
             <li><Link to="/privacy" className="text-slate-600 hover:text-accent">Privacy Policy</Link></li>
             <li><Link to="/terms" className="text-slate-600 hover:text-accent">Terms of Use</Link></li>
+            <li><button onClick={openCookiePreferences} className="text-slate-600 hover:text-accent">Cookie Preferences</button></li>
           </ul>
         </div>
       </div>

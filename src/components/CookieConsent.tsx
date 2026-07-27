@@ -77,7 +77,7 @@ const CookieConsent: React.FC = () => {
             <div className="text-sm text-slate-600 leading-relaxed md:pr-6">
               <p className="font-semibold text-slate-800 mb-1">We use cookies</p>
               <p>
-                We use essential cookies to run Dealecho, and — with your consent —
+                We use essential cookies to run Dealecho and, with your consent,
                 analytics and marketing cookies to understand usage and measure our
                 campaigns. See our{" "}
                 <Link to="/privacy" className="text-accent hover:underline font-medium">

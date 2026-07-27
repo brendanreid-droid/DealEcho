@@ -36,7 +36,7 @@ const ScoreRing: React.FC<ScoreRingProps> = ({
       className="relative flex-shrink-0"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`Buyer health score ${score} of 100 — ${scoreBand(score)}`}
+      aria-label={`Buyer health score ${score} of 100 - ${scoreBand(score)}`}
     >
       <svg
         width={size}

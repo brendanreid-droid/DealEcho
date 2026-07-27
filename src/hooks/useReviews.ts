@@ -3,6 +3,7 @@ import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestor
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from '../firebase/config';
 import { Review } from '../../types';
+import { stripEmDashesDeep } from '../utils/text';
 
 /** Thrown when a user is still within the 6-month per-company cooldown. */
 export class ReviewCooldownError extends Error {
@@ -30,7 +31,8 @@ export const useReviews = (accessKey?: string | number) => {
       const fetchedReviews = snapshot.docs
         .map(doc => ({
           id: doc.id,
-          ...doc.data()
+          // Strip em dashes from legacy review text stored before the copy rule.
+          ...stripEmDashesDeep(doc.data())
         }))
         .filter((doc: any) => {
           // Show reviews that are approved or don't have a moderationStatus (legacy data)

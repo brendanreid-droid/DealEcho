@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { stripEmDashesDeep } from '../utils/text';
 
 /**
  * ReviewSummary is a sanitised version of Review — only fields that are safe
@@ -59,7 +60,8 @@ export const useReviewSummaries = () => {
         const fetched = snapshot.docs
           .map(doc => ({
             reviewId: doc.id,
-            ...doc.data()
+            // Strip em dashes from excerpts stored before the copy rule.
+            ...stripEmDashesDeep(doc.data())
           }) as ReviewSummary)
           .filter(doc => doc.excerpt) // Only summaries with content
           .slice(0, 200);

@@ -50,9 +50,9 @@ function buildTrend(reviews: Review[]): MetricTrend[] {
 
 function headlineFor(sentiment: AccountSignal["sentiment"]): string {
   switch (sentiment) {
-    case "positive": return "Receptive account with healthy momentum — lead with value and move quickly.";
-    case "neutral": return "Mixed signals — qualify hard and secure a strong champion before investing.";
-    case "negative": return "High-friction account — expect procurement and stakeholder risk; protect your terms.";
+    case "positive": return "Receptive account with healthy momentum. Lead with value and move quickly.";
+    case "neutral": return "Mixed signals. Qualify hard and secure a strong champion before investing.";
+    case "negative": return "High-friction account. Expect procurement and stakeholder risk; protect your terms.";
   }
 }
 

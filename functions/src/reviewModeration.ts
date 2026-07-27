@@ -29,6 +29,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { GoogleGenAI } from "@google/genai";
+import { stripEmDashes } from "./lib/text";
 
 if (getApps().length === 0) initializeApp();
 
@@ -114,7 +115,7 @@ async function moderate(content: string, apiKey: string): Promise<ModerationVerd
   const prompt = `You are a content moderator for a B2B sales review platform.
 Reviews describe a company's BUYING behaviour. They MAY reference generic
 departments or teams (e.g. "Procurement", "Legal", "the IT team", "their
-finance department") — that is expected and ALLOWED.
+finance department") - that is expected and ALLOWED.
 
 Reject content that contains:
 - Names of individual people (first names, surnames, initials, or nicknames)
@@ -125,7 +126,9 @@ Reject content that contains:
 - Confidential pricing details or contract terms attributable to a named deal
 - Contact details (emails, phone numbers) or web links / URLs
 
-Respond ONLY with minified JSON: {"isSafe": boolean, "reason": "short, specific reason if unsafe — tell the reviewer exactly what to remove"}
+Write the reason in plain hyphens, never em dashes.
+
+Respond ONLY with minified JSON: {"isSafe": boolean, "reason": "short, specific reason if unsafe - tell the reviewer exactly what to remove"}
 
 REVIEW:
 """${content}"""`;
@@ -138,10 +141,13 @@ REVIEW:
   try {
     const text = (result.text ?? "").replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(text);
-    return { isSafe: !!parsed.isSafe, reason: parsed.reason };
+    return {
+      isSafe: !!parsed.isSafe,
+      reason: typeof parsed.reason === "string" ? stripEmDashes(parsed.reason) : parsed.reason,
+    };
   } catch {
     // If the model response is unparseable, fail CLOSED: leave for human review.
-    return { isSafe: false, reason: "Automatic moderation inconclusive — held for admin review" };
+    return { isSafe: false, reason: "Automatic moderation inconclusive - held for admin review" };
   }
 }
 

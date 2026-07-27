@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { stripEmDashes } from "./lib/text";
 
 /** Mirrors services/accountFlags.ts. The two workspaces cannot import each other. */
 export type FlagSeverity = "critical" | "caution" | "watch";
@@ -68,12 +69,15 @@ export function validateAiFlags(raw: unknown, knownIds: string[]): AccountFlag[]
     if (!entry || typeof entry !== "object") continue;
     const e = entry as Record<string, unknown>;
 
-    const label = typeof e["label"] === "string" ? e["label"].trim() : "";
-    const stat = typeof e["stat"] === "string" ? e["stat"].trim() : "";
+    // House style is plain hyphens; the prompt asks for it, this enforces it.
+    const label = typeof e["label"] === "string" ? stripEmDashes(e["label"].trim()) : "";
+    const stat = typeof e["stat"] === "string" ? stripEmDashes(e["stat"].trim()) : "";
     if (!label || !stat || !/\d/.test(stat)) continue;
 
     const qualify = Array.isArray(e["qualify"])
-      ? e["qualify"].filter((q): q is string => typeof q === "string" && q.trim().length > 0).map((q) => q.trim())
+      ? e["qualify"]
+          .filter((q): q is string => typeof q === "string" && q.trim().length > 0)
+          .map((q) => stripEmDashes(q.trim()))
       : [];
     if (qualify.length === 0) continue;
 

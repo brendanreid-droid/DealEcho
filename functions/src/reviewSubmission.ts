@@ -34,6 +34,7 @@ import {
   STAKEHOLDER_COUNTS,
   enumOr,
 } from "./lib/reviewSchema";
+import { stripEmDashes } from "./lib/text";
 
 const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 182; // ~6 months
 
@@ -79,7 +80,9 @@ function sanitize(data: any): ReviewPayload {
   };
 
   const companyId = str(data?.companyId).trim();
-  const content = str(data?.content).trim();
+  // House style is plain hyphens, so normalise dashes on the way in - the stored
+  // review is what every summary, excerpt and AI prompt reads later.
+  const content = stripEmDashes(str(data?.content)).trim();
   if (!companyId) throw new HttpsError("invalid-argument", "companyId is required.");
   const wordCount = content.trim().split(/\s+/).length;
   if (wordCount < 50) {

@@ -195,7 +195,7 @@ export const updateTeamMemberRole = onCall({ cors: true }, async (request) => {
     const membersSnap = await db.collection('teams').doc(teamId).collection('members').get();
     const managerCount = membersSnap.docs.filter((d) => d.data().teamRole === 'manager' && d.data().status === 'active').length;
     if (managerCount <= 1) {
-      throw new HttpsError('failed-precondition', 'Cannot demote yourself — promote another manager first.');
+      throw new HttpsError('failed-precondition', 'Cannot demote yourself - promote another manager first.');
     }
   }
 
@@ -236,7 +236,7 @@ export const removeTeamMember = onCall({ cors: true }, async (request) => {
     const membersSnap = await db.collection('teams').doc(teamId).collection('members').get();
     const managerCount = membersSnap.docs.filter((d) => d.data().teamRole === 'manager' && d.data().status === 'active').length;
     if (managerCount <= 1) {
-      throw new HttpsError('failed-precondition', 'Cannot remove yourself — promote another manager first.');
+      throw new HttpsError('failed-precondition', 'Cannot remove yourself - promote another manager first.');
     }
   }
 
@@ -279,7 +279,7 @@ export const updateTeamSeats = onCall({ cors: true }, async (request) => {
   if (seats < activeCount) {
     throw new HttpsError(
       'failed-precondition',
-      `Cannot reduce to ${seats} seats — ${activeCount} active members. Remove members first.`,
+      `Cannot reduce to ${seats} seats - ${activeCount} active members. Remove members first.`,
     );
   }
 

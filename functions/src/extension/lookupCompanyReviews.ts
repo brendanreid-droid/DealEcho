@@ -7,6 +7,7 @@ import { logoDomain } from "./domains";
 import { CompanyRef } from "./matching";
 import { isProRole } from "./gating";
 import { getOrCreatePersona } from "./personaCache";
+import { stripEmDashes, stripEmDashesDeep } from "../lib/text";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -111,7 +112,8 @@ export const lookupCompanyReviews = onCall(
     let persona: unknown = null;
     if (ai && reviewCount > 0) {
       try {
-        persona = await getOrCreatePersona(company.companyId, reviewCount, {
+        // stripEmDashesDeep also covers personas cached before the copy rule existed.
+        persona = stripEmDashesDeep(await getOrCreatePersona(company.companyId, reviewCount, {
           ttlMs: PERSONA_TTL_MS,
           now: () => Date.now(),
           async read(id) {
@@ -134,13 +136,13 @@ export const lookupCompanyReviews = onCall(
               contents:
                 `You are a B2B sales strategist. Based only on these ${reviewCount} seller-submitted ` +
                 `review excerpt(s) about selling to "${company.companyName}", write a 2-3 sentence ` +
-                `buyer-behaviour summary for a sales rep. Do NOT ask for more information — if the ` +
+                `buyer-behaviour summary for a sales rep. Do NOT ask for more information - if the ` +
                 `evidence is thin, summarise what's available and note it's from limited reports. ` +
-                `Plain text only.\n\nReviews:\n${corpus}`,
+                `Plain text only. Use plain hyphens, never em dashes.\n\nReviews:\n${corpus}`,
             });
-            return { summary: (resp.text ?? "").trim() };
+            return { summary: stripEmDashes((resp.text ?? "").trim()) };
           },
-        });
+        }));
       } catch (err) {
         console.error(`Persona generation failed for ${company.companyId}:`, err);
       }

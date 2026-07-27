@@ -96,7 +96,17 @@ const FlagCard: React.FC<Props> = ({ flag, checked, onToggle, showDetail, onShow
           )}
           {flag.source === "reports" && <span>From written reports</span>}
         </div>
-        <ul className="mt-2 space-y-1">
+        {/*
+          Reads as a column header rather than an instruction, so it explains
+          the checkboxes at the moment they first appear without nagging on
+          every later visit. Deliberately not a tooltip - the purpose of a
+          primary interaction should not need hover to discover, and hover does
+          not exist on touch.
+        */}
+        <p className="mt-3 text-2xs font-semibold text-slate-400 uppercase tracking-wider">
+          Qualify on your next call
+        </p>
+        <ul className="mt-1 space-y-1">
           {points.map(({ point, id }) => (
             <li key={id} className="flex gap-2">
               <input

@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import * as Accordion from "@radix-ui/react-accordion";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import { Info } from "lucide-react";
 import { AccountFlag, GroupedFlags, pointId } from "../../../services/accountFlags";
 import FlagCard from "./FlagCard";
 
@@ -104,9 +106,36 @@ const FlagList: React.FC<Props> = ({ companyId, grouped, isPro, onShowEvidence }
   return (
     <div className="space-y-4">
       {isPro && (
-        <p className="text-2xs text-slate-400 text-right" aria-live="polite">
-          {done} of {points.length} qualified
-        </p>
+        <div className="flex items-center justify-end gap-1.5">
+          <p className="text-2xs text-slate-400" aria-live="polite">
+            {done} of {points.length} qualified
+          </p>
+          {/*
+            A tooltip suits this - it is incidental detail, not the purpose of
+            the control. Users could reasonably assume ticks sync or are shared
+            with their team, and be annoyed later when they are not.
+          */}
+          <Tooltip.Provider delayDuration={150}>
+            <Tooltip.Root>
+              <Tooltip.Trigger
+                type="button"
+                aria-label="Ticks are saved in this browser only"
+                className="text-slate-300 hover:text-slate-500 transition-colors"
+              >
+                <Info size={12} aria-hidden="true" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  className="bg-navy text-white rounded-card p-3 text-2xs max-w-xs z-50"
+                  sideOffset={6}
+                >
+                  Ticks are saved in this browser only - they do not sync across devices or to your team.
+                  <Tooltip.Arrow className="fill-navy" />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Provider>
+        </div>
       )}
       <FlagGroup
         heading="Watch for"

@@ -125,3 +125,17 @@ describe("FlagList grouping", () => {
     expect(screen.queryByText("In your favour")).not.toBeInTheDocument();
   });
 });
+
+describe("FlagList storage disclosure", () => {
+  it("tells Pro users their ticks are local to this browser", () => {
+    renderList();
+    expect(
+      screen.getByRole("button", { name: /saved in this browser only/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not show the disclosure to free users, who have nothing to tick", () => {
+    renderList({ isPro: false });
+    expect(screen.queryByRole("button", { name: /saved in this browser/i })).not.toBeInTheDocument();
+  });
+});

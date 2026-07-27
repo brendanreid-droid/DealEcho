@@ -155,3 +155,19 @@ describe("FlagCard collapsing", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });
+
+describe("FlagCard qualification guidance", () => {
+  it("labels the checkbox list so its purpose is clear when first opened", () => {
+    renderOpen();
+    expect(screen.getByText("Qualify on your next call")).toBeInTheDocument();
+  });
+
+  it("does not show the label while the card is collapsed", () => {
+    render(
+      <Accordion.Root type="multiple">
+        <FlagCard flag={flag} checked={[]} onToggle={() => {}} showDetail onShowEvidence={() => {}} />
+      </Accordion.Root>,
+    );
+    expect(screen.queryByText("Qualify on your next call")).not.toBeInTheDocument();
+  });
+});

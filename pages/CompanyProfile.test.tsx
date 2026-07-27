@@ -188,6 +188,8 @@ describe("CompanyProfile flag evidence deep-link", () => {
     expect(screen.getByText("3 verified reports")).toBeInTheDocument();
 
     // The security flag is backed by the two reviews reporting a questionnaire.
+    // Flag cards collapse by default, so open it before reaching its evidence link.
+    fireEvent.click(screen.getByRole("button", { name: /Security review is a gate/ }));
     fireEvent.click(screen.getByRole("button", { name: "2 reports" }));
 
     expect(screen.getByText("2 verified reports")).toBeInTheDocument();

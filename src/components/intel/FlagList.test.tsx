@@ -47,6 +47,8 @@ describe("FlagList", () => {
 
   it("persists a ticked point and updates progress", () => {
     renderList();
+    // Cards collapse by default now - open the first flag before ticking it.
+    fireEvent.click(screen.getAllByRole("button", { expanded: false })[0]);
     fireEvent.click(screen.getAllByRole("checkbox")[0]);
     expect(screen.getByText("1 of 2 qualified")).toBeInTheDocument();
     expect(localStorage.getItem("dealecho_qq:c1")).toContain("ghosting:");
@@ -60,6 +62,8 @@ describe("FlagList", () => {
 
   it("reloads ticks when companyId changes without remounting", () => {
     const { rerender } = renderList();
+    // Cards collapse by default now - open the first flag before ticking it.
+    fireEvent.click(screen.getAllByRole("button", { expanded: false })[0]);
     fireEvent.click(screen.getAllByRole("checkbox")[0]);
     expect(screen.getByText("1 of 2 qualified")).toBeInTheDocument();
 

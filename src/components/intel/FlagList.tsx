@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import * as Accordion from "@radix-ui/react-accordion";
 import { AccountFlag, GroupedFlags, pointId } from "../../../services/accountFlags";
 import FlagCard from "./FlagCard";
 
@@ -41,19 +42,33 @@ const FlagGroup: React.FC<{
   onShowEvidence: (reviewIds: string[]) => void;
 }> = ({ heading, flags, checked, onToggle, isPro, onShowEvidence }) => {
   if (flags.length === 0) return null;
+
+  const cards = flags.map((f) => (
+    <FlagCard
+      key={f.id}
+      flag={f}
+      checked={checked}
+      onToggle={onToggle}
+      showDetail={isPro}
+      onShowEvidence={onShowEvidence}
+    />
+  ));
+
   return (
     <div className="space-y-2">
       <h3 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{heading}</h3>
-      {flags.map((f) => (
-        <FlagCard
-          key={f.id}
-          flag={f}
-          checked={checked}
-          onToggle={onToggle}
-          showDetail={isPro}
-          onShowEvidence={onShowEvidence}
-        />
-      ))}
+      {/*
+        Multiple, so opening one flag does not close another - a rep working
+        through a call wants several open at once. Free users get plain cards
+        with nothing to expand.
+      */}
+      {isPro ? (
+        <Accordion.Root type="multiple" className="space-y-2">
+          {cards}
+        </Accordion.Root>
+      ) : (
+        cards
+      )}
     </div>
   );
 };

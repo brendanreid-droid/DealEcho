@@ -2,6 +2,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import Stripe from "stripe";
 import { getStripe } from "./lib/stripe";
 import { db, auth } from "./lib/firebaseAdmin";
+import { grantReferralCredit } from "./referrals/grantCredit";
 
 type UserRole = "free" | "paid" | "admin";
 type UserTier = "free" | "paid_monthly" | "paid_annual" | "enterprise";
@@ -264,6 +265,14 @@ export const stripeWebhook = onRequest(
         case "customer.subscription.deleted": {
           const subscription = event.data.object as Stripe.Subscription;
           await handleSubscriptionDeleted(subscription, debugRef);
+          break;
+        }
+        case "invoice.payment_succeeded": {
+          const invoice = event.data.object as Stripe.Invoice;
+          // Referral rewards fire here rather than on subscription creation:
+          // new Pro subs get a 30-day trial, so a subscription existing proves
+          // nothing. Only a real payment does.
+          await grantReferralCredit(invoice);
           break;
         }
         default:

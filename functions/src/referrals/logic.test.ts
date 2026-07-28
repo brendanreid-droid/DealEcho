@@ -112,6 +112,19 @@ describe("qualifiesForReward", () => {
     expect(qualifiesForReward(invoice({ billing_reason: "manual" }))).toBe(false);
   });
 
+  it("rejects an invoice with no amount_paid field at all", () => {
+    expect(qualifiesForReward(invoice({ amount_paid: undefined }))).toBe(false);
+  });
+
+  it("rejects a negative amount_paid", () => {
+    expect(qualifiesForReward(invoice({ amount_paid: -2900 }))).toBe(false);
+  });
+
+  it("rejects an invoice with no billing_reason", () => {
+    expect(qualifiesForReward(invoice({ billing_reason: undefined }))).toBe(false);
+    expect(qualifiesForReward(invoice({ billing_reason: null }))).toBe(false);
+  });
+
   it("reads the subscription from invoice.parent when the API moves it", () => {
     expect(
       qualifiesForReward({
@@ -193,11 +206,11 @@ describe("nextQuotaState", () => {
 });
 
 describe("limits", () => {
-  it("exposes the agreed constants", () => {
+  // Only the two limits with contractual meaning are pinned: the cap is the
+  // stated liability control, and the expiry is duplicated in the frontend's
+  // src/utils/referral.ts, so the two must not drift apart.
+  it("caps rewards at 12 per year and expires invites after 60 days", () => {
     expect(REWARD_CAP_PER_YEAR).toBe(12);
-    expect(DAILY_INVITE_LIMIT).toBe(20);
-    expect(LIFETIME_INVITE_LIMIT).toBe(200);
-    expect(MAX_EMAILS_PER_CALL).toBe(10);
     expect(INVITE_EXPIRY_DAYS).toBe(60);
   });
 });

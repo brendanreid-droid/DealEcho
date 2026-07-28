@@ -21,6 +21,14 @@ interface EmailLayoutProps {
   /** Security/account mail (resets, activations). Hides the unsubscribe link. */
   transactional?: boolean;
   /**
+   * Overrides the footer's "why you got this" line. Required for mail sent to
+   * people who are NOT registered members (referral invites), where the default
+   * wording would be a false statement about the recipient's relationship to us.
+   * Setting this always keeps the unsubscribe link, since such mail is
+   * unsolicited and legally requires one.
+   */
+  footerReason?: string;
+  /**
    * The extension prompt rides along on every email by default. Set false only
    * where it would compete with the message (e.g. a template that already makes
    * the extension its primary call to action).
@@ -34,8 +42,12 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
   userEmail,
   userUid,
   transactional = false,
+  footerReason,
   showExtension = true,
 }) => {
+  // Never hide the unsubscribe link on mail that carries a custom reason: that
+  // path exists for non-members, who must always be able to opt out.
+  const hideUnsubscribe = transactional && !footerReason;
   return (
     <Html>
       <Head />
@@ -69,14 +81,16 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
               &copy; {new Date().getFullYear()} Dealecho Pty Ltd
             </Text>
             <Text style={footerSubtext}>
-              {transactional
-                ? "This is an account security email sent to you as a registered member of Dealecho."
-                : "You received this email because you are a registered member of Dealecho."}
+              {footerReason
+                ? footerReason
+                : transactional
+                  ? "This is an account security email sent to you as a registered member of Dealecho."
+                  : "You received this email because you are a registered member of Dealecho."}
               {userEmail && ` Sent to ${userEmail}.`}
             </Text>
             <Text style={footerLinks}>
               <Link href={CONTROL_CENTRE_URL} style={footerLink}>Control Centre</Link>
-              {!transactional && (
+              {!hideUnsubscribe && (
                 <>
                   {" • "}
                   <Link href={`${APP_URL}/unsubscribe?email=${encodeURIComponent(userEmail || "")}&uid=${userUid || ""}`} style={footerLink}>Unsubscribe / Preferences</Link>

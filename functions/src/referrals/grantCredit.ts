@@ -29,27 +29,24 @@ async function monthlyPriceAmount(
   return { amount: price.unit_amount, currency: price.currency };
 }
 
-async function countRewardsInWindow(referrerUid: string): Promise<number> {
-  const cutoff = new Date(Date.now() - REWARD_WINDOW_MS).toISOString();
-  const snap = await db
-    .collection("referral_invites")
-    .where("referrerUid", "==", referrerUid)
-    .where("status", "==", "rewarded")
-    .where("rewardedAt", ">=", cutoff)
-    .get();
-  return snap.size;
-}
-
 /**
  * Grants the referrer one month of Stripe balance credit for a referee whose
  * first real payment just succeeded.
  *
- * Idempotency matters here because Stripe delivers webhooks at least once, and
- * we guard it twice:
- *   1. A Firestore transaction owns the signed_up -> rewarding transition. Only
- *      the call that wins that transition reaches Stripe at all.
- *   2. The Stripe call carries an idempotency key derived from the invite
- *      token, so even a torn transaction cannot double-credit.
+ * Two hazards drive the structure here.
+ *
+ * Idempotency: Stripe delivers webhooks at least once. A Firestore transaction
+ * owns the signed_up -> rewarding transition, so only the caller that wins that
+ * transition reaches Stripe. Crucially, once the Stripe call has returned we
+ * NEVER put the invite back into a payable state - see the catch below. The
+ * Stripe idempotency key is a second line of defence only: Stripe discards
+ * those keys after 24 hours, so it cannot protect against a re-attempt on the
+ * next billing cycle a month later.
+ *
+ * The cap: the 12-per-year limit is reserved inside the same transaction that
+ * claims the invite, against a per-referrer counter document. Counting rewarded
+ * invites with a plain query would let two payouts for the same referrer land
+ * concurrently, both read the same count, and both grant.
  */
 export async function grantReferralCredit(invoice: Stripe.Invoice): Promise<void> {
   if (!qualifiesForReward(invoice as any)) return;
@@ -79,28 +76,77 @@ export async function grantReferralCredit(invoice: Stripe.Invoice): Promise<void
   const inviteRef = inviteSnap.docs[0].ref;
   const token = inviteRef.id;
 
-  // Guard 1: claim the transition. Losers return without touching Stripe.
+  // Claim the invite AND reserve a cap slot in one transaction. Both the invite
+  // and the referrer's counter are written here, so two concurrent payouts for
+  // the same referrer serialise on the counter document and cannot both pass a
+  // cap check that only one of them should pass.
   const claimed = await db.runTransaction(async (tx) => {
     const snap = await tx.get(inviteRef);
-    if (snap.data()?.status !== "signed_up") return null;
-    tx.update(inviteRef, { status: "rewarding" });
-    return snap.data() as any;
-  });
-  if (!claimed) return;
+    const data = snap.data() as any;
+    if (data?.status !== "signed_up") return null;
 
-  const referrerUid: string = claimed.referrerUid;
+    const rewardsRef = db.collection("referral_rewards").doc(data.referrerUid);
+    const rewardsSnap = await tx.get(rewardsRef);
 
-  try {
-    if (isCapReached(await countRewardsInWindow(referrerUid))) {
-      await inviteRef.update({ status: "capped", capReason: "annual_limit" });
-      return;
+    const cutoff = Date.now() - REWARD_WINDOW_MS;
+    const prior: string[] = rewardsSnap.data()?.grantedAt ?? [];
+    const inWindow = prior.filter((iso) => {
+      const ms = Date.parse(iso);
+      return !Number.isNaN(ms) && ms >= cutoff;
+    });
+
+    if (isCapReached(inWindow.length)) {
+      tx.update(inviteRef, { status: "capped", capReason: "annual_limit" });
+      return { capped: true } as const;
     }
 
+    tx.update(inviteRef, { status: "rewarding" });
+    // Pruned on every write, so the array stays bounded by the annual cap.
+    tx.set(
+      rewardsRef,
+      { grantedAt: [...inWindow, new Date().toISOString()] },
+      { merge: true },
+    );
+    return { capped: false, invite: data } as const;
+  });
+
+  if (!claimed || claimed.capped) return;
+
+  const invite = claimed.invite;
+  const referrerUid: string = invite.referrerUid;
+  const rewardsRef = db.collection("referral_rewards").doc(referrerUid);
+
+  /**
+   * Hands the reserved cap slot back when a payout aborts before paying.
+   * Drops the newest entry rather than matching our own timestamp: under
+   * concurrency that may not be the exact one we added, but the count is what
+   * the cap is made of, and the count comes out right either way.
+   */
+  const releaseCapSlot = async () => {
+    try {
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(rewardsRef);
+        const list: string[] = snap.data()?.grantedAt ?? [];
+        if (list.length > 0) {
+          tx.set(rewardsRef, { grantedAt: list.slice(0, -1) }, { merge: true });
+        }
+      });
+    } catch (err) {
+      console.error("releaseCapSlot failed:", (err as Error).message);
+    }
+  };
+
+  // True once Stripe has actually moved money. After this point the invite must
+  // never return to a payable state, whatever else fails.
+  let creditGranted = false;
+
+  try {
     const referrerSnap = await db.collection("users").doc(referrerUid).get();
     const referrerCustomerId = referrerSnap.data()?.stripeCustomerId;
     if (!referrerCustomerId) {
       console.error("grantReferralCredit: referrer has no Stripe customer", referrerUid);
       await inviteRef.update({ status: "void", capReason: "no_stripe_customer" });
+      await releaseCapSlot();
       return;
     }
 
@@ -108,10 +154,10 @@ export async function grantReferralCredit(invoice: Stripe.Invoice): Promise<void
     const price = await monthlyPriceAmount(stripe);
     if (!price) {
       await inviteRef.update({ status: "void", capReason: "no_price_configured" });
+      await releaseCapSlot();
       return;
     }
 
-    // Guard 2: negative balance = credit. Idempotency key makes a retry a no-op.
     await stripe.customers.createBalanceTransaction(
       referrerCustomerId,
       {
@@ -122,6 +168,7 @@ export async function grantReferralCredit(invoice: Stripe.Invoice): Promise<void
       },
       { idempotencyKey: `referral_${token}` },
     );
+    creditGranted = true;
 
     await inviteRef.update({
       status: "rewarded",
@@ -140,7 +187,7 @@ export async function grantReferralCredit(invoice: Stripe.Invoice): Promise<void
           subject: "You've earned a free month of Dealecho",
           component: React.createElement(ReferralRewardEmail, {
             referrerName: referrer.displayName || referrer.email.split("@")[0] || "there",
-            refereeEmail: claimed.email,
+            refereeEmail: invite.email,
             recipientEmail: referrer.email,
           }),
         });
@@ -149,9 +196,38 @@ export async function grantReferralCredit(invoice: Stripe.Invoice): Promise<void
       console.error("grantReferralCredit reward email failed:", (err as Error).message);
     }
   } catch (err) {
-    // Roll back so a webhook retry can have another go.
-    console.error("grantReferralCredit failed:", (err as Error).message);
+    if (creditGranted) {
+      // The money has already moved. Returning the invite to "signed_up" would
+      // make it payable again, and the Stripe idempotency key expires after 24
+      // hours - so the referee's next monthly invoice would credit a second
+      // time. Leave it in "rewarding" instead: not payable, and visible for
+      // reconciliation. Swallow the error so Stripe does not retry the payout.
+      console.error(
+        `grantReferralCredit: CREDIT GRANTED BUT NOT FINALISED for invite ${token} ` +
+          `(referrer ${referrerUid}). Needs manual reconciliation.`,
+        (err as Error).message,
+      );
+      try {
+        await inviteRef.update({
+          status: "rewarded",
+          rewardedAt: new Date().toISOString(),
+          stripeInvoiceId: invoice.id,
+          needsReconciliation: true,
+        });
+      } catch (inner) {
+        console.error(
+          "grantReferralCredit: could not finalise after granting credit:",
+          (inner as Error).message,
+        );
+      }
+      return;
+    }
+
+    // Nothing was paid, so it is safe to make the invite payable again and let
+    // the webhook retry. Give the reserved cap slot back too.
+    console.error("grantReferralCredit failed before payment:", (err as Error).message);
     await inviteRef.update({ status: "signed_up" });
+    await releaseCapSlot();
     throw err;
   }
 }

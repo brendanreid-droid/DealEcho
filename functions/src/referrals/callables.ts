@@ -236,7 +236,12 @@ export const claimReferral = onCall({ cors: true }, async (request) => {
 
       // The referrer must still be a paying member for the reward to mean
       // anything. If they have churned, retire the invite.
-      if (referrerSnap.data()?.role !== "paid") {
+      // Mirror assertPaid: admins can send invites, so admins must be able to
+      // receive the reward too. Checking only for "paid" here would silently
+      // void every invite an admin sent, which is exactly the account the
+      // rollout plan uses to verify the feature end to end.
+      const referrerRole = referrerSnap.data()?.role;
+      if (referrerRole !== "paid" && referrerRole !== "admin") {
         tx.update(inviteRef, { status: "void" });
         return { claimed: false };
       }
@@ -295,14 +300,17 @@ export const getReferralStatus = onCall({ cors: true }, async (request) => {
     rewarded: invites.filter((i) => i.status === "rewarded").length,
   };
 
-  const cutoff = new Date(Date.now() - REWARD_WINDOW_MS).toISOString();
-  const rewardedSnap = await db
-    .collection("referral_invites")
-    .where("referrerUid", "==", uid)
-    .where("status", "==", "rewarded")
-    .where("rewardedAt", ">=", cutoff)
-    .get();
-  const usedThisYear = rewardedSnap.size;
+  // referral_rewards is the authoritative cap ledger: grantReferralCredit
+  // reserves a slot there inside the same transaction that claims the invite.
+  // Counting rewarded invites here instead would drift from what the payout
+  // path actually enforces.
+  const cutoffMs = Date.now() - REWARD_WINDOW_MS;
+  const rewardsSnap = await db.collection("referral_rewards").doc(uid).get();
+  const grantedAt: string[] = rewardsSnap.data()?.grantedAt ?? [];
+  const usedThisYear = grantedAt.filter((iso) => {
+    const ms = Date.parse(iso);
+    return !Number.isNaN(ms) && ms >= cutoffMs;
+  }).length;
 
   const quotaSnap = await db.collection("referral_quota").doc(uid).get();
   const quota = quotaSnap.exists ? (quotaSnap.data() as QuotaState) : undefined;

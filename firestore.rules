@@ -108,6 +108,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Per-user reward ledger. This is the authoritative record of the 12/year
+    // cap, reserved transactionally during payout, so it must never be
+    // client-writable. Read it through getReferralStatus.
+    match /referral_rewards/{userId} {
+      allow read, write: if false;
+    }
+
     // ── Config (pricing, etc.) ────────────────────────────────────────────────
     // Anyone can read config (pricing page needs it). Only admins can write.
     match /config/{docId} {

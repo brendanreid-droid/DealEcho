@@ -16,7 +16,7 @@ export const ReferralInviteEmail: React.FC<ReferralInviteEmailProps> = ({
   <DealEchoEmailLayout
     previewTextText={`${referrerName} thinks Dealecho would be useful to you.`}
     userEmail={recipientEmail}
-    transactional
+    footerReason={`You received this because ${referrerName} invited you to Dealecho. You are not subscribed to anything.`}
   >
     <Heading style={h1}>{referrerName} invited you to Dealecho</Heading>
 

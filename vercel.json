@@ -5,6 +5,50 @@
       "destination": "https://dealecho-io-sales-intel-hub.firebaseapp.com/__/auth/:path*"
     },
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-Extended|Bingbot|GPTBot|ChatGPT-User|PerplexityBot|ClaudeBot|anthropic-ai|LinkedInBot|Slackbot|Twitterbot|facebookexternalhit|Applebot).*"
+        }
+      ],
+      "destination": "/seo/home.html"
+    },
+    {
+      "source": "/pricing",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-Extended|Bingbot|GPTBot|ChatGPT-User|PerplexityBot|ClaudeBot|anthropic-ai|LinkedInBot|Slackbot|Twitterbot|facebookexternalhit|Applebot).*"
+        }
+      ],
+      "destination": "/seo/pricing.html"
+    },
+    {
+      "source": "/terms",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-Extended|Bingbot|GPTBot|ChatGPT-User|PerplexityBot|ClaudeBot|anthropic-ai|LinkedInBot|Slackbot|Twitterbot|facebookexternalhit|Applebot).*"
+        }
+      ],
+      "destination": "/seo/terms.html"
+    },
+    {
+      "source": "/privacy",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-Extended|Bingbot|GPTBot|ChatGPT-User|PerplexityBot|ClaudeBot|anthropic-ai|LinkedInBot|Slackbot|Twitterbot|facebookexternalhit|Applebot).*"
+        }
+      ],
+      "destination": "/seo/privacy.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

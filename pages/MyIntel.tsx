@@ -388,6 +388,27 @@ const MyIntel: React.FC<MyIntelProps> = ({
                   </Link>
                 </div>
               )}
+
+              {isPaid && (
+                <div className="md:col-span-2 p-6 bg-white rounded-card border border-slate-200 space-y-4">
+                  <div className="flex items-center space-x-3 text-accent">
+                    <Icon name="fa-gift" size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Refer a colleague
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Invite someone to Dealecho. They get 30 days free, and you
+                    get a free month once their first payment clears.
+                  </p>
+                  <Link
+                    to="/referrals"
+                    className="block text-center bg-accent text-white py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all"
+                  >
+                    Invite colleagues
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

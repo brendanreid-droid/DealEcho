@@ -12,6 +12,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth, googleProvider } from "./src/firebase/config";
 import { track } from "./src/utils/analytics";
 import { captureAttribution, getAttribution, hasAttribution } from "./src/utils/attribution";
+import { captureInviteToken, storedInviteToken, clearInviteToken } from "./src/utils/referral";
 import { getLocale } from "./src/utils/locale";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -29,6 +30,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
 const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 const AuthBridge = lazy(() => import('./pages/AuthBridge'));
+const Referrals = lazy(() => import("./pages/Referrals"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const RouteFallback: React.FC = () => (
@@ -70,6 +72,23 @@ const ScrollToTop = () => {
 };
 
 // MappedUser is now provided directly by useAuth hook
+
+/**
+ * Binds a new signup to the invite that brought them in. Fire-and-forget by
+ * design: a bad or expired token must never be able to break account creation.
+ */
+async function claimReferralIfInvited(): Promise<void> {
+  const token = storedInviteToken();
+  if (!token) return;
+  try {
+    const fns = getFunctions(undefined, "australia-southeast1");
+    await httpsCallable(fns, "claimReferral")({ token });
+  } catch (err) {
+    console.error("claimReferral failed:", err);
+  } finally {
+    clearInviteToken();
+  }
+}
 
 const App: React.FC = () => {
   const {
@@ -157,6 +176,12 @@ const App: React.FC = () => {
     captureAttribution();
   }, []);
 
+  // Invite emails land on /?invite=TOKEN. Grab it before anything else can
+  // rewrite the URL, and strip the parameter so it is not re-shared.
+  useEffect(() => {
+    captureInviteToken();
+  }, []);
+
   // Count signed-in sessions (one per app load) to pace the role re-ask banner.
   useEffect(() => {
     if (!user?.id) return;
@@ -230,6 +255,7 @@ const App: React.FC = () => {
       if (isNew) {
         setPostAuthPath("/search");
         void recordAcquisition();
+        void claimReferralIfInvited();
         // The getting-started checklist auto-opens once the user doc loads.
       }
       track(isNew ? "sign_up" : "login", { method: "google" });
@@ -251,6 +277,7 @@ const App: React.FC = () => {
       if (name) await updateProfile(res.user, { displayName: name });
       setPostAuthPath("/search");
       void recordAcquisition();
+      void claimReferralIfInvited();
       // The getting-started checklist auto-opens once the user doc loads.
       track("sign_up", { method: "password" });
     } else {
@@ -409,6 +436,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute requireAuth>
                     <TeamSettings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/referrals"
+                element={
+                  <ProtectedRoute requireAuth>
+                    <Referrals />
                   </ProtectedRoute>
                 }
               />

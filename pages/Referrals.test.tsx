@@ -29,7 +29,13 @@ const renderPage = () =>
   );
 
 describe("Referrals", () => {
-  beforeEach(() => mockCallable.mockReset());
+  // Braces matter: a concise arrow body would return the mock (mockReset is
+  // chainable), and Vitest treats a value returned from beforeEach as a
+  // teardown hook. It would then call mockCallable() after each test, which
+  // with mockRejectedValue still installed throws an unhandled rejection.
+  beforeEach(() => {
+    mockCallable.mockReset();
+  });
 
   it("shows the invite form to an eligible member", async () => {
     mockCallable.mockResolvedValue(status());
@@ -50,7 +56,9 @@ describe("Referrals", () => {
       status({ monthsEarned: 3, cap: { limit: 12, usedThisYear: 3, remaining: 9 } }),
     );
     renderPage();
-    expect(await screen.findByText(/3/)).toBeInTheDocument();
+    // Exact match, not /3/: the intro copy says "30 days of Sales Pro free",
+    // so a regex would match two elements and throw.
+    expect(await screen.findByText("3")).toBeInTheDocument();
     expect(screen.getByText(/9 left this year/i)).toBeInTheDocument();
   });
 

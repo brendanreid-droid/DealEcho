@@ -94,6 +94,20 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── Referrals ─────────────────────────────────────────────────────────────
+    // Written exclusively by Cloud Functions (Admin SDK, bypasses rules).
+    // Closed to all clients: the document id IS the invite token, so any read
+    // access would let a caller enumerate live tokens and hijack referrals.
+    // The /referrals page reads through the getReferralStatus callable instead.
+    match /referral_invites/{token} {
+      allow read, write: if false;
+    }
+
+    // Per-user invite send counters. Server-only for the same reason.
+    match /referral_quota/{userId} {
+      allow read, write: if false;
+    }
+
     // ── Config (pricing, etc.) ────────────────────────────────────────────────
     // Anyone can read config (pricing page needs it). Only admins can write.
     match /config/{docId} {

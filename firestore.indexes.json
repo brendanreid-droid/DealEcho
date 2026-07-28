@@ -49,6 +49,70 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "referral_invites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "referrerUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "sentAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "referral_invites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "referrerUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rewardedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "referral_invites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "refereeUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "referral_invites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "referrerUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "email",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -146,12 +146,56 @@ async function resolveFirebaseUID(
 }
 
 /**
+ * Every signing secret this endpoint accepts, in the order they are tried.
+ *
+ * Stripe issues a separate secret per endpoint, and test mode and live mode
+ * require separate endpoints. A single-secret webhook can therefore only ever
+ * verify one mode, which makes it impossible to rehearse a billing change
+ * without touching real money. Accepting both lets one deployed function serve
+ * a live endpoint and a test endpoint at the same URL.
+ *
+ * STRIPE_WEBHOOK_SECRET_TEST is optional: if it is unset the behaviour is
+ * identical to before.
+ */
+function configuredWebhookSecrets(): string[] {
+  return [process.env.STRIPE_WEBHOOK_SECRET, process.env.STRIPE_WEBHOOK_SECRET_TEST]
+    .map((s) => (s ?? "").trim())
+    .filter(Boolean);
+}
+
+/**
+ * Returns the first secret that verifies the payload, along with which one it
+ * was so the debug log records the mode. Rethrows the last Stripe error when
+ * none match, so the caller still surfaces a real signature message rather
+ * than a synthetic one.
+ */
+function constructEventWithAnySecret(
+  stripe: Stripe,
+  rawBody: Buffer,
+  sig: string,
+  secrets: string[],
+): { event: Stripe.Event; matchedSecret: string } {
+  let lastErr: unknown;
+  for (let i = 0; i < secrets.length; i++) {
+    try {
+      return {
+        event: stripe.webhooks.constructEvent(rawBody, sig, secrets[i]),
+        matchedSecret: i === 0 ? "primary" : "test",
+      };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+/**
  * Stripe webhook endpoint.
  */
 export const stripeWebhook = onRequest(
   {
     cors: false,
-    secrets: ["STRIPE_WEBHOOK_SECRET"],
+    secrets: ["STRIPE_WEBHOOK_SECRET", "STRIPE_WEBHOOK_SECRET_TEST"],
   },
   async (req, res) => {
     res.removeHeader("x-powered-by");
@@ -163,7 +207,7 @@ export const stripeWebhook = onRequest(
     try {
       const stripe = getStripe();
       const sig = req.headers["stripe-signature"] as string;
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!.trim();
+      const webhookSecrets = configuredWebhookSecrets();
 
       // Get the raw body - Firebase Functions v2 provides rawBody,
       // but fall back to req.body if it's a Buffer
@@ -183,7 +227,7 @@ export const stripeWebhook = onRequest(
         hasResolvedBody: !!rawBody,
         bodyType: typeof req.body,
         isBufferBody: Buffer.isBuffer(req.body),
-        webhookSecretSet: !!webhookSecret,
+        webhookSecretCount: webhookSecrets.length,
       });
 
       console.log("Signature Header:", !!sig);
@@ -207,8 +251,8 @@ export const stripeWebhook = onRequest(
         return;
       }
 
-      if (!webhookSecret) {
-        console.error("STRIPE_WEBHOOK_SECRET is missing");
+      if (webhookSecrets.length === 0) {
+        console.error("No Stripe webhook signing secret is configured");
         await debugRef.update({
           status: "error",
           error: "Server configuration error: missing secret",
@@ -218,12 +262,24 @@ export const stripeWebhook = onRequest(
 
       let event: Stripe.Event;
       try {
-        event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
-        console.log("Event verified:", event.type);
+        const verified = constructEventWithAnySecret(
+          stripe,
+          rawBody,
+          sig,
+          webhookSecrets,
+        );
+        event = verified.event;
+        console.log(
+          `Event verified: ${event.type} (via ${verified.matchedSecret} secret)`,
+        );
         await debugRef.update({
           status: "verified",
           eventType: event.type,
           eventId: event.id,
+          // Which endpoint this came from. Makes it obvious in the logs whether
+          // a given event was a live one or a test rehearsal.
+          verifiedWith: verified.matchedSecret,
+          livemode: (event as any).livemode ?? null,
         });
       } catch (err: any) {
         console.error("Signature verification failed:", err.message);

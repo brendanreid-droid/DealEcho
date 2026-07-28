@@ -56,8 +56,11 @@ jobs:
       - name: Wait
         run: sleep 30
 
+      # stripeWebhook rides with the billing group. It was absent from every
+      # --only list until 2026-07-28, so CI never deployed it and webhook
+      # changes silently never reached production.
       - name: Deploy checkout functions
-        run: firebase deploy --only functions:createCheckoutSession,functions:cancelSubscription,functions:createEnterpriseCheckout,functions:createBillingPortalSession,functions:applyRetentionOffer --force
+        run: firebase deploy --only functions:createCheckoutSession,functions:cancelSubscription,functions:createEnterpriseCheckout,functions:createBillingPortalSession,functions:applyRetentionOffer,functions:stripeWebhook --force
 
       - name: Wait
         run: sleep 30
@@ -76,6 +79,12 @@ jobs:
 
       - name: Deploy marketing functions
         run: firebase deploy --only functions:recordAcquisition,functions:adminGetAcquisitionReport,functions:updateMarketingProfile,functions:recordActivity --force
+
+      - name: Wait
+        run: sleep 30
+
+      - name: Deploy referral functions
+        run: firebase deploy --only functions:sendReferralInvites,functions:claimReferral,functions:getReferralStatus --force
  
 
 

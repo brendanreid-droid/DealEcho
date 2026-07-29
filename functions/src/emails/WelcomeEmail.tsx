@@ -20,28 +20,28 @@ interface WelcomeEmailProps {
  */
 const STEPS = [
   {
-    title: "Write your first review",
-    body: "Share one deal. It unlocks 7 days of full review access across every company.",
-    cta: "Write a review",
-    href: NEW_REVIEW_URL,
-  },
-  {
     title: "Track your first account",
     body: "Follow a company to get alerts when new intel lands.",
     cta: "Find a company",
     href: SEARCH_URL,
   },
   {
+    title: "Write your first review",
+    body: "Share one deal. It unlocks 7 days of full review access across every company.",
+    cta: "Write a review",
+    href: NEW_REVIEW_URL,
+  },
+  {
+    title: "Download the browser extension",
+    body: "Pull deal intel and log reviews without leaving your CRM or inbox.",
+    cta: "Add to Chrome",
+    href: CHROME_EXTENSION_URL,
+  },
+  {
     title: "Tell us about you",
     body: "Two taps, your role and company size. Helps us tailor Dealecho to your patch.",
     cta: "Answer the questions",
     href: CONTROL_CENTRE_URL,
-  },
-  {
-    title: "Get the browser extension",
-    body: "Pull deal intel and log reviews without leaving your CRM or inbox.",
-    cta: "Add to Chrome",
-    href: CHROME_EXTENSION_URL,
   },
 ];
 

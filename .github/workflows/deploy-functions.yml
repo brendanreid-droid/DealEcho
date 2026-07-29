@@ -98,6 +98,18 @@ jobs:
 
       - name: Deploy blog functions
         run: firebase deploy --only functions:adminPublishBlogPost,functions:adminListBlogPosts,functions:adminGetBlogPost --force
+
+      - name: Wait
+        run: sleep 30
+
+      # Every function that renders an email. These were absent from all
+      # --only lists until 2026-07-29, so CI had never deployed them and
+      # production kept serving whatever was last pushed by hand - a welcome
+      # email whose copy no longer existed anywhere in this repo. Template
+      # edits (including the shared footer in emails/Layout.tsx) only reach
+      # users once these deploy.
+      - name: Deploy email functions
+        run: firebase deploy --only functions:sendWelcomeEmail,functions:sendCustomPasswordResetEmail,functions:checkInactiveUsers,functions:onReviewCreated,functions:trackNewsletterOpen,functions:updateNotificationPreferences --force
  
 
 

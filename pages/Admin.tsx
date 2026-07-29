@@ -2506,7 +2506,7 @@ const Admin: React.FC = () => {
                 {/* Email Footer */}
                 <div className="bg-slate-50 border-t border-slate-100 py-6 px-8 text-center text-[10px] text-slate-400 space-y-2">
                   <div className="font-bold text-slate-500">
-                    &copy; {new Date().getFullYear()} Dealecho.io. All rights reserved.
+                    &copy; {new Date().getFullYear()} Dealecho Pty Ltd
                   </div>
                   <div>
                     You received this email because you are a registered member of Dealecho.io.

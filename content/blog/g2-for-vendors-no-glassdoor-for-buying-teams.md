@@ -55,11 +55,3 @@ None of that is unreasonable. It is the same standard vendors are already held t
 This is the problem [Dealecho](/) exists to solve. Verified sales executives who have already sold to a company can leave an honest account of how that company's buying team actually behaved: responsive or not, decisive or not, fair or not. The next seller walking into that account gets to see it before their first call, not after their third missed forecast.
 
 Vendors have had an accountability layer for years. It is time buying teams had one too.
-
-See how Dealecho works, and check the [plans](/pricing) before your next quarter starts.
-
----
-
-## Sources
-- Framing on the absence of a review-platform equivalent for buying-team conduct is based on Dealecho's own research pass (July 2026): no competitor or trending content was found covering buyer-side review platforms specifically (see `content/blog/keyword-tracker.md`, row "Why there's a G2 for vendors but no Glassdoor for buying teams"). This is presented as an observed market gap, not a sourced statistic.
-- No third-party statistics are cited in this post. If a stat is added in a later revision (e.g. on "no decision" loss rates or buying committee size), it must be sourced to the original report (Forrester, Gartner, SBI Growth) per Dealecho's no-invented-claims rule, and validated by the Research Analyst first.

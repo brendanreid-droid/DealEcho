@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Icon from "./Icon";
 import { saveMarketingProfile } from "./MarketingProfilePrompt";
 import { track } from "../utils/analytics";
+import { CHROME_EXTENSION_URL } from "../constants/dealData";
 
 /**
  * Getting-started checklist that steers new users toward writing their first
@@ -16,10 +17,6 @@ import { track } from "../utils/analytics";
  *  - launcher: a floating progress pill; render it from the parent when the
  *    checklist is incomplete and not dismissed.
  */
-
-// TODO: replace with the real Chrome Web Store URL once the extension is
-// published. "#" keeps the step functional (clicking still marks it done).
-const EXTENSION_URL = "#";
 
 export interface OnboardingSteps {
   hasReview: boolean;
@@ -79,6 +76,14 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
     action: () => void;
   }[] = [
     {
+      key: "track",
+      done: steps.hasTracked,
+      title: "Track your first account",
+      body: "Follow a company to get alerts when new intel lands.",
+      cta: "Find a company",
+      action: () => go("/search", "track"),
+    },
+    {
       key: "review",
       done: steps.hasReview,
       title: "Write your first review",
@@ -87,12 +92,18 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
       action: () => go("/review/new", "review"),
     },
     {
-      key: "track",
-      done: steps.hasTracked,
-      title: "Track your first account",
-      body: "Follow a company to get alerts when new intel lands.",
-      cta: "Find a company",
-      action: () => go("/search", "track"),
+      key: "extension",
+      done: steps.hasExtension,
+      title: "Download the browser extension",
+      body: "Pull deal intel and log reviews without leaving your CRM or inbox.",
+      cta: "Get the extension",
+      action: () => {
+        track("onboarding_step_click", { step: "extension" });
+        // Marked done on click: an install in the Chrome Web Store isn't
+        // something the web app can observe.
+        void saveMarketingProfile({ extensionAdded: true });
+        window.open(CHROME_EXTENSION_URL, "_blank", "noopener,noreferrer");
+      },
     },
     {
       key: "profile",
@@ -103,22 +114,6 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
       action: () => {
         track("onboarding_step_click", { step: "profile" });
         onAnswerQuestions();
-      },
-    },
-    {
-      key: "extension",
-      done: steps.hasExtension,
-      title: "Get the browser extension",
-      body: "Pull deal intel and log reviews without leaving your CRM or inbox.",
-      cta: "Get the extension",
-      action: () => {
-        track("onboarding_step_click", { step: "extension" });
-        // Mark done on click; we can't detect the actual install. Opens the
-        // store in a new tab once EXTENSION_URL is a real link.
-        void saveMarketingProfile({ extensionAdded: true });
-        if (EXTENSION_URL !== "#") {
-          window.open(EXTENSION_URL, "_blank", "noopener,noreferrer");
-        }
       },
     },
   ];

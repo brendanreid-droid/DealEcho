@@ -1,7 +1,8 @@
-// Chrome Web Store listing for the DealEcho browser extension.
-// TODO: replace PLACEHOLDER_EXTENSION_ID with the real listing URL once published (phase 2D).
+// Chrome Web Store listing for the Dealecho browser extension. Live since
+// July 2026. Single source of truth - the onboarding checklist, pricing page
+// and footer all read this.
 export const CHROME_EXTENSION_URL =
-  "https://chrome.google.com/webstore/detail/dealecho-sales-intelligence/PLACEHOLDER_EXTENSION_ID";
+  "https://chromewebstore.google.com/detail/dealecho-sales-intelligen/khcgfhbpiinaaanphfoefbamkbcjffpb";
 
 const DEPARTMENT_VALUES = [
   "IT / Engineering",

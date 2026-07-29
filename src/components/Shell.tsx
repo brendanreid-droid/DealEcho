@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Icon from "./Icon";
 import { openCookiePreferences } from "./CookieConsent";
+import { CHROME_EXTENSION_URL } from "../constants/dealData";
 
 // ── Navigation (68px header, fixed nav semantics, mobile menu with auth) ──
 export const Navigation: React.FC<{
@@ -216,6 +217,16 @@ export const Footer: React.FC = () => (
             <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics</Link></li>
             <li><Link to="/pricing" className="text-slate-600 hover:text-accent">Pricing</Link></li>
             <li><Link to="/blog" className="text-slate-600 hover:text-accent">Blog</Link></li>
+            <li>
+              <a
+                href={CHROME_EXTENSION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-600 hover:text-accent"
+              >
+                Browser Extension
+              </a>
+            </li>
           </ul>
         </div>
 

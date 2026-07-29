@@ -15,7 +15,7 @@ export const SEARCH_URL = `${APP_URL}/search`;
 export const EMAIL_LOGO_URL = `${APP_URL}/email-logo-dark.png`;
 export const NEW_REVIEW_URL = `${APP_URL}/review/new`;
 
-// Mirrors CHROME_EXTENSION_URL in src/constants/dealData.ts.
-// TODO: replace PLACEHOLDER_EXTENSION_ID once the listing is published.
+// Mirrors CHROME_EXTENSION_URL in src/constants/dealData.ts. Keep the two in
+// step: the functions package can't import from the app's src/.
 export const CHROME_EXTENSION_URL =
-  "https://chrome.google.com/webstore/detail/dealecho-sales-intelligence/PLACEHOLDER_EXTENSION_ID";
+  "https://chromewebstore.google.com/detail/dealecho-sales-intelligen/khcgfhbpiinaaanphfoefbamkbcjffpb";

@@ -18,14 +18,24 @@
 // fetching or auth state is involved, so we can generate correct HTML by
 // string-templating dist/index.html rather than spinning up a browser.
 //
-// Scope: only static marketing routes. Dynamic/data-backed routes
-// (/search, /company/:id, /trends, authenticated app views) are NOT
-// prerendered here — see research/seo audit for the longer-term
-// programmatic-SEO recommendation for /company/:id pages.
+// Scope: static marketing routes plus the file-based blog (/blog and every
+// content/blog/*.md post). Dynamic/data-backed routes (/search, /company/:id,
+// /trends, authenticated app views) are NOT prerendered here — see research/seo
+// audit for the longer-term programmatic-SEO recommendation for /company/:id
+// pages.
+//
+// Blog snapshots differ from the marketing ones in that they also carry the
+// post body as real HTML inside #root. Meta tags alone would give crawlers a
+// page with no indexable content, which is the entire reason the blog exists.
+// Humans never see these files (only bot user-agents are rewritten to them),
+// and React overwrites #root on mount if one ever does.
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { marked } from "marked";
+import { loadPublishedPosts } from "../src/blog/loadPosts.mjs";
+import { blogPostingSchema, blogIndexSchema, postUrl } from "../src/blog/seo.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = resolve(__dirname, "..", "dist");
@@ -143,7 +153,65 @@ function buildSnapshot(baseHtml, route) {
     .join("\n  ");
   html = html.replace("</head>", `  ${schemaScripts}\n</head>`);
 
+  // Blog routes carry real body content so crawlers have something to index.
+  if (route.bodyHtml) {
+    html = html.replace(
+      /<div id="root"><\/div>/,
+      `<div id="root">${route.bodyHtml}</div>`,
+    );
+  }
+
   return html;
+}
+
+/** Snapshot routes for /blog and every published post. */
+function blogRoutes(posts) {
+  const indexBody = [
+    "<main>",
+    "<h1>Dealecho Blog</h1>",
+    "<ul>",
+    ...posts.map(
+      (post) =>
+        `<li><a href="/blog/${post.slug}">${escapeHtml(post.title)}</a>` +
+        `<p>${escapeHtml(post.metaDescription)}</p>` +
+        `<time datetime="${post.publishDate}">${post.publishDate}</time></li>`,
+    ),
+    "</ul>",
+    "</main>",
+  ].join("");
+
+  const routes = [
+    {
+      path: "/blog",
+      outFile: "seo/blog.html",
+      title: "Blog - Dealecho",
+      description:
+        "Field notes on buying teams, procurement, and what actually happens inside B2B deals.",
+      keywords:
+        "B2B sales blog, buying teams, procurement intelligence, Dealecho",
+      schema: [ORG_SCHEMA, blogIndexSchema(posts)],
+      bodyHtml: indexBody,
+    },
+  ];
+
+  for (const post of posts) {
+    routes.push({
+      path: `/blog/${post.slug}`,
+      outFile: `seo/blog-${post.slug}.html`,
+      title: `${post.title} - Dealecho`,
+      description: post.metaDescription,
+      keywords: post.keywords,
+      schema: [blogPostingSchema(post)],
+      bodyHtml:
+        `<main><article>` +
+        `<h1>${escapeHtml(post.title)}</h1>` +
+        `<time datetime="${post.publishDate}">${post.publishDate}</time>` +
+        marked.parse(post.body, { async: false }) +
+        `</article></main>`,
+    });
+  }
+
+  return routes;
 }
 
 function main() {
@@ -157,7 +225,10 @@ function main() {
     throw err;
   }
 
-  for (const route of ROUTES) {
+  const posts = loadPublishedPosts();
+  const routes = [...ROUTES, ...blogRoutes(posts)];
+
+  for (const route of routes) {
     const outPath = resolve(DIST_DIR, route.outFile);
     mkdirSync(dirname(outPath), { recursive: true });
     writeFileSync(outPath, buildSnapshot(baseHtml, route), "utf-8");

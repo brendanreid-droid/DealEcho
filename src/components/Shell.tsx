@@ -215,6 +215,7 @@ export const Footer: React.FC = () => (
             <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control Centre</Link></li>
             <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics</Link></li>
             <li><Link to="/pricing" className="text-slate-600 hover:text-accent">Pricing</Link></li>
+            <li><Link to="/blog" className="text-slate-600 hover:text-accent">Blog</Link></li>
           </ul>
         </div>
 

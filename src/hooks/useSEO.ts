@@ -12,6 +12,8 @@ interface SEOMetadata {
   title: string;
   description?: string;
   keywords?: string;
+  /** Absolute URL for <link rel="canonical">. Omitted pages are left alone. */
+  canonical?: string;
   openGraph?: OpenGraphMetadata;
   schema?: Record<string, any>;
 }
@@ -20,6 +22,7 @@ export const useSEO = ({
   title,
   description,
   keywords,
+  canonical,
   openGraph,
   schema,
 }: SEOMetadata) => {
@@ -48,6 +51,18 @@ export const useSEO = ({
     // 3. Set keywords
     if (keywords) {
       setMetaTag("name", "keywords", keywords);
+    }
+
+    // 3b. Canonical URL. Only managed for pages that pass one, so pages that
+    // don't opt in keep whatever index.html ships with.
+    if (canonical) {
+      let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+      if (!link) {
+        link = document.createElement("link");
+        link.setAttribute("rel", "canonical");
+        document.head.appendChild(link);
+      }
+      link.setAttribute("href", canonical);
     }
 
     // 4. Set Open Graph tags for social/professional networking previews
@@ -96,5 +111,5 @@ export const useSEO = ({
         activeSchema.remove();
       }
     };
-  }, [title, description, keywords, JSON.stringify(openGraph), JSON.stringify(schema)]);
+  }, [title, description, keywords, canonical, JSON.stringify(openGraph), JSON.stringify(schema)]);
 };

@@ -6,6 +6,7 @@ import { ReferralInviteEmail } from "../emails/ReferralInviteEmail";
 import {
   MAX_EMAILS_PER_CALL,
   DAILY_INVITE_LIMIT,
+  LIFETIME_INVITE_LIMIT,
   REWARD_CAP_PER_YEAR,
   REWARD_WINDOW_MS,
   generateInviteToken,
@@ -27,6 +28,7 @@ export type InviteResult =
   | "invalid"
   | "self"
   | "rate_limited"
+  | "lifetime_limit"
   | "send_failed";
 
 function assertPaid(request: { auth?: { token?: unknown } | null }): void {
@@ -123,16 +125,20 @@ export const sendReferralInvites = onCall(
     // 2. Reserve quota atomically. Counting documents cannot be made safe
     //    against concurrent calls; a transactional counter can.
     const quotaRef = db.collection("referral_quota").doc(uid);
-    const allowed = await db.runTransaction(async (tx) => {
+    const { allowed, limitedBy } = await db.runTransaction(async (tx) => {
       const snap = await tx.get(quotaRef);
       const prior = snap.exists ? (snap.data() as QuotaState) : undefined;
-      const { allowed, state } = nextQuotaState(prior, candidates.length, new Date());
-      if (allowed > 0) tx.set(quotaRef, state, { merge: true });
-      return allowed;
+      const next = nextQuotaState(prior, candidates.length, new Date());
+      if (next.allowed > 0) tx.set(quotaRef, next.state, { merge: true });
+      return next;
     });
 
+    // Report which ceiling actually bit. "Try again tomorrow" is wrong and
+    // frustrating advice for someone who has spent their 200 lifetime invites.
+    const overflowResult: InviteResult =
+      limitedBy === "lifetime" ? "lifetime_limit" : "rate_limited";
     for (const email of candidates.slice(allowed)) {
-      results.push({ email, result: "rate_limited" });
+      results.push({ email, result: overflowResult });
     }
 
     // 3. Create invites and send.
@@ -275,16 +281,28 @@ export const getReferralStatus = onCall({ cors: true }, async (request) => {
 
   const uid = request.auth.uid;
   const role = (request.auth.token as any).role;
-  const eligible = (role === "paid" || role === "admin") && (await referralsEnabled());
+  const isPaid = role === "paid" || role === "admin";
+  const enabled = await referralsEnabled();
+  const eligible = isPaid && enabled;
 
+  // Separated so the UI can say something true. Telling a paying member to
+  // "upgrade to Pro" because a feature flag is off is simply wrong.
+  const ineligibleReason: "not_paid" | "disabled" | null = eligible
+    ? null
+    : !isPaid
+      ? "not_paid"
+      : "disabled";
+
+  // No limit: a referrer can never have more than LIFETIME_INVITE_LIMIT (200)
+  // invites, so this is bounded and cheap. Counting from a truncated page
+  // would make the stat tiles disagree with the reward ledger.
   const snap = await db
     .collection("referral_invites")
     .where("referrerUid", "==", uid)
     .orderBy("sentAt", "desc")
-    .limit(100)
     .get();
 
-  const invites = snap.docs.map((d) => {
+  const allInvites = snap.docs.map((d) => {
     const v = d.data();
     return {
       email: v.email as string,
@@ -295,10 +313,14 @@ export const getReferralStatus = onCall({ cors: true }, async (request) => {
   });
 
   const counts = {
-    sent: invites.filter((i) => i.status === "sent").length,
-    signedUp: invites.filter((i) => i.status === "signed_up").length,
-    rewarded: invites.filter((i) => i.status === "rewarded").length,
+    sent: allInvites.filter((i) => i.status === "sent").length,
+    signedUp: allInvites.filter((i) => i.status === "signed_up").length,
+    rewarded: allInvites.filter((i) => i.status === "rewarded").length,
   };
+
+  const INVITE_PAGE_SIZE = 100;
+  const invites = allInvites.slice(0, INVITE_PAGE_SIZE);
+  const truncated = allInvites.length > INVITE_PAGE_SIZE;
 
   // referral_rewards is the authoritative cap ledger: grantReferralCredit
   // reserves a slot there inside the same transaction that claims the invite.
@@ -319,10 +341,16 @@ export const getReferralStatus = onCall({ cors: true }, async (request) => {
     0,
     DAILY_INVITE_LIMIT - (sameDay ? (quota?.sentToday ?? 0) : 0),
   );
+  const quotaRemainingLifetime = Math.max(
+    0,
+    LIFETIME_INVITE_LIMIT - (quota?.sentLifetime ?? 0),
+  );
 
   return {
     eligible,
+    ineligibleReason,
     invites,
+    truncated,
     counts,
     monthsEarned: usedThisYear,
     cap: {
@@ -331,5 +359,6 @@ export const getReferralStatus = onCall({ cors: true }, async (request) => {
       remaining: Math.max(0, REWARD_CAP_PER_YEAR - usedThisYear),
     },
     quotaRemainingToday,
+    quotaRemainingLifetime,
   };
 });

@@ -17,6 +17,8 @@ const status = (over: Record<string, unknown> = {}) => ({
     monthsEarned: 0,
     cap: { limit: 12, usedThisYear: 0, remaining: 12 },
     quotaRemainingToday: 20,
+    quotaRemainingLifetime: 200,
+    truncated: false,
     ...over,
   },
 });
@@ -75,6 +77,48 @@ describe("Referrals", () => {
     mockCallable.mockResolvedValue(status({ quotaRemainingToday: 0 }));
     renderPage();
     expect(await screen.findByRole("button", { name: /Send invites/i })).toBeDisabled();
+  });
+
+  it("says the feature is off rather than telling a paying member to upgrade", async () => {
+    mockCallable.mockResolvedValue(
+      status({ eligible: false, ineligibleReason: "disabled" }),
+    );
+    renderPage();
+    expect(await screen.findByText(/aren't switched on/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Upgrade/i })).not.toBeInTheDocument();
+  });
+
+  it("still prompts a free user to upgrade", async () => {
+    mockCallable.mockResolvedValue(
+      status({ eligible: false, ineligibleReason: "not_paid" }),
+    );
+    renderPage();
+    expect(await screen.findByRole("link", { name: /Upgrade/i })).toHaveAttribute(
+      "href",
+      "/pricing",
+    );
+  });
+
+  it("distinguishes the lifetime invite limit from the daily one", async () => {
+    mockCallable.mockResolvedValue(
+      status({ quotaRemainingToday: 20, quotaRemainingLifetime: 0 }),
+    );
+    renderPage();
+    expect(await screen.findByText(/doesn't reset/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Send invites/i })).toBeDisabled();
+  });
+
+  it("notes when the invite list is truncated", async () => {
+    mockCallable.mockResolvedValue(
+      status({
+        truncated: true,
+        invites: [
+          { email: "bob@acme.com", status: "sent", sentAt: "2026-07-01T00:00:00.000Z", rewardedAt: null },
+        ],
+      }),
+    );
+    renderPage();
+    expect(await screen.findByText(/100 most recent invites/i)).toBeInTheDocument();
   });
 
   it("lists sent invites with their status", async () => {

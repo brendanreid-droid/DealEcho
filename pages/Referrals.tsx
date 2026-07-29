@@ -12,11 +12,14 @@ interface Invite {
 
 interface ReferralStatus {
   eligible: boolean;
+  ineligibleReason?: "not_paid" | "disabled" | null;
   invites: Invite[];
+  truncated?: boolean;
   counts: { sent: number; signedUp: number; rewarded: number };
   monthsEarned: number;
   cap: { limit: number; usedThisYear: number; remaining: number };
   quotaRemainingToday: number;
+  quotaRemainingLifetime?: number;
 }
 
 interface InviteResult {
@@ -41,6 +44,7 @@ const RESULT_MESSAGES: Record<string, string> = {
   invalid: "Not a valid email address",
   self: "That's your own address",
   rate_limited: "Daily invite limit reached",
+  lifetime_limit: "You've used all your invites",
   send_failed: "We couldn't deliver this one",
 };
 
@@ -69,7 +73,10 @@ const Referrals: React.FC = () => {
 
   const atCap = !!status && status.cap.remaining <= 0;
   const noQuota = !!status && status.quotaRemainingToday <= 0;
-  const canSend = !!status?.eligible && !atCap && !noQuota;
+  // Distinct from noQuota: this one never resets, so the message must not
+  // imply waiting will help.
+  const noLifetimeQuota = !!status && status.quotaRemainingLifetime === 0;
+  const canSend = !!status?.eligible && !atCap && !noQuota && !noLifetimeQuota;
 
   const handleSend = async () => {
     const list = emails
@@ -127,24 +134,41 @@ const Referrals: React.FC = () => {
       </header>
 
       {!status.eligible ? (
-        <div className="p-6 bg-accent-50 rounded-card border border-accent/30 space-y-4">
-          <div className="flex items-center space-x-3 text-accent">
-            <Icon name="fa-crown" size={14} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              Sales Pro only
-            </span>
+        status.ineligibleReason === "disabled" ? (
+          // The feature flag is off. Telling a paying member to upgrade here
+          // would be flatly untrue - they already have the plan.
+          <div className="p-6 bg-slate-50 rounded-card border border-slate-200 space-y-3">
+            <div className="flex items-center space-x-3 text-slate-500">
+              <Icon name="fa-clock" size={14} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">
+                Not available yet
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Referrals aren't switched on right now. Nothing is wrong with your
+              account, and there's nothing you need to do. Check back soon.
+            </p>
           </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            Referrals are a Sales Pro benefit. Upgrade to start inviting
-            colleagues and earning free months.
-          </p>
-          <Link
-            to="/pricing"
-            className="block text-center bg-accent text-white py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all"
-          >
-            Upgrade to Sales Pro
-          </Link>
-        </div>
+        ) : (
+          <div className="p-6 bg-accent-50 rounded-card border border-accent/30 space-y-4">
+            <div className="flex items-center space-x-3 text-accent">
+              <Icon name="fa-crown" size={14} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">
+                Sales Pro only
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Referrals are a Sales Pro benefit. Upgrade to start inviting
+              colleagues and earning free months.
+            </p>
+            <Link
+              to="/pricing"
+              className="block text-center bg-accent text-white py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all"
+            >
+              Upgrade to Sales Pro
+            </Link>
+          </div>
+        )
       ) : (
         <>
           <div className="grid grid-cols-3 gap-4">
@@ -173,6 +197,13 @@ const Referrals: React.FC = () => {
               {" "}
               {status.cap.remaining} left this year.
             </p>
+
+            {noLifetimeQuota && (
+              <p className="text-[11px] text-amber-600">
+                You've used all of your invites. This one doesn't reset, so get
+                in touch if you need more.
+              </p>
+            )}
 
             {atCap && (
               <p className="text-[11px] text-amber-600">
@@ -227,6 +258,12 @@ const Referrals: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+              {status.truncated && (
+                <p className="p-4 pt-0 text-[11px] text-slate-400">
+                  Showing your 100 most recent invites. The totals above cover
+                  all of them.
+                </p>
+              )}
             </section>
           )}
         </>

@@ -96,16 +96,23 @@ export function dayKeyFor(now: Date): string {
   return now.toISOString().slice(0, 10);
 }
 
+/** Which ceiling stopped a send, so the UI can say something true about it. */
+export type QuotaLimit = "none" | "daily" | "lifetime";
+
 /**
  * Works out how many of `requested` invites may actually be sent, and the
  * counter state to persist. Pure so the caller can run it inside a Firestore
  * transaction, which is what makes the limit safe against concurrent calls.
+ *
+ * `limitedBy` matters for the message the user sees: telling someone who has
+ * exhausted their 200 lifetime invites to "try again tomorrow" sends them back
+ * to a wall that never moves.
  */
 export function nextQuotaState(
   prior: QuotaState | undefined,
   requested: number,
   now: Date,
-): { allowed: number; state: QuotaState } {
+): { allowed: number; state: QuotaState; limitedBy: QuotaLimit } {
   const dayKey = dayKeyFor(now);
   const sameDay = prior?.dayKey === dayKey;
   const sentToday = sameDay ? (prior?.sentToday ?? 0) : 0;
@@ -115,8 +122,16 @@ export function nextQuotaState(
   const lifetimeRoom = Math.max(0, LIFETIME_INVITE_LIMIT - sentLifetime);
   const allowed = Math.max(0, Math.min(requested, dailyRoom, lifetimeRoom));
 
+  // Lifetime wins ties: it is the permanent one, so it is the more useful
+  // thing to tell someone who is blocked by both at once.
+  let limitedBy: QuotaLimit = "none";
+  if (allowed < requested) {
+    limitedBy = lifetimeRoom <= dailyRoom ? "lifetime" : "daily";
+  }
+
   return {
     allowed,
+    limitedBy,
     state: {
       dayKey,
       sentToday: sentToday + allowed,

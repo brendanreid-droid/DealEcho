@@ -185,6 +185,27 @@ describe("nextQuotaState", () => {
     const out = nextQuotaState(prior, 5, now);
     expect(out.allowed).toBe(2);
     expect(out.state.sentToday).toBe(DAILY_INVITE_LIMIT);
+    expect(out.limitedBy).toBe("daily");
+  });
+
+  it("reports no limit when the whole request fits", () => {
+    expect(nextQuotaState(undefined, 3, now).limitedBy).toBe("none");
+  });
+
+  it("distinguishes the lifetime ceiling from the daily one", () => {
+    const prior = { dayKey: "2026-07-28", sentToday: 0, sentLifetime: LIFETIME_INVITE_LIMIT - 1 };
+    expect(nextQuotaState(prior, 5, now).limitedBy).toBe("lifetime");
+  });
+
+  it("reports lifetime when both ceilings are exhausted", () => {
+    const prior = {
+      dayKey: "2026-07-28",
+      sentToday: DAILY_INVITE_LIMIT,
+      sentLifetime: LIFETIME_INVITE_LIMIT,
+    };
+    const out = nextQuotaState(prior, 3, now);
+    expect(out.allowed).toBe(0);
+    expect(out.limitedBy).toBe("lifetime");
   });
 
   it("allows nothing once the daily limit is spent", () => {

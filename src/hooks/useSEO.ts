@@ -75,6 +75,10 @@ export const useSEO = ({
       }
       if (openGraph.image) {
         setMetaTag("property", "og:image", openGraph.image);
+        // index.html ships a static twitter:image for the site card. Without
+        // this, a page with its own og:image would still unfurl the site-wide
+        // one on Twitter/X.
+        setMetaTag("name", "twitter:image", openGraph.image);
       }
       if (openGraph.url) {
         setMetaTag("property", "og:url", openGraph.url);

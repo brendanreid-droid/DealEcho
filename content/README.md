@@ -40,6 +40,7 @@ No custom components.
 | `publishDate` | yes | `YYYY-MM-DD`. Future dates are treated as unpublished. |
 | `pillar` | no | Internal content-pillar number, not rendered. |
 | `keywords` | no | `<meta name="keywords">`. |
+| `ogImage` | no | Social card for LinkedIn/Twitter unfurls. Site-relative (`/blog/cards/x.png`, file lives in `public/`) or a full URL. Defaults to the site-wide `og-image.png`. 1200x630 works best. |
 | `schema` | no | Defaults to `BlogPosting`. |
 
 Values are a flat YAML subset: one `key: value` per line, quotes optional. No
@@ -52,6 +53,21 @@ nesting or lists — see `src/blog/frontmatter.mjs`.
 3. Open a PR, merge to `main`. Vercel deploys and `/blog/[slug]` goes live.
 
 A malformed post fails `npm run build` rather than shipping broken.
+
+### Sharing to LinkedIn
+
+Each post page has a "Share on LinkedIn" button. It opens LinkedIn's share
+sheet with the post URL UTM-tagged as campaign `blog-share`, so reader shares
+stay separable from the marketing team's own campaign posts (which use
+`<pillar>-week<NN>` — see `docs/UTM_SCHEME.md`).
+
+The card LinkedIn shows comes from the bot snapshot in `dist/seo/`, not the
+SPA: `LinkedInBot` is rewritten there by `vercel.json`. Set `ogImage` to give a
+post its own card image.
+
+LinkedIn caches unfurls aggressively. After publishing, run the URL through
+LinkedIn's Post Inspector once, or the first share's card is the one that
+sticks.
 
 ### Scheduling caveat
 

@@ -44,6 +44,23 @@ describe("parsePost", () => {
     expect(post.body).not.toContain("metaDescription");
   });
 
+  it("carries an optional ogImage through, undefined when omitted", () => {
+    expect(parsePost(VALID, "content/blog/g2-for-vendors-no-glassdoor-for-buying-teams.md").ogImage).toBeUndefined();
+
+    const withImage = parsePost(
+      `---
+slug: a
+title: A
+metaDescription: D
+publishDate: 2026-01-01
+ogImage: /blog/cards/a.png
+---
+body`,
+      "content/blog/a.md",
+    );
+    expect(withImage.ogImage).toBe("/blog/cards/a.png");
+  });
+
   it("defaults schema to BlogPosting when omitted", () => {
     const post = parsePost(
       `---

@@ -77,10 +77,15 @@ npm run type-check # Type checking only
 ```
 
 **Cloud Functions (from repo root):**
+
+`functions/` is a standalone npm package, not an npm workspace — the root
+`package.json` has no `workspaces` key, so `-w functions` fails. Use `--prefix`:
+
 ```bash
-npm run build -w functions        # Build functions
-npm run serve -w functions        # Local emulator
-npm run deploy -w functions       # Deploy to Firebase
+npm --prefix functions run build    # Build functions
+npm --prefix functions test         # Run function unit tests
+npm --prefix functions run serve    # Local emulator
+npm --prefix functions run deploy   # Deploy to Firebase
 ```
 
 **Git + Deploy:**

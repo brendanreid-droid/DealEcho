@@ -35,7 +35,12 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import { loadPublishedPosts } from "../src/blog/loadPosts.mjs";
-import { blogPostingSchema, blogIndexSchema, postUrl } from "../src/blog/seo.mjs";
+import {
+  blogPostingSchema,
+  blogIndexSchema,
+  postUrl,
+  ogImageUrl,
+} from "../src/blog/seo.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = resolve(__dirname, "..", "dist");
@@ -138,6 +143,15 @@ function buildSnapshot(baseHtml, route) {
   html = setOrInsertMeta(html, "name", "twitter:title", route.title);
   html = setOrInsertMeta(html, "name", "twitter:description", route.description);
 
+  // Per-route social card. Routes without one keep the site-wide og-image.png
+  // already in index.html. This is the copy LinkedIn actually reads — the bot
+  // rewrite sends LinkedInBot here, not to the SPA.
+  if (route.image) {
+    html = setOrInsertMeta(html, "property", "og:image", route.image);
+    html = setOrInsertMeta(html, "name", "twitter:image", route.image);
+    html = setOrInsertMeta(html, "property", "og:image:alt", route.title);
+  }
+
   // Canonical tag (site currently has none at all — see SEO audit finding).
   const canonicalTag = `<link rel="canonical" href="${SITE_URL}${route.path}" />`;
   html = /rel=["']canonical["']/i.test(html)
@@ -201,6 +215,7 @@ function blogRoutes(posts) {
       title: `${post.title} - Dealecho`,
       description: post.metaDescription,
       keywords: post.keywords,
+      image: ogImageUrl(post),
       schema: [blogPostingSchema(post)],
       bodyHtml:
         `<main><article>` +

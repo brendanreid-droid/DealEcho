@@ -4,7 +4,13 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useSEO } from "../src/hooks/useSEO";
 import { getPost, formatPublishDate } from "../src/blog/posts";
-import { blogPostingSchema, postUrl } from "../src/blog/seo.mjs";
+import {
+  blogPostingSchema,
+  postUrl,
+  ogImageUrl,
+  linkedInShareUrl,
+} from "../src/blog/seo.mjs";
+import Icon from "../src/components/Icon";
 import NotFound from "./NotFound";
 
 // Explicit element styling: this repo has no @tailwindcss/typography, and the
@@ -73,6 +79,7 @@ const PostBody: React.FC<{ post: NonNullable<ReturnType<typeof getPost>> }> = ({
       title: post.title,
       description: post.metaDescription,
       url: postUrl(post.slug),
+      image: ogImageUrl(post),
       type: "article",
     },
     schema: blogPostingSchema(post),
@@ -105,6 +112,21 @@ const PostBody: React.FC<{ post: NonNullable<ReturnType<typeof getPost>> }> = ({
             {post.body}
           </Markdown>
         </div>
+
+        <footer className="mt-12 pt-8 border-t border-slate-200 flex flex-wrap items-center gap-4">
+          <a
+            href={linkedInShareUrl(post)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-navy text-white font-bold text-sm rounded-control px-5 py-2.5 transition-colors hover:bg-navy-800"
+          >
+            <Icon name="fa-linkedin-in" size={14} />
+            <span>Share on LinkedIn</span>
+          </a>
+          <Link to="/blog" className="text-accent font-bold text-sm">
+            Read more posts
+          </Link>
+        </footer>
       </article>
     </div>
   );

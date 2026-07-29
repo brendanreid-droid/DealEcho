@@ -94,6 +94,7 @@ export function parsePost(raw, path) {
     publishDate: fields.publishDate,
     pillar: fields.pillar ? Number(fields.pillar) : undefined,
     keywords: fields.keywords || undefined,
+    ogImage: fields.ogImage || undefined,
     schema: fields.schema || "BlogPosting",
     body,
   };

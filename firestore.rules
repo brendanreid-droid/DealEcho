@@ -94,6 +94,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── Health checks ─────────────────────────────────────────────────────────
+    // Written by the daily runHealthCheck schedule (Admin SDK). Server-only:
+    // it records operational state, not user data. Admins read it through the
+    // adminGetHealthReport callable.
+    match /health_checks/{checkId} {
+      allow read, write: if false;
+    }
+
     // ── Referrals ─────────────────────────────────────────────────────────────
     // Written exclusively by Cloud Functions (Admin SDK, bypasses rules).
     // Closed to all clients: the document id IS the invite token, so any read

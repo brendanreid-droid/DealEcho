@@ -66,6 +66,10 @@ export {
 // Referral Program
 export { sendReferralInvites, claimReferral, getReferralStatus } from "./referrals/callables";
 
+// Monitoring: daily health check + one-off Stripe/Firestore reconciliation
+export { runHealthCheck, adminGetHealthReport } from "./monitoring/healthCheck";
+export { adminReconcileSubscriptions } from "./monitoring/reconcile";
+
 
 
 

@@ -51,6 +51,20 @@
       ]
     },
     {
+      "collectionGroup": "webhooks_debug",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "referral_invites",
       "queryScope": "COLLECTION",
       "fields": [

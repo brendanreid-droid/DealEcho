@@ -9,6 +9,7 @@ export interface ResolverInput {
 export interface ResolverDeps {
   lookupDomainCache(domain: string): Promise<CompanyRef | null>;
   saveDomainCache(domain: string, ref: CompanyRef): Promise<void>;
+  dropDomainCache(domain: string): Promise<void>;
   listCompanyNames(): Promise<CompanyRef[]>;
   canonicalizeViaAI(query: string): Promise<{ name: string; domain?: string } | null>;
 }
@@ -44,16 +45,31 @@ export async function resolveCompany(
   const usableDomain =
     input.domain && !isCrmHost(input.domain) ? registrableDomain(input.domain) : "";
 
-  if (usableDomain) {
-    const cached = await deps.lookupDomainCache(usableDomain);
-    if (cached) return cached;
-  }
-
   if (input.domain) {
-    const names = await deps.listCompanyNames();
+    // Loaded at most once per call, whether the cache validation or the AI
+    // fallback needs it.
+    let names: CompanyRef[] | null = null;
+    const loadNames = async (): Promise<CompanyRef[]> => (names ??= await deps.listCompanyNames());
+
+    if (usableDomain) {
+      const cached = await deps.lookupDomainCache(usableDomain);
+      if (cached) {
+        // A cache hit is a hint, not an answer. companyIds are regenerated when a
+        // company's reviews are recreated, so a mapping cached weeks ago can point
+        // at an id nothing references any more - which resolves "successfully" and
+        // then renders a card of zeros over a dead /company/<id> link.
+        //
+        // Return the LIVE ref rather than the cached one: the stored companyName
+        // goes stale too (casing, renames).
+        const live = (await loadNames()).find((n) => n.companyId === cached.companyId);
+        if (live) return live;
+        await deps.dropDomainCache(usableDomain);
+      }
+    }
+
     const ai = await deps.canonicalizeViaAI(input.domain);
     if (ai?.name) {
-      const match = bestNameMatch(ai.name, names);
+      const match = bestNameMatch(ai.name, await loadNames());
       if (match) {
         if (usableDomain) await deps.saveDomainCache(usableDomain, match);
         return match;

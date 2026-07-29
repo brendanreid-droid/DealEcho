@@ -11,6 +11,7 @@ function makeDeps(overrides: Partial<ResolverDeps> = {}): ResolverDeps {
   return {
     lookupDomainCache: vi.fn(async () => null),
     saveDomainCache: vi.fn(async () => {}),
+    dropDomainCache: vi.fn(async () => {}),
     listCompanyNames: vi.fn(async () => NAMES),
     canonicalizeViaAI: vi.fn(async () => null),
     ...overrides,
@@ -18,13 +19,49 @@ function makeDeps(overrides: Partial<ResolverDeps> = {}): ResolverDeps {
 }
 
 describe("resolveCompany", () => {
-  it("returns a cached domain hit without scanning names", async () => {
+  it("returns a cached domain hit whose companyId is still live", async () => {
     const deps = makeDeps({
       lookupDomainCache: vi.fn(async () => ({ companyId: "c1", companyName: "Datadog Inc" })),
     });
     const res = await resolveCompany({ domain: "www.datadoghq.com" }, deps);
     expect(res?.companyId).toBe("c1");
-    expect(deps.listCompanyNames).not.toHaveBeenCalled();
+    expect(deps.canonicalizeViaAI).not.toHaveBeenCalled();
+    expect(deps.dropDomainCache).not.toHaveBeenCalled();
+  });
+
+  it("prefers the live company name over a stale cached one", async () => {
+    // Cached casing/renames drift. The card must show what the reviews say.
+    const deps = makeDeps({
+      lookupDomainCache: vi.fn(async () => ({ companyId: "c1", companyName: "datadog inc" })),
+    });
+    const res = await resolveCompany({ domain: "www.datadoghq.com" }, deps);
+    expect(res?.companyName).toBe("Datadog Inc");
+  });
+
+  it("drops a cached mapping whose companyId no longer exists, then re-resolves", async () => {
+    // The Crown Resorts failure: companyIds are regenerated when reviews are
+    // recreated, so a stale mapping resolved "successfully" to an id with zero
+    // reviews behind it - a card of zeros over a dead /company/<id> link.
+    const deps = makeDeps({
+      lookupDomainCache: vi.fn(async () => ({ companyId: "dead-id", companyName: "Datadog Inc" })),
+      canonicalizeViaAI: vi.fn(async () => ({ name: "Datadog Inc" })),
+    });
+    const res = await resolveCompany({ domain: "www.datadoghq.com" }, deps);
+    expect(deps.dropDomainCache).toHaveBeenCalledWith("datadoghq.com");
+    expect(res?.companyId).toBe("c1");
+    expect(deps.saveDomainCache).toHaveBeenCalledWith(
+      "datadoghq.com",
+      expect.objectContaining({ companyId: "c1" }),
+    );
+  });
+
+  it("returns null when a stale mapping cannot be re-resolved", async () => {
+    const deps = makeDeps({
+      lookupDomainCache: vi.fn(async () => ({ companyId: "dead-id", companyName: "Best&Less" })),
+    });
+    const res = await resolveCompany({ domain: "bestandless.com.au" }, deps);
+    expect(deps.dropDomainCache).toHaveBeenCalledWith("bestandless.com.au");
+    expect(res).toBeNull();
   });
 
   it("ignores a CRM host and matches on the highlighted name", async () => {

@@ -45,6 +45,11 @@ export const lookupCompanyReviews = onCall(
           { merge: true },
         );
       },
+      async dropDomainCache(d) {
+        // Best-effort: a failed eviction must not fail the lookup. The resolver
+        // has already stopped trusting this entry for the current request.
+        await db.doc(`company_domains/${d}`).delete().catch(() => {});
+      },
       async listCompanyNames() {
         // Distinct {companyId, companyName} from public review_summaries.
         const snap = await db.collection("review_summaries").get();
@@ -85,6 +90,12 @@ export const lookupCompanyReviews = onCall(
       .get();
     const sums = sumSnap.docs.map((d) => d.data());
     const reviewCount = sums.length;
+    // Defence in depth behind the resolver's cache validation. Every company the
+    // resolver knows about is derived from review_summaries, so zero summaries
+    // means the match is not real - and "matched" with nothing behind it renders
+    // a card of zeros linking to a company page that does not exist. Prefer the
+    // honest "no reviews yet" state and its CTA.
+    if (reviewCount === 0) return { matched: false, isPro };
     const avg = (key: string) =>
       reviewCount ? sums.reduce((a, s) => a + ((s[key] as number) || 0), 0) / reviewCount : 0;
     const ratingKeys = ["communicationRating", "negotiationLevel", "timeWasterLevel", "clarityOfScope"];

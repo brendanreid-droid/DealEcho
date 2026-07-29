@@ -48,11 +48,21 @@ nesting or lists — see `src/blog/frontmatter.mjs`.
 
 ### Publishing a post
 
-1. Copy the approved file to `content/blog/[slug].md`.
-2. Set `publishDate`.
-3. Open a PR, merge to `main`. Vercel deploys and `/blog/[slug]` goes live.
+**From the Admin panel (usual way).** Admin > Blog. Paste the approved copy in,
+fill the fields, hit Publish. That calls `adminPublishBlogPost`, which commits
+this file to `main` for you; Vercel deploys and the post is live in about two
+minutes. Existing posts can be loaded back into the form and updated.
 
-A malformed post fails `npm run build` rather than shipping broken.
+Requires `GITHUB_CONTENT_TOKEN` set as a GitHub Actions secret (a fine-grained
+PAT scoped to this repo with `Contents: read and write`). Without it, publishing
+returns a clear "not configured" error and nothing else breaks.
+
+**By hand.** Drop the file at `content/blog/[slug].md`, set `publishDate`,
+commit and push. Same result; the Admin panel is just a form over this.
+
+A malformed post fails `npm run build` rather than shipping broken. The Admin
+form validates the same rules up front so you find out at the form, not at the
+deploy.
 
 ### Sharing to LinkedIn
 

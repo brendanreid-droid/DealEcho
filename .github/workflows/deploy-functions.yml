@@ -37,6 +37,7 @@ jobs:
         run: |
           echo "FRONTEND_URL=https://dealecho.io" >> functions/.env
           echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> functions/.env
+          echo "GITHUB_CONTENT_TOKEN=${{ secrets.GITHUB_CONTENT_TOKEN }}" >> functions/.env
 
       - name: Build functions
         run: npm run build
@@ -91,6 +92,12 @@ jobs:
 
       - name: Deploy monitoring functions
         run: firebase deploy --only functions:runHealthCheck,functions:adminGetHealthReport,functions:adminReconcileSubscriptions --force
+
+      - name: Wait
+        run: sleep 30
+
+      - name: Deploy blog functions
+        run: firebase deploy --only functions:adminPublishBlogPost,functions:adminListBlogPosts,functions:adminGetBlogPost --force
  
 
 

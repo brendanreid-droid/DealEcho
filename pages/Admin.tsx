@@ -5,6 +5,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth } from "../src/firebase/config";
 import { useAuth } from "../src/hooks/useAuth";
 import { Navigate } from "react-router-dom";
+import BlogEditor from "../src/components/admin/BlogEditor";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type UserRole = "free" | "paid" | "admin" | "free_full" | "enterprise";
@@ -37,7 +38,29 @@ interface AdminReview {
   moderatedAt?: string;
 }
 
-type Tab = "users" | "content" | "flagged" | "pricing" | "newsletter" | "marketing";
+type Tab = "users" | "content" | "flagged" | "pricing" | "newsletter" | "marketing" | "blog";
+
+const TABS: Tab[] = ["users", "content", "flagged", "pricing", "newsletter", "marketing", "blog"];
+
+const TAB_ICON: Record<Tab, string> = {
+  users: "fa-users",
+  content: "fa-comment-alt",
+  flagged: "fa-shield-alt",
+  pricing: "fa-tags",
+  newsletter: "fa-paper-plane",
+  marketing: "fa-chart-line",
+  blog: "fa-edit",
+};
+
+const TAB_LABEL: Record<Tab, string> = {
+  users: "Users",
+  content: "Reviews",
+  flagged: "Flagged",
+  pricing: "Pricing",
+  newsletter: "Newsletter",
+  marketing: "Marketing",
+  blog: "Blog",
+};
 
 // ── Marketing attribution report ──────────────────────────────────────────────
 interface AcquisitionRow {
@@ -894,7 +917,7 @@ const Admin: React.FC = () => {
 
         {/* Tab bar */}
         <div className="flex flex-wrap bg-white/5 border border-white/10 rounded-2xl p-1 w-fit mb-6">
-          {(["users", "content", "flagged", "pricing", "newsletter", "marketing"] as Tab[]).map((t) => (
+          {TABS.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -904,34 +927,12 @@ const Admin: React.FC = () => {
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              <Icon
-                name={
-                  t === "users"
-                    ? "fa-users"
-                    : t === "content"
-                      ? "fa-comment-alt"
-                      : t === "flagged"
-                        ? "fa-shield-alt"
-                        : t === "pricing"
-                          ? "fa-tags"
-                          : t === "newsletter"
-                            ? "fa-paper-plane"
-                            : "fa-chart-line"
-                }
-                className="mr-2 inline-block"
-                size={14}
-              />
+              <Icon name={TAB_ICON[t]} className="mr-2 inline-block" size={14} />
               {t === "users"
                 ? `Users (${stats.total})`
                 : t === "content"
                   ? `Reviews (${stats.reviews})`
-                  : t === "flagged"
-                    ? `Flagged`
-                    : t === "pricing"
-                      ? "Pricing"
-                      : t === "newsletter"
-                        ? "Newsletter"
-                        : "Marketing"}
+                  : TAB_LABEL[t]}
               {t === "flagged" && stats.flagged > 0 && (
                 <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0a0f1e]">
                   {stats.flagged}
@@ -1147,6 +1148,9 @@ const Admin: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* ── BLOG TAB ── */}
+        {tab === "blog" && <BlogEditor />}
 
         {/* ── MARKETING TAB ── */}
         {tab === "marketing" && (

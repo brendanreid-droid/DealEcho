@@ -70,6 +70,13 @@ export { sendReferralInvites, claimReferral, getReferralStatus } from "./referra
 export { runHealthCheck, adminGetHealthReport } from "./monitoring/healthCheck";
 export { adminReconcileSubscriptions } from "./monitoring/reconcile";
 
+// Blog: publish posts from the Admin panel by committing markdown to the repo
+export {
+  adminPublishBlogPost,
+  adminListBlogPosts,
+  adminGetBlogPost,
+} from "./blog/publishPost";
+
 
 
 

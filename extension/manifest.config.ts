@@ -1,6 +1,30 @@
 import { defineManifest } from "@crxjs/vite-plugin";
+import { readFileSync, existsSync } from "node:fs";
+
+/**
+ * The Web Store item's public key, which pins the extension ID.
+ *
+ * Without it, a locally loaded build gets a random ID that differs from the
+ * published one - and since chrome.identity.getRedirectURL() derives the OAuth
+ * redirect URI from that ID, dev and store builds need separately registered
+ * URIs, which is how the redirect_uri_mismatch on launch day happened. With it,
+ * an unpacked build loads as khcgfhbpiinaaanphfoefbamkbcjffpb and shares the
+ * store build's redirect URI.
+ *
+ * The key is public (Chrome ships it inside every published .crx), so it is
+ * safe in source control. It lives in a file rather than inline only because it
+ * is 400+ characters of base64 that nobody should have to scroll past.
+ *
+ * Get it from: Web Store dashboard → the item → Package → "View public key".
+ * Paste the base64 body (no BEGIN/END lines, no newlines) into extension-key.txt.
+ */
+const KEY_FILE = new URL("./extension-key.txt", import.meta.url).pathname;
+const publicKey = existsSync(KEY_FILE) ? readFileSync(KEY_FILE, "utf8").trim() : "";
 
 export default defineManifest({
+  // Omitted rather than empty when absent: an empty `key` is a manifest error,
+  // and a build without it still works - it just gets an unstable ID.
+  ...(publicKey ? { key: publicKey } : {}),
   manifest_version: 3,
   name: "Dealecho - Sales Intelligence",
   version: "0.1.2",

@@ -34,6 +34,17 @@ export function statusColor(status: string): string {
   return theme.sub;
 }
 
+/**
+ * Account-flag colour. Mirrors FlagCard on the site: polarity wins over
+ * severity, so a strength is always green no matter how it was graded.
+ */
+export function flagColor(polarity: "risk" | "strength", severity: string): string {
+  if (polarity === "strength") return theme.healthy;
+  if (severity === "critical") return theme.risk;
+  if (severity === "caution") return theme.caution;
+  return theme.sub;
+}
+
 /** The dealecho logo lockup — icon mark + wordmark, matching the brand SVG. */
 export function Wordmark({ height = 28 }: { height?: number }) {
   return (

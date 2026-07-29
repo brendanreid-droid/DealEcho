@@ -36,13 +36,33 @@ export interface LookupReview {
   tcvBracket?: string;
 }
 
+/**
+ * One finding about how this buyer buys. Mirrors AccountFlag on the server.
+ *
+ * Free callers receive `label`, `severity` and `polarity` only — the server
+ * blanks `stat`, `qualify` and `reviewIds` before responding, so the panel must
+ * treat an empty `stat` as normal rather than as missing data.
+ */
+export interface LookupFlag {
+  id: string;
+  label: string;
+  severity: "critical" | "caution" | "watch";
+  /** Evidence line, e.g. "4 of 6 deals". Empty for free callers. */
+  stat: string;
+  qualify: string[];
+  reviewIds: string[];
+  polarity: "risk" | "strength";
+}
+
 export interface LookupResult {
   matched: boolean;
   isPro: boolean;
   companyId?: string;
   companyName?: string;
   summary?: LookupSummary;
-  persona?: { summary?: string } | null;
+  /** Derived from schema v2 fields server-side. Same engine as the company card. */
+  risks?: LookupFlag[];
+  strengths?: LookupFlag[];
   recentReviews?: LookupReview[];
   /** Domain safe to derive a favicon from; null/absent = show initials avatar. */
   matchedDomain?: string | null;

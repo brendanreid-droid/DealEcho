@@ -1,7 +1,6 @@
 import { CSSProperties, Fragment, ReactNode, useState } from "react";
-import { LookupResult, MetricScores, issueCustomToken } from "../lib/api";
-import { theme, healthColor, statusColor } from "./theme";
-import { buildFlags, FLAG_LABELS } from "./flags";
+import { LookupResult, LookupFlag, MetricScores, issueCustomToken } from "../lib/api";
+import { theme, healthColor, statusColor, flagColor } from "./theme";
 import { CompanyLogo } from "./CompanyLogo";
 
 const CARD_URL = "https://www.dealecho.io";
@@ -103,6 +102,33 @@ function Section({ label, color, children }: { label: string; color: string; chi
   );
 }
 
+/**
+ * One group of account flags, matching the site's "Watch for" / "In your
+ * favour" headings so a rep reading both sees the same findings under the same
+ * names. The qualification points stay on the full card - at 300px they would
+ * bury the findings, and the footer already links there.
+ */
+function FlagGroup({ label, flags, color }: { label: string; flags: LookupFlag[]; color: string }) {
+  if (flags.length === 0) return null;
+  return (
+    <Section label={label} color={color}>
+      {flags.map((f) => (
+        <div key={f.id} style={{ display: "flex", gap: 8, alignItems: "baseline", marginBottom: 3 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: flagColor(f.polarity, f.severity) }}>
+            {f.label}
+          </span>
+          {/* Blank for free callers - the server strips it, so render nothing. */}
+          {f.stat && (
+            <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 10, color: theme.sub }}>
+              {f.stat}
+            </span>
+          )}
+        </div>
+      ))}
+    </Section>
+  );
+}
+
 function NoMatchView({ reviewUrl }: { reviewUrl: string }) {
   const [busy, setBusy] = useState(false);
 
@@ -146,9 +172,10 @@ export function ReviewsView({
     return <NoMatchView reviewUrl={baseReviewUrl} />;
   }
 
-  const { companyName, summary, persona, isPro, recentReviews, companyId } = result;
-  // Red flags from the available reviews (Pro sees the review set; same rules as the site).
-  const flags = isPro && recentReviews ? buildFlags(recentReviews) : [];
+  const { companyName, summary, isPro, recentReviews, companyId } = result;
+  const risks = result.risks ?? [];
+  const strengths = result.strengths ?? [];
+  const flagCount = risks.length + strengths.length;
 
   return (
     <div
@@ -225,24 +252,8 @@ export function ReviewsView({
         </table>
       )}
 
-      {persona?.summary && (
-        <Section label="Buyer persona" color={theme.accent}>
-          <div style={{ fontSize: 11, lineHeight: 1.5, color: theme.ink }}>{persona.summary}</div>
-        </Section>
-      )}
-
-      {flags.length > 0 && (
-        <Section label={`⚑ ${flags.length} red flag${flags.length !== 1 ? "s" : ""}`} color={theme.risk}>
-          {flags.map((f) => (
-            <div key={f.type} style={{ fontSize: 11, color: theme.ink, marginBottom: 3 }}>
-              {FLAG_LABELS[f.type]} · <span style={{ color: theme.sub }}>{f.severity} · {f.reviewIds.length} report{f.reviewIds.length !== 1 ? "s" : ""}</span>
-              {f.evidence && (
-                <div style={{ fontSize: 10, fontStyle: "italic", color: theme.sub }}>"{f.evidence}"</div>
-              )}
-            </div>
-          ))}
-        </Section>
-      )}
+      <FlagGroup label="Watch for" flags={risks} color={theme.risk} />
+      <FlagGroup label="In your favour" flags={strengths} color={theme.healthy} />
 
       {isPro ? (
         (recentReviews ?? []).length > 0 && (
@@ -282,7 +293,10 @@ export function ReviewsView({
       ) : (
         <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10 }}>
           <a href="https://www.dealecho.io/pricing" target="_blank" rel="noreferrer" style={primaryBtn}>
-            Upgrade to see reviews →
+            {/* Count comes from the server, so the promise matches what is behind it. */}
+            {flagCount > 0
+              ? `Unlock ${flagCount} flag${flagCount !== 1 ? "s" : ""} and the reviews →`
+              : "Upgrade to see reviews →"}
           </a>
         </div>
       )}

@@ -6,14 +6,49 @@ import { resolveCompany, ResolverDeps } from "./resolver";
 import { logoDomain } from "./domains";
 import { CompanyRef } from "./matching";
 import { isProRole } from "./gating";
-import { getOrCreatePersona } from "./personaCache";
-import { stripEmDashes, stripEmDashesDeep } from "../lib/text";
+import { getDealMechanics } from "../dealMechanics";
+import { getStructuredFlags, groupFlags, redactFlag } from "../structuredFlags";
+import {
+  AccountFlag,
+  CorpusEntry,
+  corpusFingerprint,
+  validateAiFlags,
+  isApproved,
+  MAX_CORPUS_REVIEWS,
+} from "../accountFlags";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
-const PERSONA_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+/**
+ * Free-text flags from the shared cache that getAccountFlags fills, or none.
+ *
+ * Read-only on purpose. Generating here would put a Gemini call in front of
+ * every panel lookup, and would race the profile page for the same cache slot.
+ * The fingerprint check is the same one the callable uses: a corpus that has
+ * changed since the flags were generated invalidates them, so the panel never
+ * cites a review that has since been edited or removed.
+ */
+async function readCachedAiFlags(companyId: string, reviews: any[]): Promise<AccountFlag[]> {
+  const corpus: CorpusEntry[] = reviews
+    .filter(
+      (d) => isApproved(d) && typeof d.content === "string" && d.content.trim().length > 0,
+    )
+    .slice(0, MAX_CORPUS_REVIEWS)
+    .map((d) => ({ id: d.id, content: String(d.content).trim() }));
+  if (corpus.length === 0) return [];
+
+  try {
+    const snap = await db.doc(`account_flags/${companyId}`).get();
+    const cached = snap.exists ? snap.data() : null;
+    if (!cached || cached["fingerprint"] !== corpusFingerprint(corpus)) return [];
+    return validateAiFlags(cached["flags"], corpus.map((c) => c.id));
+  } catch (err) {
+    console.error(`AI flag cache read failed for ${companyId}:`, err);
+    return [];
+  }
+}
 
 export const lookupCompanyReviews = onCall(
   { cors: true, secrets: [GEMINI_API_KEY] },
@@ -117,63 +152,42 @@ export const lookupCompanyReviews = onCall(
       },
     };
 
-    // ── Persona (cached) ────────────────────────────────────────────────────
-    // Degrade gracefully: a persona/Firestore failure should not fail the whole
-    // lookup — the rep still gets the summary (and reviews, if Pro).
-    let persona: unknown = null;
-    if (ai && reviewCount > 0) {
-      try {
-        // stripEmDashesDeep also covers personas cached before the copy rule existed.
-        persona = stripEmDashesDeep(await getOrCreatePersona(company.companyId, reviewCount, {
-          ttlMs: PERSONA_TTL_MS,
-          now: () => Date.now(),
-          async read(id) {
-            const s = await db.doc(`personas/${id}`).get();
-            return s.exists ? (s.data() as any) : null;
-          },
-          async write(id, entry) {
-            await db.doc(`personas/${id}`).set(entry, { merge: true });
-          },
-          async generate(_companyId) {
-            // Feed the actual review excerpts; without them Gemini replies
-            // "please provide the review". Excerpts come from public review_summaries.
-            const lines = sums
-              .map((s) => (typeof s.excerpt === "string" ? s.excerpt.trim() : ""))
-              .filter(Boolean)
-              .map((e) => `- ${e}`);
-            const corpus = lines.length ? lines.join("\n") : "(no review text available)";
-            const resp = await ai.models.generateContent({
-              model: "gemini-2.5-flash",
-              contents:
-                `You are a B2B sales strategist. Based only on these ${reviewCount} seller-submitted ` +
-                `review excerpt(s) about selling to "${company.companyName}", write a 2-3 sentence ` +
-                `buyer-behaviour summary for a sales rep. Do NOT ask for more information - if the ` +
-                `evidence is thin, summarise what's available and note it's from limited reports. ` +
-                `Plain text only. Use plain hyphens, never em dashes.\n\nReviews:\n${corpus}`,
-            });
-            return { summary: stripEmDashes((resp.text ?? "").trim()) };
-          },
-        }));
-      } catch (err) {
-        console.error(`Persona generation failed for ${company.companyId}:`, err);
-      }
-    }
-
-    // ── Recent reviews (Pro only) ───────────────────────────────────────────
+    // ── Flags + recent reviews ──────────────────────────────────────────────
+    // One read of the review set serves both. Every caller needs it: the
+    // mechanics run over the whole corpus, and free callers need the flag COUNT
+    // to make the upgrade CTA honest even though they cannot see the detail.
+    //
+    // Degrade gracefully throughout: a Firestore or mechanics failure should
+    // cost the flags, not the whole lookup — the rep still gets the summary.
+    let risks: AccountFlag[] = [];
+    let strengths: AccountFlag[] = [];
     let recentReviews: any[] | undefined;
-    if (isPro) {
-      try {
-        const revSnap = await db
-          .collection("reviews")
-          .where("companyId", "==", company.companyId)
-          .get();
-        recentReviews = revSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+
+    try {
+      const revSnap = await db
+        .collection("reviews")
+        .where("companyId", "==", company.companyId)
+        .get();
+      const reviews = revSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+
+      if (isPro) {
+        recentReviews = [...reviews]
+          .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
           .slice(0, 3);
-      } catch (err) {
-        console.error(`Recent reviews fetch failed for ${company.companyId}:`, err);
       }
+
+      const mechanics = getDealMechanics(reviews);
+      const structured = mechanics ? getStructuredFlags(mechanics) : [];
+
+      // Read-only on the AI cache: generation belongs to getAccountFlags, and a
+      // panel lookup must not sit behind a Gemini call. A company nobody has
+      // opened on the site yet shows structured flags alone, which is the
+      // deterministic majority of the bank.
+      const aiFlags = await readCachedAiFlags(company.companyId, reviews);
+
+      ({ risks, strengths } = groupFlags(structured, aiFlags));
+    } catch (err) {
+      console.error(`Flag assembly failed for ${company.companyId}:`, err);
     }
 
     return {
@@ -183,7 +197,11 @@ export const lookupCompanyReviews = onCall(
       companyName: company.companyName,
       matchedDomain: logoDomain(domain, name),
       summary,
-      persona,
+      // Free callers get labels and polarity only. Stripped server-side rather
+      // than hidden client-side: `stat` and `reviewIds` are the paid product,
+      // and shipping them to a free client puts them one devtools tab away.
+      risks: isPro ? risks : risks.map(redactFlag),
+      strengths: isPro ? strengths : strengths.map(redactFlag),
       recentReviews,
     };
   },

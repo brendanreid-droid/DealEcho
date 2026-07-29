@@ -14,7 +14,7 @@
 //
 // Auth: admin custom claim required, same guard as the rest of the admin
 // surface. The GitHub token is server-side only (functions/.env, written by CI
-// from the GITHUB_CONTENT_TOKEN secret) and never reaches the client.
+// from the BLOG_CONTENT_TOKEN secret) and never reaches the client.
 
 import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import { validatePostInput, serializePost, PostInput } from "./postFile";
@@ -35,11 +35,11 @@ function requireAdmin(request: CallableRequest<any>): string {
 }
 
 function githubToken(): string {
-  const token = process.env.GITHUB_CONTENT_TOKEN;
+  const token = process.env.BLOG_CONTENT_TOKEN;
   if (!token) {
     throw new HttpsError(
       "failed-precondition",
-      "GITHUB_CONTENT_TOKEN is not configured on the server. Publishing is unavailable until it is set.",
+      "BLOG_CONTENT_TOKEN is not configured on the server. Publishing is unavailable until it is set.",
     );
   }
   return token;

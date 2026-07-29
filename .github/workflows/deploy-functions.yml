@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "FRONTEND_URL=https://dealecho.io" >> functions/.env
           echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> functions/.env
-          echo "GITHUB_CONTENT_TOKEN=${{ secrets.GITHUB_CONTENT_TOKEN }}" >> functions/.env
+          echo "BLOG_CONTENT_TOKEN=${{ secrets.BLOG_CONTENT_TOKEN }}" >> functions/.env
 
       - name: Build functions
         run: npm run build

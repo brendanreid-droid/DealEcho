@@ -53,7 +53,7 @@ fill the fields, hit Publish. That calls `adminPublishBlogPost`, which commits
 this file to `main` for you; Vercel deploys and the post is live in about two
 minutes. Existing posts can be loaded back into the form and updated.
 
-Requires `GITHUB_CONTENT_TOKEN` set as a GitHub Actions secret (a fine-grained
+Requires `BLOG_CONTENT_TOKEN` set as a GitHub Actions secret (a fine-grained
 PAT scoped to this repo with `Contents: read and write`). Without it, publishing
 returns a clear "not configured" error and nothing else breaks.
 

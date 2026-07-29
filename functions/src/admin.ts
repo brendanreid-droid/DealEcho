@@ -8,6 +8,7 @@ import { sendReactEmail } from "./lib/email";
 import * as React from "react";
 import { InviteEmail } from "./emails/InviteEmail";
 import { NewsletterEmail } from "./emails/NewsletterEmail";
+import { AUTH_ACTION_URL } from "./lib/constants";
 
 type UserRole = "free" | "paid" | "admin" | "free_full" | "enterprise";
 
@@ -323,14 +324,29 @@ export const adminCreateUser = onCall(
         createdAt: new Date().toISOString(),
       });
 
-      // 1. Create the user in Firebase Auth
-      const userRecord = await auth.createUser({
-        email,
-        displayName,
-        emailVerified: true,
-      });
+      // 1. Create the user in Firebase Auth, or adopt a stranded one.
+      // See decideInviteTarget: a previous invite that failed after creating the
+      // account leaves an address that can never be re-invited otherwise.
+      const existing = await auth.getUserByEmail(email).catch(() => null);
+      const target = decideInviteTarget(
+        existing ? { uid: existing.uid, lastSignInTime: existing.metadata.lastSignInTime } : null,
+      );
 
-      const uid = userRecord.uid;
+      let uid: string;
+      if (target.mode === "adopt") {
+        uid = target.uid;
+        console.log(`Re-inviting ${email}: adopting stranded account ${uid} (never signed in).`);
+        // Bring the record in line with what this invite asked for; the earlier
+        // attempt may have set a different name or role before it failed.
+        await auth.updateUser(uid, { displayName, emailVerified: true });
+      } else {
+        const userRecord = await auth.createUser({
+          email,
+          displayName,
+          emailVerified: true,
+        });
+        uid = userRecord.uid;
+      }
 
       // 2. Set custom claims
       const tier =
@@ -366,7 +382,9 @@ export const adminCreateUser = onCall(
         },
       };
 
-      await db.collection("users").doc(uid).set(userData);
+      // merge: an adopted account already has a user doc, and its createdAt
+      // should not be rewritten by the re-invite.
+      await db.collection("users").doc(uid).set(userData, { merge: true });
 
       // 3b. If enterprise, create team and override claims with teamId/teamRole
       if (role === "enterprise") {
@@ -402,9 +420,8 @@ export const adminCreateUser = onCall(
       }
 
       // 4. Generate password reset link
-      const actionCodeSettings = {
-        url: process.env.FRONTEND_URL ?? "https://dealecho.io",
-      };
+      // Must be an allowlisted domain - see AUTH_ACTION_URL.
+      const actionCodeSettings = { url: AUTH_ACTION_URL };
       const setupLink = await auth.generatePasswordResetLink(email, actionCodeSettings);
 
       // 5. Send Invite Email via Resend
@@ -436,6 +453,9 @@ export const adminCreateUser = onCall(
       };
     } catch (err: any) {
       console.error("Error manually creating user:", err);
+      // Already-typed failures (e.g. already-exists) carry a message the admin
+      // can act on; flattening them into "internal" throws that away.
+      if (err instanceof HttpsError) throw err;
       throw new HttpsError("internal", err.message || "Failed to create user.");
     }
   }
@@ -650,3 +670,31 @@ export const adminSendNewsletter = onCall(
     return { success: true, sentCount, isTest: false };
   }
 );
+
+// ── Invite recovery ───────────────────────────────────────────────────────────
+/**
+ * Decide what to do when the invited address already has an Auth account.
+ *
+ * adminCreateUser creates the Auth user BEFORE it can generate a setup link -
+ * the link needs the account to exist. So any later failure (a non-allowlisted
+ * continue URL, a Resend outage) leaves an account with no invite, and the
+ * obvious fix of retrying used to die on auth/email-already-exists. The invite
+ * became unrepeatable at exactly the moment it had half-succeeded.
+ *
+ * An account that has NEVER signed in is safe to adopt: there is no session and
+ * no data to clobber, and the admin is deliberately inviting this address. One
+ * that HAS signed in belongs to a real person, so it is refused - with a code
+ * the UI can render, rather than a 500.
+ */
+export function decideInviteTarget(
+  existing: { uid: string; lastSignInTime?: string | null } | null,
+): { mode: "create" } | { mode: "adopt"; uid: string } {
+  if (!existing) return { mode: "create" };
+  if (existing.lastSignInTime) {
+    throw new HttpsError(
+      "already-exists",
+      "An active account already uses that email address.",
+    );
+  }
+  return { mode: "adopt", uid: existing.uid };
+}

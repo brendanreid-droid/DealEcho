@@ -7,7 +7,10 @@ import { Review } from "../../../types";
 // The hook reads the caller's own vote from Firestore and toggles via a
 // callable. Both are stubbed: this file is about what the list renders and
 // which votes it permits, not about transport.
-const getDoc = vi.fn(async () => ({ exists: () => false }));
+// Return type annotated, not inferred: without it vi.fn narrows `exists` to
+// `() => false` from this default and a test that overrides it to true fails
+// to typecheck.
+const getDoc = vi.fn(async (): Promise<{ exists: () => boolean }> => ({ exists: () => false }));
 const callable = vi.fn(async () => ({ data: { helpful: true, helpfulCount: 3 } }));
 
 vi.mock("firebase/firestore", () => ({

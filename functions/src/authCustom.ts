@@ -3,6 +3,7 @@ import { auth, db } from "./lib/firebaseAdmin";
 import { sendReactEmail } from "./lib/email";
 import * as React from "react";
 import { ResetPasswordEmail } from "./emails/ResetPasswordEmail";
+import { AUTH_ACTION_URL } from "./lib/constants";
 
 /**
  * Generates a secure, standard Firebase password reset link and dispatches
@@ -52,9 +53,8 @@ export const sendCustomPasswordResetEmail = onCall(
       }
 
       // 3. Generate a secure, standard Firebase password reset link
-      const actionCodeSettings = {
-        url: process.env.FRONTEND_URL ?? "https://dealecho.io",
-      };
+      // Must be an allowlisted domain - see AUTH_ACTION_URL.
+      const actionCodeSettings = { url: AUTH_ACTION_URL };
       const resetLink = await auth.generatePasswordResetLink(emailTrimmed, actionCodeSettings);
 
       // 4. Send the branded ResetPasswordEmail via Resend

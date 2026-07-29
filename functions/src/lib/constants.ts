@@ -7,6 +7,18 @@ export const ENTERPRISE_PRICE_ENV = 'STRIPE_ENTERPRISE_PRICE_ID';
  * logo — and every other link — points straight at www to avoid the hop.
  */
 export const APP_URL = "https://www.dealecho.io";
+
+/**
+ * Continue URL for Firebase Auth action links (password reset, invites).
+ *
+ * MUST be a domain on the project's Authorized Domains list, or
+ * generatePasswordResetLink throws auth/unauthorized-continue-uri. Only
+ * `www.dealecho.io` is listed - the apex `dealecho.io` is NOT, which is what
+ * broke admin invites and custom password resets. Deliberately not read from
+ * FRONTEND_URL: that variable is unset in CI and its apex default is the exact
+ * value that fails.
+ */
+export const AUTH_ACTION_URL = APP_URL;
 export const CONTROL_CENTRE_URL = `${APP_URL}/control-centre`;
 export const SEARCH_URL = `${APP_URL}/search`;
 

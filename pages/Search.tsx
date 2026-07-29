@@ -102,6 +102,7 @@ const Search: React.FC<SearchProps> = ({
           name: s.companyName,
           industry: s.industry,
           location: s.location,
+          domain: s.domain || "",
           count: 0,
           respTotal: 0,
           negTotal: 0,
@@ -111,6 +112,8 @@ const Search: React.FC<SearchProps> = ({
           excerpt: s.excerpt,
         };
       }
+      // Any one review of the company can supply the domain; legacy rows have none.
+      if (!stats[name].domain && s.domain) stats[name].domain = s.domain;
       stats[name].count++;
       stats[name].respTotal += s.communicationRating;
       stats[name].negTotal += s.negotiationLevel;
@@ -127,7 +130,7 @@ const Search: React.FC<SearchProps> = ({
       const avgNeg = c.negTotal / c.count;
       const avgWaste = c.wasteTotal / c.count;
       const avgScope = c.scopeTotal / c.count;
-      const domainGuess = guessDomainFromName(c.name);
+      const domainGuess = c.domain || guessDomainFromName(c.name);
       return {
         id: c.id,
         name: c.name,
@@ -164,10 +167,13 @@ const Search: React.FC<SearchProps> = ({
       if (!stats[name]) {
         stats[name] = {
           id: s.companyId, name: s.companyName, industry: s.industry, location: s.location,
+          domain: s.domain || "",
           count: 0, respTotal: 0, negTotal: 0, wasteTotal: 0, scopeTotal: 0,
           lastDate: s.createdAt, excerpt: s.excerpt,
         };
       }
+      // Any one review of the company can supply the domain; legacy rows have none.
+      if (!stats[name].domain && s.domain) stats[name].domain = s.domain;
       stats[name].count++;
       stats[name].respTotal += s.communicationRating;
       stats[name].negTotal += s.negotiationLevel;
@@ -184,7 +190,7 @@ const Search: React.FC<SearchProps> = ({
       .map((c) => {
         const avgResp = c.respTotal / c.count, avgNeg = c.negTotal / c.count,
           avgWaste = c.wasteTotal / c.count, avgScope = c.scopeTotal / c.count;
-        const domainGuess = guessDomainFromName(c.name);
+        const domainGuess = c.domain || guessDomainFromName(c.name);
         return {
           id: c.id, name: c.name, industry: c.industry, location: c.location,
           reports: c.count, excerpt: c.excerpt,

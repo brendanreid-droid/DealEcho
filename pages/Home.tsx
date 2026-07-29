@@ -48,8 +48,10 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
     reviewSummaries.forEach((s) => {
       const name = s.companyName;
       if (!stats[name]) {
-        stats[name] = { id: s.companyId, name: s.companyName, industry: s.industry, location: s.location, count: 0, respTotal: 0, negTotal: 0, wasteTotal: 0, scopeTotal: 0, lastDate: s.createdAt, excerpt: s.excerpt };
+        stats[name] = { id: s.companyId, name: s.companyName, industry: s.industry, location: s.location, domain: s.domain || "", count: 0, respTotal: 0, negTotal: 0, wasteTotal: 0, scopeTotal: 0, lastDate: s.createdAt, excerpt: s.excerpt };
       }
+      // Any one review of the company can supply the domain; legacy rows have none.
+      if (!stats[name].domain && s.domain) stats[name].domain = s.domain;
       stats[name].count++;
       stats[name].respTotal += s.communicationRating;
       stats[name].negTotal += s.negotiationLevel;
@@ -66,7 +68,7 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
         const avgResp = c.respTotal / c.count, avgNeg = c.negTotal / c.count, avgWaste = c.wasteTotal / c.count, avgScope = c.scopeTotal / c.count;
         return {
           id: c.id, name: c.name, industry: c.industry, location: c.location, reports: c.count, excerpt: c.excerpt,
-          logoUrl: companyLogoUrl({ name: c.name, domain: guessDomainFromName(c.name) }),
+          logoUrl: companyLogoUrl({ name: c.name, domain: c.domain || guessDomainFromName(c.name) }),
           healthIndex: Math.round(((avgResp + avgNeg + avgWaste + avgScope) / 20) * 100),
           responsiveness: Math.round(avgResp * 20), negotiation: Math.round(avgNeg * 20),
           buyerIntent: Math.round(avgWaste * 20), scopeClarity: Math.round(avgScope * 20),

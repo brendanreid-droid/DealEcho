@@ -23,6 +23,8 @@ export interface ReviewSummary {
   timeWasterLevel: number;
   clarityOfScope: number;
   excerpt: string; // Truncated content (~140 chars), safe to show
+  /** Company's own domain, mirrored from the review. Source for the logo; "" on legacy rows. */
+  domain?: string;
   createdAt: string;
 }
 

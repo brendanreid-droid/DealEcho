@@ -16,7 +16,12 @@ export async function signInWithGoogle(): Promise<void> {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
   if (!clientId) throw new Error("VITE_GOOGLE_CLIENT_ID not set in extension/.env");
 
-  const redirectUrl = chrome.identity.getRedirectURL();
+  // Path suffix, not the bare origin. getRedirectURL() with no argument returns
+  // "https://<id>.chromiumapp.org/" with a trailing slash, and the Google Cloud
+  // console strips that slash when you register it -- so the exact-string match
+  // at the auth endpoint always fails with redirect_uri_mismatch. A path segment
+  // registers verbatim and matches.
+  const redirectUrl = chrome.identity.getRedirectURL("oauth2");
 
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", clientId);

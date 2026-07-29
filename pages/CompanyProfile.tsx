@@ -73,13 +73,16 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
       // If we don't have a company state, or if the current company name is just the ID (placeholder) and we found a matching review
       if (!company || (company.name === company.id && matchingReview && matchingReview.companyName !== matchingReview.companyId)) {
         const name = matchingReview?.companyName || decodeURIComponent(companyId);
+        // Any review of this company may carry the domain; legacy ones do not.
+        const storedDomain = reviews.find((r) => r.companyId === companyId && r.domain)?.domain;
         setCompany({
           id: companyId,
           name: name,
+          domain: storedDomain,
           industry: "Technology",
           country: "Global",
           description: "Enterprise target account.",
-          logoUrl: companyLogoUrl({ name, domain: guessDomainFromName(name) }),
+          logoUrl: companyLogoUrl({ name, domain: storedDomain || guessDomainFromName(name) }),
         });
       }
     }

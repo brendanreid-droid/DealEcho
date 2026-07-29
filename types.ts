@@ -36,6 +36,8 @@ export interface Review {
   country: string;
   content: string;
   logoUrl?: string;
+  /** Company's own domain. Source for the derived logo; absent on legacy reviews. */
+  domain?: string;
   createdAt: string;
 
   // --- Schema v2 (2026-07). Absent on legacy reviews; set server-side. ---

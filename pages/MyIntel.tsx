@@ -156,7 +156,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
           industry: review.industry,
           count: 0,
           lastReviewDate: review.createdAt,
-          logoUrl: companyLogoUrl({ name: review.companyName, domain: guessDomainFromName(review.companyName) }),
+          logoUrl: companyLogoUrl({ name: review.companyName, domain: review.domain || guessDomainFromName(review.companyName) }),
         };
       }
       stats[id].count++;
@@ -431,7 +431,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
             {userReviews.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 {userReviews.map((review) => {
-                  const domainGuess = guessDomainFromName(review.companyName);
+                  const domainGuess = review.domain || guessDomainFromName(review.companyName);
                   const logoUrl = review.logoUrl || companyLogoUrl({ name: review.companyName, domain: domainGuess });
                   const avgScore = Math.round(
                     ((review.communicationRating +

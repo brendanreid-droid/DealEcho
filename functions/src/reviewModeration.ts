@@ -158,6 +158,9 @@ function toSummary(reviewId: string, data: FirebaseFirestore.DocumentData) {
     reviewId,
     companyId: data.companyId ?? "",
     companyName: data.companyName ?? "",
+    // Mirrored so free-tier and public reads can derive a logo too - the
+    // summaries are all an unauthenticated visitor ever sees.
+    domain: data.domain ?? "",
     industry: data.industry ?? "",
     country: data.country ?? "",
     location: data.location ?? "",

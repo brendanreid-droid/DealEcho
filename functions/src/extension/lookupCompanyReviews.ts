@@ -162,6 +162,7 @@ export const lookupCompanyReviews = onCall(
     let risks: AccountFlag[] = [];
     let strengths: AccountFlag[] = [];
     let recentReviews: any[] | undefined;
+    let storedDomain: string | null = null;
 
     try {
       const revSnap = await db
@@ -169,6 +170,10 @@ export const lookupCompanyReviews = onCall(
         .where("companyId", "==", company.companyId)
         .get();
       const reviews = revSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+      // The company's OWN domain, recorded on the review at submit time. Safe
+      // where the page domain is not: a name-path match came off a CRM or a
+      // news site, so logoDomain rightly refuses it, but this is the company's.
+      storedDomain = reviews.find((r) => typeof r.domain === "string" && r.domain)?.domain ?? null;
 
       if (isPro) {
         recentReviews = [...reviews]
@@ -195,7 +200,7 @@ export const lookupCompanyReviews = onCall(
       isPro,
       companyId: company.companyId,
       companyName: company.companyName,
-      matchedDomain: logoDomain(domain, name),
+      matchedDomain: logoDomain(domain, name) ?? storedDomain,
       summary,
       // Free callers get labels and polarity only. Stripped server-side rather
       // than hidden client-side: `stat` and `reviewIds` are the paid product,

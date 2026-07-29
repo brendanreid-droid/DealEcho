@@ -33,6 +33,7 @@ import {
   PROCUREMENT_ENTRY,
   STAKEHOLDER_COUNTS,
   enumOr,
+  normalizeDomain,
 } from "./lib/reviewSchema";
 import { stripEmDashes } from "./lib/text";
 
@@ -42,6 +43,8 @@ const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 182; // ~6 months
 interface ReviewPayload {
   companyId: string;
   companyName: string;
+  /** Company's own domain, for deriving a logo. "" when unknown. */
+  domain: string;
   currency: string;
   tcvBracket: string;
   cycleDuration: string;
@@ -112,6 +115,8 @@ function sanitize(data: any): ReviewPayload {
   return {
     companyId,
     companyName: str(data?.companyName).trim(),
+    // Validated, not trusted: it is fed to an outbound image URL downstream.
+    domain: normalizeDomain(data?.domain),
     currency: enumOr(CURRENCIES, data?.currency, "USD"),
     tcvBracket: enumOr(TCV_BRACKETS, data?.tcvBracket, TCV_BRACKETS[0]),
     cycleDuration: enumOr(DURATION_BRACKETS, data?.cycleDuration, DURATION_BRACKETS[0]),

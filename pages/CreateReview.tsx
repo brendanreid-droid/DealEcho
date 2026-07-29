@@ -214,7 +214,10 @@ const CreateReview: React.FC<CreateReviewProps> = ({
       industry: selectedCompany.industry,
       country: selectedCompany.country,
       content,
-      logoUrl: selectedCompany.logoUrl,
+      // The company's own domain, from the search result. Every logo downstream
+      // is derived from this - without it, consumers fall back to guessing from
+      // the name, which deliberately gives up on any multi-word company.
+      domain: selectedCompany.domain,
       createdAt: new Date().toISOString(),
     };
     onAddReview(newReview).then((success) => {

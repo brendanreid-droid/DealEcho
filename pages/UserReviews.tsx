@@ -44,7 +44,7 @@ const UserReviews: React.FC<UserReviewsProps> = ({ reviews }) => {
                 <div className="flex items-center space-x-5">
                   <CompanyLogo
                     name={r.companyName}
-                    logoUrl={companyLogoUrl({ name: r.companyName, domain: guessDomainFromName(r.companyName) })}
+                    logoUrl={companyLogoUrl({ name: r.companyName, domain: r.domain || guessDomainFromName(r.companyName) })}
                     size="lg"
                   />
                   <div>

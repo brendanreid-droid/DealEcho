@@ -119,3 +119,41 @@ export const STAKEHOLDER_COUNTS = ["1-2", "3-5", "6-10", "10+"] as const;
 export function enumOr(list: readonly string[], v: unknown, fallback: string): string {
   return typeof v === "string" && list.includes(v) ? v : fallback;
 }
+
+/**
+ * Normalize a client-supplied company domain, or "" if it is not usable.
+ *
+ * Stored on the review so logos can be derived later. Every consumer currently
+ * falls back to guessing a domain from the company name, which by design
+ * returns nothing for any multi-word name - so "Crown Resorts" and "Australia
+ * Post" could never show a logo no matter how the UI was written.
+ *
+ * Strict on the way in: this value ends up inside an outbound image URL, so a
+ * hostname is the only acceptable shape. Anything carrying a path, a port,
+ * credentials, or a scheme other than http(s) is rejected outright rather than
+ * salvaged - a wrong logo is worse than the initials avatar.
+ */
+export function normalizeDomain(v: unknown): string {
+  if (typeof v !== "string") return "";
+  let host = v.trim().toLowerCase();
+  if (!host || host.length > 253) return "";
+
+  // Accept a full URL, but only over http(s), and only when nothing is smuggled
+  // in the userinfo section.
+  if (host.includes("://")) {
+    const m = /^https?:\/\/([^/?#]+)/.exec(host);
+    if (!m) return "";
+    host = m[1];
+  }
+  if (host.includes("@")) return "";
+  host = host.split("/")[0].split("?")[0].split("#")[0].split(":")[0];
+  host = host.replace(/^www\./, "");
+
+  // Letters, digits, dots and hyphens only, at least one dot, a real TLD, and
+  // no empty or hyphen-edged label.
+  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(host)) return "";
+  if (host.split(".").some((label) => !label || label.startsWith("-") || label.endsWith("-"))) {
+    return "";
+  }
+  return host;
+}

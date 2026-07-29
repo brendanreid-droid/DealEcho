@@ -10,6 +10,7 @@ import { useAuth, MappedUser } from "../src/hooks/useAuth";
 import Icon from "../src/components/Icon";
 import MySubmissions from "../src/components/MySubmissions";
 import RetentionModal from "../src/components/RetentionModal";
+import { ReferralsPanel } from "./Referrals";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
 
 const getTimeAgo = (dateStr: string): string => {
@@ -46,7 +47,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
   onSignInClick,
 }) => {
   const navigate = useNavigate();
-  const { refreshClaims, tier, retentionOfferAcceptedAt } = useAuth();
+  const { refreshClaims, tier, retentionOfferAcceptedAt, subscriptionStatus } = useAuth();
   // Mirrors the server's 12-month cooldown so we hide the offer step from users
   // who've already redeemed (server still enforces authoritatively).
   const RETENTION_COOLDOWN_MS = 365 * 24 * 60 * 60 * 1000;
@@ -54,11 +55,16 @@ const MyIntel: React.FC<MyIntelProps> = ({
     !!retentionOfferAcceptedAt &&
     Date.now() - new Date(retentionOfferAcceptedAt).getTime() <
       RETENTION_COOLDOWN_MS;
+  // Save-offers are for people who have actually paid. resolveRoleTier maps a
+  // trialing subscription to role "paid", so without this a user cancelling on
+  // day 3 of their free trial gets offered a discount on money they have not
+  // spent yet. applyRetentionOffer enforces the same rule server-side.
+  const inTrial = subscriptionStatus === 'trialing';
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [offerSuccess, setOfferSuccess] = useState(false);
   const [showRetention, setShowRetention] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tracked' | 'reviews' | 'billing'>('tracked');
+  const [activeTab, setActiveTab] = useState<'tracked' | 'reviews' | 'referrals' | 'billing'>('tracked');
   const [resetSent, setResetSent] = useState(false);
   const [resetSending, setResetSending] = useState(false);
   const [localNotifPrefs, setLocalNotifPrefs] = useState({
@@ -202,7 +208,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+    <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
       {/* Tab Navigation */}
       <div className="flex gap-8 border-b border-slate-200 mb-8 px-6">
         <button
@@ -232,6 +238,19 @@ const MyIntel: React.FC<MyIntelProps> = ({
           My Reviews
         </button>
         <button
+          onClick={() => setActiveTab('referrals')}
+          aria-selected={activeTab === 'referrals'}
+          role="tab"
+          className={`pb-4 px-0 font-semibold text-sm transition-colors flex items-center gap-2 border-b-2 ${
+            activeTab === 'referrals'
+              ? 'text-accent border-accent'
+              : 'text-slate-500 border-transparent hover:text-slate-700'
+          }`}
+        >
+          <Icon name="fa-gift" size={16} />
+          Refer a Friend
+        </button>
+        <button
           onClick={() => setActiveTab('billing')}
           aria-selected={activeTab === 'billing'}
           role="tab"
@@ -247,7 +266,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
       </div>
 
       {/* Tab Content */}
-      <div className="max-w-7xl mx-auto px-6 pb-12">
+      <div className="max-w-5xl mx-auto px-6 pb-12">
         {activeTab === 'tracked' && (
           <div className="space-y-8">
             <div className="flex items-center justify-between">
@@ -389,29 +408,11 @@ const MyIntel: React.FC<MyIntelProps> = ({
                 </div>
               )}
 
-              {isPaid && (
-                <div className="md:col-span-2 p-6 bg-white rounded-card border border-slate-200 space-y-4">
-                  <div className="flex items-center space-x-3 text-accent">
-                    <Icon name="fa-gift" size={14} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">
-                      Refer a colleague
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    Invite someone to Dealecho. They get 30 days free, and you
-                    get a free month once their first payment clears.
-                  </p>
-                  <Link
-                    to="/referrals"
-                    className="block text-center bg-accent text-white py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-700 transition-all"
-                  >
-                    Invite colleagues
-                  </Link>
-                </div>
-              )}
             </div>
           </div>
         )}
+
+        {activeTab === 'referrals' && <ReferralsPanel />}
 
         {activeTab === 'reviews' && (
           <div className="space-y-8">
@@ -816,6 +817,7 @@ const MyIntel: React.FC<MyIntelProps> = ({
         isOpen={showRetention}
         tier={tier}
         offerUsed={retentionOfferUsed}
+        inTrial={inTrial}
         onClose={() => setShowRetention(false)}
         onApplyOffer={handleApplyOffer}
         onConfirmCancel={handleConfirmCancel}

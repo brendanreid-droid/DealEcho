@@ -48,7 +48,12 @@ const RESULT_MESSAGES: Record<string, string> = {
   send_failed: "We couldn't deliver this one",
 };
 
-const Referrals: React.FC = () => {
+/**
+ * The referral UI itself, with no page chrome. Rendered both as the Refer a
+ * Friend tab inside Control Centre and as the standalone /referrals route, so
+ * it deliberately owns no outer width or padding - the caller supplies those.
+ */
+export const ReferralsPanel: React.FC = () => {
   const [status, setStatus] = useState<ReferralStatus | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [emails, setEmails] = useState("");
@@ -103,33 +108,29 @@ const Referrals: React.FC = () => {
 
   if (loadError) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16">
-        <p className="text-sm text-slate-500">
-          We couldn't load your referrals just now. Please refresh and try again.
-        </p>
-      </div>
+      <p className="text-sm text-slate-500">
+        We couldn't load your referrals just now. Please refresh and try again.
+      </p>
     );
   }
 
   if (!status) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          Loading
-        </p>
-      </div>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        Loading
+      </p>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <div className="space-y-8">
       <header className="space-y-3">
         <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Invite a colleague, get a month free
+          Invite a friend or colleague
         </h1>
         <p className="text-sm text-slate-500 leading-relaxed">
-          Invite someone to Dealecho. They get 30 days of Sales Pro free. Once
-          their first payment goes through, a free month lands on your account.
+          Invite a friend or colleague to Dealecho. If they love it and
+          subscribe, you'll get a free month credited to your account.
         </p>
       </header>
 
@@ -271,6 +272,13 @@ const Referrals: React.FC = () => {
     </div>
   );
 };
+
+/** Standalone /referrals route. Supplies the page chrome the panel omits. */
+const Referrals: React.FC = () => (
+  <div className="max-w-5xl mx-auto px-6 py-12">
+    <ReferralsPanel />
+  </div>
+);
 
 const Stat: React.FC<{ label: string; value: number }> = ({ label, value }) => (
   <div className="bg-white p-4 rounded-card border border-slate-200">

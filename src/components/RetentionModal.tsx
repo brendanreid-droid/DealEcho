@@ -30,6 +30,11 @@ interface Props {
   /** True when the user already redeemed an offer inside the cooldown; skips
    *  the offer step so cancelling can't be used to farm repeat discounts. */
   offerUsed?: boolean;
+  /** True while the subscription is still in its free trial. Skips the offer
+   *  step: discounting someone who has not paid us anything yet just discounts
+   *  the first invoice they were always going to be charged. The server
+   *  enforces this too. */
+  inTrial?: boolean;
   onClose: () => void;
   onApplyOffer: (offer: RetentionOffer) => Promise<void>;
   onConfirmCancel: (reason: string, reasonText: string) => Promise<void>;
@@ -41,6 +46,7 @@ const RetentionModal: React.FC<Props> = ({
   isOpen,
   tier,
   offerUsed = false,
+  inTrial = false,
   onClose,
   onApplyOffer,
   onConfirmCancel,
@@ -134,7 +140,7 @@ const RetentionModal: React.FC<Props> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between pt-1">
                   <button
-                    onClick={() => setStep(offerUsed ? "reason" : "offer")}
+                    onClick={() => setStep(offerUsed || inTrial ? "reason" : "offer")}
                     className="text-slate-400 hover:text-slate-600 text-[13px] font-bold"
                   >
                     Continue to cancel

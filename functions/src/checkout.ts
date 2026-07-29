@@ -1,6 +1,9 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import * as React from "react";
 import { getStripe } from "./lib/stripe";
 import { db } from "./lib/firebaseAdmin";
+import { sendReactEmail } from "./lib/email";
+import { CancellationEmail } from "./emails/CancellationEmail";
 
 type Plan = "monthly" | "annual";
 
@@ -130,7 +133,7 @@ export const createCheckoutSession = onCall({ cors: true }, async (request) => {
  * Downgrades the user to free role/tier immediately.
  */
 export const cancelSubscription = onCall(
-  { cors: true, invoker: "public" },
+  { cors: true, invoker: "public", secrets: ["RESEND_API_KEY"] },
   async (request) => {
     const stripe = getStripe();
 
@@ -221,6 +224,25 @@ export const cancelSubscription = onCall(
       await batch.commit();
     }
 
+    // Confirmation email. Best-effort: the subscription is already cancelled
+    // in Stripe and Firestore by this point, so a mail failure must not make
+    // the call look like it failed and tempt the user into cancelling twice.
+    try {
+      const record = await adminAuth.getUser(uid);
+      if (record.email) {
+        await sendReactEmail({
+          to: record.email,
+          subject: "Your Dealecho subscription has been cancelled",
+          component: React.createElement(CancellationEmail, {
+            name: record.displayName || record.email.split("@")[0] || "there",
+            recipientEmail: record.email,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error("Cancellation email failed:", (err as Error).message);
+    }
+
     return { success: true };
   },
 );
@@ -287,6 +309,19 @@ export const applyRetentionOffer = onCall(
       );
     }
 
+    // Guard 3: no discounts during the free trial. resolveRoleTier maps
+    // "trialing" to role "paid", so isActivePaid above passes for someone who
+    // has never paid us anything - and discounting a trial means discounting
+    // the first invoice they were always going to be charged. Read the status
+    // from Stripe rather than Firestore so a missed webhook can't open a hole.
+    const liveSub = await stripe.subscriptions.retrieve(userData.subscriptionId);
+    if (liveSub.status === "trialing") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Offers become available once your free trial has ended.",
+      );
+    }
+
     // Load retention config (server-only doc; Admin SDK bypasses rules).
     const cfgSnap = await db.collection("private_config").doc("retention").get();
     const cfg = cfgSnap.data() ?? {};
@@ -316,10 +351,7 @@ export const applyRetentionOffer = onCall(
             "This offer isn't available right now.",
           );
         }
-        const sub = await stripe.subscriptions.retrieve(
-          userData.subscriptionId,
-        );
-        const itemId = sub.items.data[0]?.id;
+        const itemId = liveSub.items.data[0]?.id;
         if (!itemId) {
           throw new HttpsError("internal", "Subscription item not found.");
         }

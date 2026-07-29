@@ -40,6 +40,9 @@ export interface AuthState {
   reviewUnlockUntil: string | null;
   /** ISO timestamp a retention offer was last redeemed, else null. */
   retentionOfferAcceptedAt: string | null;
+  /** Stripe subscription status mirrored onto the user doc, else null.
+   *  "trialing" means they have not paid us anything yet. */
+  subscriptionStatus: string | null;
   /** True while a review unlock is active (full reviews readable). */
   hasReviewUnlock: boolean;
   /** Bumps on every token (re)read so data hooks can re-subscribe with the
@@ -57,6 +60,7 @@ export const useAuth = (): AuthState => {
   const [teamRole, setTeamRole] = useState<TeamRole | null>(null);
   const [reviewUnlockUntil, setReviewUnlockUntil] = useState<string | null>(null);
   const [retentionOfferAcceptedAt, setRetentionOfferAcceptedAt] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [claimsVersion, setClaimsVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -123,6 +127,11 @@ export const useAuth = (): AuthState => {
             setRetentionOfferAcceptedAt(
               typeof acceptedAt === 'string' ? acceptedAt : null,
             );
+            setSubscriptionStatus(
+              typeof data.subscriptionStatus === 'string'
+                ? data.subscriptionStatus
+                : null,
+            );
 
             const until = data.reviewUnlock?.until;
             const untilStr = typeof until === 'string' ? until : null;
@@ -151,6 +160,7 @@ export const useAuth = (): AuthState => {
         setTeamRole(null);
         setReviewUnlockUntil(null);
         setRetentionOfferAcceptedAt(null);
+        setSubscriptionStatus(null);
       }
       setIsLoading(false);
     });
@@ -184,6 +194,7 @@ export const useAuth = (): AuthState => {
       !!reviewUnlockUntil &&
       new Date(reviewUnlockUntil).getTime() > Date.now(),
     retentionOfferAcceptedAt,
+    subscriptionStatus,
     claimsVersion,
     refreshClaims,
   };

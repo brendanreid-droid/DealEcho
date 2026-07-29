@@ -52,7 +52,7 @@ jobs:
         run: sleep 30
 
       - name: Deploy review functions
-        run: firebase deploy --only functions:submitReview,functions:resubmitReview,functions:onReviewWritten --force
+        run: firebase deploy --only functions:submitReview,functions:resubmitReview,functions:onReviewWritten,functions:toggleReviewHelpful --force
 
       - name: Wait
         run: sleep 30

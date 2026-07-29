@@ -165,6 +165,9 @@ function toSummary(reviewId: string, data: FirebaseFirestore.DocumentData) {
     country: data.country ?? "",
     location: data.location ?? "",
     status: data.status ?? "Ongoing",
+    // Mirrored so the count is visible wherever a review is - summaries are all
+    // an unauthenticated visitor ever sees.
+    helpfulCount: typeof data.helpfulCount === "number" ? data.helpfulCount : 0,
     communicationRating: data.communicationRating ?? 0,
     negotiationLevel: data.negotiationLevel ?? 0,
     timeWasterLevel: data.timeWasterLevel ?? 0,

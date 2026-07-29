@@ -31,6 +31,7 @@ export { onReviewWritten } from "./reviewModeration";
 export { submitReview, resubmitReview } from "./reviewSubmission";
 export { searchCompanyEntities } from "./searchCompanies";
 export { lookupCompanyReviews } from "./extension/lookupCompanyReviews";
+export { toggleReviewHelpful } from "./reviewHelpful";
 export { issueCustomToken } from "./extension/issueCustomToken";
 export { getAccountFlags } from "./accountFlags";
 // redeploy trigger: lookupCompanyReviews score-breakdown metrics (2026-06-28)

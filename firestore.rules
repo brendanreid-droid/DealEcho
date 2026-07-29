@@ -62,6 +62,22 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // "Was this helpful?" votes, one document per voter, id == their uid.
+    //
+    // A user may read ONLY their own vote — enough to render the button in the
+    // pressed state, and nothing more. Reading someone else's would turn an
+    // anonymous signal into "who endorsed this review", which is exactly the
+    // attribution sellers are promised they do not have here. The aggregate
+    // lives on the parent review as `helpfulCount`.
+    //
+    // Writes are closed: the vote and the counter have to move together, which
+    // only the toggleReviewHelpful callable can guarantee. A client that could
+    // write here could vote for itself or desync the count.
+    match /reviews/{reviewId}/helpfulVotes/{voterId} {
+      allow read: if isSignedIn() && voterId == request.auth.uid;
+      allow write: if false;
+    }
+
     // ── Users ──────────────────────────────────────────────────────────────────
     // Users can read their own profile; admins can read all.
     // Users can ONLY update safe preference fields — billing/role fields are

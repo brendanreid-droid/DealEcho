@@ -38,6 +38,8 @@ export interface Review {
   logoUrl?: string;
   /** Company's own domain. Source for the derived logo; absent on legacy reviews. */
   domain?: string;
+  /** How many readers marked this review helpful. Absent on reviews with no votes. */
+  helpfulCount?: number;
   createdAt: string;
 
   // --- Schema v2 (2026-07). Absent on legacy reviews; set server-side. ---

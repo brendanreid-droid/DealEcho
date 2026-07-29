@@ -393,7 +393,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
               <option value="deal-low">Deal size (low to high)</option>
             </select>
           </div>
-          <EvidenceList reviews={sortedReviews} />
+          <EvidenceList reviews={sortedReviews} currentUserId={user?.id ?? null} />
         </section>
       )}
 

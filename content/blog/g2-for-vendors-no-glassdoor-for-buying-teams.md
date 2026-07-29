@@ -1,17 +1,12 @@
----SEO SPEC---
-Target keyword: buying team accountability / review buying teams
-Title tag: There's a G2 for Vendors. Why Isn't There One for Buyers?
-Meta description: Every vendor gets reviewed. Buying teams never do. Here's why that one-way accountability gap is costing sales executives more than bad deals.
-Suggested URL: /blog/g2-for-vendors-no-glassdoor-for-buying-teams
-Suggested schema: BlogPosting
-Internal links to: / (homepage), /pricing
-Pillar: 3 (Holding Buying Teams Accountable, per dealecho-marketing-orchestration messaging pillars)
-Buyer stage: Awareness
-Competitive tag: gap (no direct competitor coverage found in research pass — see content/blog/keyword-tracker.md)
-Status: approved — brand review passed clean 29 July 2026, founder approved 29 July 2026, published
 ---
-
-# There's a G2 for Vendors. Why Isn't There One for Buyers?
+slug: g2-for-vendors-no-glassdoor-for-buying-teams
+title: "There's a G2 for Vendors. Why Isn't There One for Buyers?"
+metaDescription: "Every vendor gets reviewed. Buying teams never do. Here's why that one-way accountability gap is costing sales executives more than bad deals."
+publishDate: 2026-07-29
+pillar: 3
+keywords: "buying team accountability, review buying teams"
+schema: BlogPosting
+---
 
 Every side of business gets reviewed except the side making the decision.
 
@@ -57,14 +52,14 @@ None of that is unreasonable. It is the same standard vendors are already held t
 
 ## Closing the gap
 
-This is the problem [DealEcho](/) exists to solve. Verified sales executives who have already sold to a company can leave an honest account of how that company's buying team actually behaved: responsive or not, decisive or not, fair or not. The next seller walking into that account gets to see it before their first call, not after their third missed forecast.
+This is the problem [Dealecho](/) exists to solve. Verified sales executives who have already sold to a company can leave an honest account of how that company's buying team actually behaved: responsive or not, decisive or not, fair or not. The next seller walking into that account gets to see it before their first call, not after their third missed forecast.
 
 Vendors have had an accountability layer for years. It is time buying teams had one too.
 
-See how DealEcho works, and check the [plans](/pricing) before your next quarter starts.
+See how Dealecho works, and check the [plans](/pricing) before your next quarter starts.
 
 ---
 
 ## Sources
-- Framing on the absence of a review-platform equivalent for buying-team conduct is based on DealEcho's own research pass (July 2026): no competitor or trending content was found covering buyer-side review platforms specifically (see `content/blog/keyword-tracker.md`, row "Why there's a G2 for vendors but no Glassdoor for buying teams"). This is presented as an observed market gap, not a sourced statistic.
-- No third-party statistics are cited in this post. If a stat is added in a later revision (e.g. on "no decision" loss rates or buying committee size), it must be sourced to the original report (Forrester, Gartner, SBI Growth) per DealEcho's no-invented-claims rule, and validated by the Research Analyst first.
+- Framing on the absence of a review-platform equivalent for buying-team conduct is based on Dealecho's own research pass (July 2026): no competitor or trending content was found covering buyer-side review platforms specifically (see `content/blog/keyword-tracker.md`, row "Why there's a G2 for vendors but no Glassdoor for buying teams"). This is presented as an observed market gap, not a sourced statistic.
+- No third-party statistics are cited in this post. If a stat is added in a later revision (e.g. on "no decision" loss rates or buying committee size), it must be sourced to the original report (Forrester, Gartner, SBI Growth) per Dealecho's no-invented-claims rule, and validated by the Research Analyst first.

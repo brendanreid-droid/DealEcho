@@ -53,3 +53,58 @@ export function bestNameMatch(query: string, candidates: CompanyRef[]): CompanyR
 
   return bestScore >= 0.75 ? best : null;
 }
+
+/** First label of a registrable domain: "crownresorts.com.au" → "crownresorts". */
+export function domainLabel(domain: string): string {
+  return (domain || "").split(".")[0].trim().toLowerCase();
+}
+
+/**
+ * Shortest label that may claim an account. Below this, a prefix match is a
+ * coincidence rather than a signal - "crow" prefixes "crownresorts", and a
+ * three-letter label prefixes half the register.
+ */
+const MIN_DOMAIN_LABEL = 5;
+
+/** Normalized, despaced: "Genesis Energy Limited" → "genesisenergy". */
+function despace(name: string): string {
+  return normalizeName(name).replace(/\s+/g, "");
+}
+
+/**
+ * Match a domain label to a company by comparing despaced names.
+ *
+ * `bestNameMatch` cannot do this: it scores by token overlap, and a domain label
+ * is a single concatenated token ("crownresorts") while the company name is
+ * several ("Crown Resorts"), so overlap is zero and the score is zero. That gap
+ * left `canonicalizeViaAI` as the only route to an answer for an uncached
+ * domain - a Gemini call whose miss returned "no reviews" for a company that
+ * plainly has them, with a retry usually succeeding.
+ *
+ * Deterministic, so the same domain resolves the same way every time.
+ */
+export function matchByDomainLabel(label: string, candidates: CompanyRef[]): CompanyRef | null {
+  const l = despace(label);
+  if (l.length < MIN_DOMAIN_LABEL) return null;
+
+  let best: CompanyRef | null = null;
+  let bestDelta = Infinity;
+
+  for (const cand of candidates) {
+    const c = despace(cand.companyName);
+    if (!c) continue;
+    // A candidate SHORTER than the label may only match on its own merits: it
+    // has to clear the same length bar the label does.
+    const prefixMatch = c.startsWith(l) || (c.length >= MIN_DOMAIN_LABEL && l.startsWith(c));
+    if (!prefixMatch) continue;
+    // Closest length wins, so "crownresorts" prefers "Crown Resorts" over both
+    // "Crown" and "Crown Resorts Entertainment Group".
+    const delta = Math.abs(c.length - l.length);
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      best = cand;
+    }
+  }
+
+  return best;
+}

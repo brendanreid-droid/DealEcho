@@ -1,5 +1,5 @@
 import { registrableDomain, isCrmHost } from "./domains";
-import { bestNameMatch, CompanyRef } from "./matching";
+import { bestNameMatch, matchByDomainLabel, domainLabel, CompanyRef } from "./matching";
 
 export interface ResolverInput {
   domain?: string;
@@ -67,6 +67,19 @@ export async function resolveCompany(
       }
     }
 
+    // Deterministic first. Most companies' domains are their name with the
+    // spaces taken out, and answering from the register is faster, free, and -
+    // unlike the model - gives the same answer every time.
+    if (usableDomain) {
+      const direct = matchByDomainLabel(domainLabel(usableDomain), await loadNames());
+      if (direct) {
+        await deps.saveDomainCache(usableDomain, direct);
+        return direct;
+      }
+    }
+
+    // Fallback for domains that do not resemble the company (acquisitions,
+    // holding companies, initialisms).
     const ai = await deps.canonicalizeViaAI(input.domain);
     if (ai?.name) {
       const match = bestNameMatch(ai.name, await loadNames());

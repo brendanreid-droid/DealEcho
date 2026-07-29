@@ -88,17 +88,53 @@ describe("resolveCompany", () => {
     expect(deps.saveDomainCache).not.toHaveBeenCalled();
   });
 
-  it("falls back to AI when no direct match, then re-matches", async () => {
+  it("falls back to AI when no direct match, then re-matches and caches", async () => {
+    // Domain deliberately unlike the company name - "snowflake.io" would now be
+    // answered from the register without the model ever being asked.
     const deps = makeDeps({
       canonicalizeViaAI: vi.fn(async () => ({ name: "Snowflake" })),
     });
-    const res = await resolveCompany({ domain: "snowflake.io" }, deps);
+    const res = await resolveCompany({ domain: "sfdw-analytics.io" }, deps);
     expect(deps.canonicalizeViaAI).toHaveBeenCalled();
     expect(res?.companyId).toBe("c2");
     expect(deps.saveDomainCache).toHaveBeenCalledWith(
-      "snowflake.io",
+      "sfdw-analytics.io",
       expect.objectContaining({ companyId: "c2" }),
     );
+  });
+
+  it("resolves a domain from the register without calling the model", async () => {
+    // The refresh bug: an uncached domain had only the AI path to an answer, so
+    // a model miss returned "no reviews" for a company that has them, and the
+    // retry usually succeeded. Deterministic matching removes the dice roll.
+    const deps = makeDeps({
+      listCompanyNames: vi.fn(async () => [{ companyId: "crown", companyName: "Crown Resorts" }]),
+    });
+    const res = await resolveCompany({ domain: "www.crownresorts.com.au" }, deps);
+    expect(res?.companyId).toBe("crown");
+    expect(deps.canonicalizeViaAI).not.toHaveBeenCalled();
+    expect(deps.saveDomainCache).toHaveBeenCalledWith(
+      "crownresorts.com.au",
+      expect.objectContaining({ companyId: "crown" }),
+    );
+  });
+
+  it("re-resolves a stale mapping from the register, not the model", async () => {
+    const deps = makeDeps({
+      lookupDomainCache: vi.fn(async () => ({ companyId: "dead-id", companyName: "Crown resorts" })),
+      listCompanyNames: vi.fn(async () => [{ companyId: "crown", companyName: "Crown Resorts" }]),
+    });
+    const res = await resolveCompany({ domain: "crownresorts.com.au" }, deps);
+    expect(deps.dropDomainCache).toHaveBeenCalledWith("crownresorts.com.au");
+    expect(res?.companyId).toBe("crown");
+    expect(deps.canonicalizeViaAI).not.toHaveBeenCalled();
+  });
+
+  it("still falls back to the model when the domain does not resemble the company", async () => {
+    const deps = makeDeps({ canonicalizeViaAI: vi.fn(async () => ({ name: "Snowflake" })) });
+    const res = await resolveCompany({ domain: "sfdata.io" }, deps);
+    expect(deps.canonicalizeViaAI).toHaveBeenCalled();
+    expect(res?.companyId).toBe("c2");
   });
 
   it("returns null when nothing resolves", async () => {

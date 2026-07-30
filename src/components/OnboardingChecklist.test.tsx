@@ -19,13 +19,14 @@ const NONE: OnboardingSteps = {
   hasExtension: false,
 };
 
-const renderModal = (steps: OnboardingSteps = NONE) =>
+const renderModal = (steps: OnboardingSteps = NONE, isPaid = false) =>
   render(
     <MemoryRouter>
       <OnboardingChecklistModal
         open
         steps={steps}
         reviewUnlockUntil={null}
+        isPaid={isPaid}
         onClose={() => {}}
         onDismiss={() => {}}
         onAnswerQuestions={() => {}}
@@ -75,5 +76,31 @@ describe("OnboardingChecklistModal", () => {
   it("points at a real listing, not the old placeholder", () => {
     expect(CHROME_EXTENSION_URL).toContain("chromewebstore.google.com");
     expect(CHROME_EXTENSION_URL).not.toContain("PLACEHOLDER");
+  });
+
+  it("marks the extension step as a Pro feature", () => {
+    const { container } = renderModal();
+    expect(container.textContent).toContain("Pro feature");
+  });
+
+  it("pitches the give-to-get unlock to a free user", () => {
+    const { container } = renderModal();
+    expect(container.textContent).toContain("unlocks 7 days of full review access");
+    expect(container.textContent).toContain("Writing a review unlocks full access");
+  });
+
+  it("never promises a paid user access they already have", () => {
+    // They would write a review, get the grant, and observe nothing change -
+    // hasReviewUnlock is an alternative to isPro in the rules, not an addition.
+    const { container } = renderModal(NONE, true);
+    const text = container.textContent ?? "";
+    expect(text).not.toContain("unlocks 7 days");
+    expect(text).not.toContain("unlocks full access");
+    expect(text).toContain("keep everyone's intel current");
+  });
+
+  it("tells a free user the extension's intel is gated, and does not nag a paid one", () => {
+    expect(renderModal().container.textContent).toContain("Reviews and flags need Pro");
+    expect(renderModal(NONE, true).container.textContent).not.toContain("need Pro");
   });
 });

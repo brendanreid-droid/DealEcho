@@ -484,6 +484,7 @@ const App: React.FC = () => {
           open={showChecklist}
           steps={onboardingSteps}
           reviewUnlockUntil={reviewUnlockUntil}
+          isPaid={isPaid}
           onClose={() => setShowChecklist(false)}
           onDismiss={() => {
             dismissOnboarding();

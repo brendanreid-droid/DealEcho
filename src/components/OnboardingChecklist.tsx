@@ -40,6 +40,12 @@ interface ModalProps {
   steps: OnboardingSteps;
   /** Active review unlock expiry (ISO) if the reward is already earned. */
   reviewUnlockUntil: string | null;
+  /**
+   * Paid tiers already have permanent full-review access, so the give-to-get
+   * pitch is not just irrelevant to them - it implies what they pay for is
+   * time-limited, and they would write a review and observe no reward.
+   */
+  isPaid: boolean;
   onClose: () => void;
   onDismiss: () => void;
   onAnswerQuestions: () => void;
@@ -51,6 +57,7 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
   open,
   steps,
   reviewUnlockUntil,
+  isPaid,
   onClose,
   onDismiss,
   onAnswerQuestions,
@@ -74,6 +81,8 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
     body: string;
     cta: string;
     action: () => void;
+    /** Tier label shown beside the title, e.g. the extension being a Pro feature. */
+    badge?: string;
   }[] = [
     {
       key: "track",
@@ -87,7 +96,9 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
       key: "review",
       done: steps.hasReview,
       title: "Write your first review",
-      body: "Share one deal. It unlocks 7 days of full review access across every company.",
+      body: isPaid
+        ? "Share one deal. Reviews are what keep everyone's intel current - including yours."
+        : "Share one deal. It unlocks 7 days of full review access across every company.",
       cta: "Write a review",
       action: () => go("/review/new", "review"),
     },
@@ -95,7 +106,10 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
       key: "extension",
       done: steps.hasExtension,
       title: "Download the browser extension",
-      body: "Pull deal intel and log reviews without leaving your CRM or inbox.",
+      badge: "Pro feature",
+      body: isPaid
+        ? "Pull deal intel and log reviews without leaving your CRM or inbox."
+        : "Pull deal intel and log reviews without leaving your CRM or inbox. Reviews and flags need Pro.",
       cta: "Get the extension",
       action: () => {
         track("onboarding_step_click", { step: "extension" });
@@ -143,7 +157,9 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
             <p className="text-slate-300 text-xs font-semibold relative z-10 mt-2">
               {allDone
                 ? "Nice work - you've completed setup."
-                : `${done} of ${STEP_TOTAL} done. Writing a review unlocks full access.`}
+                : isPaid
+                  ? `${done} of ${STEP_TOTAL} done.`
+                  : `${done} of ${STEP_TOTAL} done. Writing a review unlocks full access.`}
             </p>
             <div className="relative z-10 mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
               <div
@@ -179,13 +195,20 @@ export const OnboardingChecklistModal: React.FC<ModalProps> = ({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p
-                    className={`text-sm font-bold ${
-                      item.done ? "text-slate-400 line-through" : "text-slate-900"
-                    }`}
-                  >
-                    {item.title}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p
+                      className={`text-sm font-bold ${
+                        item.done ? "text-slate-400 line-through" : "text-slate-900"
+                      }`}
+                    >
+                      {item.title}
+                    </p>
+                    {item.badge && (
+                      <span className="shrink-0 rounded-full bg-navy-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
                   {!item.done && (
                     <>
                       <p className="text-slate-500 text-[12px] mt-0.5 leading-relaxed">

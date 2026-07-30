@@ -1,5 +1,6 @@
 import { defineManifest } from "@crxjs/vite-plugin";
 import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 /**
  * The Web Store item's public key, which pins the extension ID.
@@ -17,8 +18,12 @@ import { readFileSync, existsSync } from "node:fs";
  *
  * Get it from: Web Store dashboard → the item → Package → "View public key".
  * Paste the base64 body (no BEGIN/END lines, no newlines) into extension-key.txt.
+ *
+ * fileURLToPath, not URL.pathname: pathname is percent-encoded, so the "~" in
+ * this repo's own path arrives as "%7E" and the file is silently never found -
+ * silently because a missing key is a legitimate state (see below).
  */
-const KEY_FILE = new URL("./extension-key.txt", import.meta.url).pathname;
+const KEY_FILE = fileURLToPath(new URL("./extension-key.txt", import.meta.url));
 const publicKey = existsSync(KEY_FILE) ? readFileSync(KEY_FILE, "utf8").trim() : "";
 
 export default defineManifest({

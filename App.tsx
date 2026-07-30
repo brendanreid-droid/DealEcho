@@ -14,6 +14,10 @@ import { track } from "./src/utils/analytics";
 import { captureAttribution, getAttribution, hasAttribution } from "./src/utils/attribution";
 import { captureInviteToken, storedInviteToken, clearInviteToken } from "./src/utils/referral";
 import { getLocale } from "./src/utils/locale";
+// Cookieless and aggregate, so it needs no consent gate - unlike GA4, which is
+// held behind the analytics-cookie opt-in and therefore cannot see anyone who
+// declines. This is the only source that measures ALL traffic.
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 const Home = lazy(() => import("./pages/Home"));
 const Search = lazy(() => import("./pages/Search"));
@@ -503,6 +507,7 @@ const App: React.FC = () => {
         )}
         <Footer />
         <CookieConsent />
+        <VercelAnalytics />
       </div>
     </BrowserRouter>
   );

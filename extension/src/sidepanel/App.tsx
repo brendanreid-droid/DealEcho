@@ -129,6 +129,14 @@ export function App() {
           being spent at the moment it was least likely to land. Kept compact
           instead of dismissible: the panel is 300px wide and this has to earn
           its space on every lookup, not just the first.
+
+          The CRM line is not upsell copy. isCrmHost deliberately skips domain
+          resolution on Salesforce, HubSpot, Pipedrive, Zoho and Dynamics -
+          the page domain there is the CRM, not the prospect - so clicking the
+          icon alone resolves NOTHING on those sites. Highlighting is not the
+          convenient path in a CRM, it is the only one, and a user who does not
+          know that sees a product that appears broken in exactly the context
+          the store listing sells.
         */}
         <div
           style={{
@@ -143,6 +151,10 @@ export function App() {
           }}
         >
           Highlight a company name, then <strong>right-click → Search Dealecho</strong>.
+          <br />
+          <span style={{ color: "#4f46e5", opacity: 0.85 }}>
+            In your CRM this is the only way - the page is Salesforce, not the prospect.
+          </span>
         </div>
         {context && (
           <p style={{ fontSize: 10, color: theme.faint, margin: "0 0 10px" }}>

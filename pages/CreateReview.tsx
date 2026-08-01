@@ -54,12 +54,14 @@ const memberOr = (list: readonly string[], v: string | undefined, fallback: stri
 
 interface CreateReviewProps {
   user: MappedUser | null;
+  isPaid: boolean;
   onAddReview: (review: Review) => Promise<boolean>;
   onSignInClick?: () => void;
 }
 
 const CreateReview: React.FC<CreateReviewProps> = ({
   user,
+  isPaid,
   onAddReview,
   onSignInClick,
 }) => {
@@ -289,7 +291,7 @@ const CreateReview: React.FC<CreateReviewProps> = ({
             <div className="flex items-center space-x-3 mb-4">
               <span className="bg-accent/30 text-accent-soft text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-accent/20 backdrop-blur-md flex items-center w-fit">
                 <Icon name="fa-user-check" className="mr-2" size={10} />
-                {user.isPro
+                {isPaid
                   ? "Sales Pro Verified"
                   : "Verified Community Member"}
               </span>

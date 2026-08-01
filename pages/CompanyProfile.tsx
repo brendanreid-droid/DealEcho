@@ -146,7 +146,7 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
   // Aggregated Stats for Header
   const statsSummary = useMemo(() => {
     if (companyReviews.length === 0)
-      return { healthIndex: 0, resp: 0, neg: 0, intent: 0, scope: 0 };
+      return { healthIndex: 0, resp: "0.0", neg: "0.0", intent: "0.0", scope: "0.0" };
     const totals = companyReviews.reduce(
       (acc, r) => ({
         resp: acc.resp + r.communicationRating,

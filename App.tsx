@@ -366,6 +366,7 @@ const App: React.FC = () => {
                   <ProtectedRoute requireAuth>
                     <CreateReview
                       user={user}
+                      isPaid={isPaid}
                       onSignInClick={triggerSignIn}
                       onAddReview={handleAddReview}
                     />

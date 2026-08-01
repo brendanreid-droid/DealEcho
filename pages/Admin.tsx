@@ -209,7 +209,7 @@ interface AcquisitionReport {
 
 // Build a CSV string from an array of objects, ordered by the given columns.
 // Values are quoted and internal quotes doubled per RFC 4180.
-function toCsv<T extends Record<string, unknown>>(
+function toCsv<T extends object>(
   columns: (keyof T)[],
   rows: T[],
 ): string {

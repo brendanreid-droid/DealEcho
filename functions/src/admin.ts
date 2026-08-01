@@ -9,6 +9,7 @@ import * as React from "react";
 import { InviteEmail } from "./emails/InviteEmail";
 import { NewsletterEmail } from "./emails/NewsletterEmail";
 import { AUTH_ACTION_URL } from "./lib/constants";
+import { toOwnDomainActionLink } from "./lib/authLinks";
 
 type UserRole = "free" | "paid" | "admin" | "free_full" | "enterprise";
 
@@ -422,7 +423,10 @@ export const adminCreateUser = onCall(
       // 4. Generate password reset link
       // Must be an allowlisted domain - see AUTH_ACTION_URL.
       const actionCodeSettings = { url: AUTH_ACTION_URL };
-      const setupLink = await auth.generatePasswordResetLink(email, actionCodeSettings);
+      const firebaseLink = await auth.generatePasswordResetLink(email, actionCodeSettings);
+      // Onto our own domain - see toOwnDomainActionLink. The invite's primary
+      // button pointing at a Google domain is what put it in junk mail.
+      const setupLink = toOwnDomainActionLink(firebaseLink);
 
       // 5. Send Invite Email via Resend
       const inviteComponent = React.createElement(InviteEmail, {
@@ -602,6 +606,8 @@ export const adminSendNewsletter = onCall(
           email: targetEmail,
           uid: request.auth!.uid,
         }),
+        // Bulk mail: one-click unsubscribe header, same as the real send.
+        unsubscribe: { email: targetEmail, uid: request.auth!.uid },
       });
 
       return { success: true, sentCount: 1, isTest: true };
@@ -646,6 +652,7 @@ export const adminSendNewsletter = onCall(
                 uid: u.uid,
                 newsletterId,
               }),
+              unsubscribe: { email: u.email, uid: u.uid },
             });
             sentCount++;
           } catch (err) {

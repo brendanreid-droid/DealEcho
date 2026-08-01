@@ -4,6 +4,7 @@ import { sendReactEmail } from "./lib/email";
 import * as React from "react";
 import { ResetPasswordEmail } from "./emails/ResetPasswordEmail";
 import { AUTH_ACTION_URL } from "./lib/constants";
+import { toOwnDomainActionLink } from "./lib/authLinks";
 
 /**
  * Generates a secure, standard Firebase password reset link and dispatches
@@ -55,7 +56,8 @@ export const sendCustomPasswordResetEmail = onCall(
       // 3. Generate a secure, standard Firebase password reset link
       // Must be an allowlisted domain - see AUTH_ACTION_URL.
       const actionCodeSettings = { url: AUTH_ACTION_URL };
-      const resetLink = await auth.generatePasswordResetLink(emailTrimmed, actionCodeSettings);
+      const firebaseLink = await auth.generatePasswordResetLink(emailTrimmed, actionCodeSettings);
+      const resetLink = toOwnDomainActionLink(firebaseLink);
 
       // 4. Send the branded ResetPasswordEmail via Resend
       const resetEmailComponent = React.createElement(ResetPasswordEmail, {

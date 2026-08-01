@@ -34,6 +34,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
 const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 const AuthBridge = lazy(() => import('./pages/AuthBridge'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Referrals = lazy(() => import("./pages/Referrals"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
@@ -395,6 +396,8 @@ const App: React.FC = () => {
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/auth-bridge" element={<AuthBridge />} />
+              {/* Target of the password/activation links in our emails. */}
+              <Route path="/reset" element={<ResetPassword />} />
               <Route
                 path="/unsubscribe"
                 element={<Unsubscribe />}

@@ -5,6 +5,7 @@ import {
 } from "firebase-functions/v2/https";
 import { FieldValue } from "firebase-admin/firestore";
 import { db, auth } from "./lib/firebaseAdmin";
+import type { UserRecord } from "firebase-admin/auth";
 
 type UserRole = "free" | "paid" | "admin" | "free_full" | "enterprise";
 
@@ -390,14 +391,23 @@ export const adminGetAcquisitionReport = onCall(
   async (request) => {
     requireAdmin(request);
 
-    const listResult = await auth.listUsers(1000);
-    const uids = listResult.users.map((u) => u.uid);
-    const docs = await Promise.all(
-      uids.map((uid) => db.collection("users").doc(uid).get()),
-    );
+    // Page through Auth rather than taking the first 1000. listUsers caps at
+    // 1000 per call, so the old single call did not just get slow past that
+    // point - it silently reported on a subset, with no error to notice.
+    const authUsers: UserRecord[] = [];
+    let pageToken: string | undefined;
+    do {
+      const page = await auth.listUsers(1000, pageToken);
+      authUsers.push(...page.users);
+      pageToken = page.pageToken;
+    } while (pageToken);
+
+    // One collection read, not one read per user. The previous shape cost a
+    // Firestore read per account on every dashboard load.
+    const usersSnap = await db.collection("users").get();
     const fsMap: Record<string, FirebaseFirestore.DocumentData> = {};
-    docs.forEach((s) => {
-      if (s.exists) fsMap[s.id] = s.data()!;
+    usersSnap.docs.forEach((d) => {
+      fsMap[d.id] = d.data();
     });
 
     // Reviews submitted per user (projection keeps the read light).
@@ -410,7 +420,7 @@ export const adminGetAcquisitionReport = onCall(
       }
     });
 
-    const rows: ReportRow[] = listResult.users.map((u) => {
+    const rows: ReportRow[] = authUsers.map((u) => {
       const fs = fsMap[u.uid] ?? {};
       const acq = fs.acquisition ?? {};
       const ft = acq.firstTouch ?? {};

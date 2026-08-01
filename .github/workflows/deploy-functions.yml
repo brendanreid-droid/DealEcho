@@ -91,7 +91,7 @@ jobs:
         run: sleep 30
 
       - name: Deploy monitoring functions
-        run: firebase deploy --only functions:runHealthCheck,functions:adminGetHealthReport,functions:adminReconcileSubscriptions --force
+        run: firebase deploy --only functions:runHealthCheck,functions:adminGetHealthReport,functions:adminReconcileSubscriptions,functions:rollupMetrics,functions:adminGetMetrics --force
 
       - name: Wait
         run: sleep 30

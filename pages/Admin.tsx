@@ -15,6 +15,7 @@ interface AdminUser {
   email: string;
   displayName: string;
   createdAt: string;
+  lastLoginAt: string | null;
   role: UserRole;
   tier: string;
   subscriptionStatus: string | null;
@@ -981,6 +982,7 @@ const Admin: React.FC = () => {
                         "Subscription",
                         "Period End",
                         "Joined",
+                        "Last Login",
                         "Actions",
                       ].map((h) => (
                         <th
@@ -1063,6 +1065,13 @@ const Admin: React.FC = () => {
                             {u.createdAt
                               ? new Date(u.createdAt).toLocaleDateString()
                               : "—"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="text-slate-400 text-xs">
+                            {u.lastLoginAt
+                              ? new Date(u.lastLoginAt).toLocaleDateString()
+                              : "Never"}
                           </span>
                         </td>
                         <td className="px-5 py-4">

@@ -54,6 +54,7 @@ export const adminGetUsers = onCall({ cors: true }, async (request) => {
         email: u.email ?? "",
         displayName: u.displayName ?? "",
         createdAt: u.metadata.creationTime,
+        lastLoginAt: u.metadata.lastSignInTime ?? null,
         // Prefer Firestore (written by both webhook & adminSetRole) over claims
         role:
           (fs.role as UserRole) ?? (u.customClaims?.role as UserRole) ?? "free",

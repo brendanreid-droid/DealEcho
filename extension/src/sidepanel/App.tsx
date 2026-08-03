@@ -25,17 +25,6 @@ export function App() {
   const [context, setContext] = useState<PageContext | null>(null);
   const [result, setResult] = useState<LookupResult | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [hideTip, setHideTip] = useState(true);
-
-  // First-run tip (highlight → search) — shown until dismissed.
-  useEffect(() => {
-    chrome.storage.local.get("dealecho:hideTip").then((d) => setHideTip(!!d["dealecho:hideTip"]));
-  }, []);
-  const dismissTip = () => {
-    setHideTip(true);
-    void chrome.storage.local.set({ "dealecho:hideTip": true });
-  };
-
   // Auth subscription.
   useEffect(() => subscribeToAuth((u) => {
     setUser(u);
@@ -133,44 +122,40 @@ export function App() {
       </div>
 
       <div style={body}>
-        {!hideTip && (
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "flex-start",
-              background: theme.accent50,
-              border: `1px solid ${theme.accent100}`,
-              borderRadius: 8,
-              padding: "8px 10px",
-              margin: "0 0 12px",
-              fontSize: 12,
-              color: "#3730a3",
-              lineHeight: 1.4,
-            }}
-          >
-            <span>
-              💡 Tip: highlight a company name on any page, then{" "}
-              <strong>right-click → Search Dealecho</strong> (or click the icon) to look it up.
-            </span>
-            <button
-              onClick={dismissTip}
-              aria-label="Dismiss tip"
-              style={{
-                marginLeft: "auto",
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                color: theme.accent,
-                fontWeight: 800,
-                fontSize: 14,
-                lineHeight: 1,
-              }}
-            >
-              ×
-            </button>
-          </div>
-        )}
+        {/*
+          Permanent, not a first-run tip. Right-click search is a primary way
+          to use the panel and nothing on screen implies it exists, so a hint
+          shown once - to one person, before they understand the product - was
+          being spent at the moment it was least likely to land. Kept compact
+          instead of dismissible: the panel is 300px wide and this has to earn
+          its space on every lookup, not just the first.
+
+          The CRM line is not upsell copy. isCrmHost deliberately skips domain
+          resolution on Salesforce, HubSpot, Pipedrive, Zoho and Dynamics -
+          the page domain there is the CRM, not the prospect - so clicking the
+          icon alone resolves NOTHING on those sites. Highlighting is not the
+          convenient path in a CRM, it is the only one, and a user who does not
+          know that sees a product that appears broken in exactly the context
+          the store listing sells.
+        */}
+        <div
+          style={{
+            background: theme.accent50,
+            border: `1px solid ${theme.accent100}`,
+            borderRadius: 8,
+            padding: "6px 9px",
+            margin: "0 0 10px",
+            fontSize: 11,
+            color: "#3730a3",
+            lineHeight: 1.4,
+          }}
+        >
+          Highlight a company name, then <strong>right-click → Search Dealecho</strong>.
+          <br />
+          <span style={{ color: "#4f46e5", opacity: 0.85 }}>
+            In your CRM this is the only way - the page is Salesforce, not the prospect.
+          </span>
+        </div>
         {context && (
           <p style={{ fontSize: 10, color: theme.faint, margin: "0 0 10px" }}>
             Looking at <strong style={{ color: theme.sub }}>{context.hostname || "—"}</strong>

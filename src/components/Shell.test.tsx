@@ -80,4 +80,49 @@ describe("Footer", () => {
     );
     expect(screen.queryByRole("link", { name: /Analytics/ })).toBeNull();
   });
+
+  it("has a Company column after Product and Trust & legal", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+    const headings = screen
+      .getAllByRole("heading", { level: 4 })
+      .map((h) => h.textContent);
+    expect(headings).toEqual(["Product", "Trust & legal", "Company"]);
+  });
+
+  it("puts About us and Blog under Company", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: "About us" })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: "Blog" })).toHaveAttribute("href", "/blog");
+  });
+
+  it("moves Blog out of the Product column", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+    const product = screen.getByRole("heading", { name: "Product" }).parentElement!;
+    expect(product.textContent).not.toContain("Blog");
+    expect(product.textContent).toContain("Search Accounts");
+  });
+
+  it("puts the admin analytics link under Company, not Product", () => {
+    render(
+      <MemoryRouter>
+        <Footer isAdmin />
+      </MemoryRouter>,
+    );
+    const company = screen.getByRole("heading", { name: "Company" }).parentElement!;
+    const product = screen.getByRole("heading", { name: "Product" }).parentElement!;
+    expect(company.textContent).toContain("Analytics Admin Only");
+    expect(product.textContent).not.toContain("Analytics");
+  });
 });

@@ -36,6 +36,7 @@ const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 const AuthBridge = lazy(() => import('./pages/AuthBridge'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Referrals = lazy(() => import("./pages/Referrals"));
+const About = lazy(() => import("./pages/About"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -395,6 +396,7 @@ const App: React.FC = () => {
                 path="/pricing"
                 element={<Pricing user={user} isPaid={isPaid} onSignUpClick={triggerSignUp} />}
               />
+              <Route path="/about" element={<About />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/auth-bridge" element={<AuthBridge />} />

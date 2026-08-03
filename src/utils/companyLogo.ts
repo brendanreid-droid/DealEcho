@@ -23,22 +23,51 @@ export interface LogoSource {
   name: string;
 }
 
+/**
+ * Hand-verified corporate/holding domain → the trading brand domain that
+ * actually serves an icon.
+ *
+ * A group's corporate site frequently ships no favicon at all, so every favicon
+ * service 404s on it and the card silently drops to initials while the group's
+ * own consumer brands render fine. Aliasing is the only fix - no provider has
+ * an icon to find.
+ *
+ * Verify before adding an entry: fetch
+ * `https://www.google.com/s2/favicons?domain=<candidate>&sz=128` and confirm it
+ * returns 200 (it answers 404 with a generic globe body, so check the status,
+ * not the bytes). A wrong alias puts another company's logo on the card, which
+ * is worse than the initials avatar it replaces.
+ */
+const DOMAIN_ALIASES: Record<string, string> = {
+  // Country Road Group's corporate site has no favicon.ico, and its only
+  // declared icon (/apple_touch_icon.png) 404s too. countryroad.com.au is the
+  // group's namesake brand and resolves.
+  "countryroadgroup.com.au": "countryroad.com.au",
+};
+
 /** Returns a logo URL when a real domain is known, else undefined. */
 export function companyLogoUrl({ domain }: LogoSource): string | undefined {
-  if (domain && isPlausibleDomain(domain)) {
+  const normalized = normalizeDomain(domain);
+  if (normalized && isPlausibleDomain(normalized)) {
+    const resolved = DOMAIN_ALIASES[normalized] ?? normalized;
     // Google's favicon service: free, stable, decent quality at sz=128.
     return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(
-      domain,
+      resolved,
     )}&sz=128`;
   }
   return undefined;
 }
 
+/** Lowercase, trim and drop a leading `www.` so aliases match one spelling. */
+function normalizeDomain(d?: string): string | undefined {
+  if (!d) return undefined;
+  return d.trim().toLowerCase().replace(/^www\./, "");
+}
+
 /** Basic sanity check so we never request obviously-broken domains. */
 function isPlausibleDomain(d: string): boolean {
-  const trimmed = d.trim().toLowerCase();
   // must contain a dot and only domain-legal characters
-  return /^[a-z0-9.-]+\.[a-z]{2,}$/.test(trimmed);
+  return /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d);
 }
 
 /**

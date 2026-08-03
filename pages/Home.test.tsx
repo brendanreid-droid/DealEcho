@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Home from "./Home";
 import { ReviewSummary } from "../src/hooks/useReviewSummaries";
+import { HOME_FEED_SIZE } from "../src/utils/rotatingFeed";
 
 beforeEach(() => {
   window.matchMedia = ((q: string) =>
@@ -42,5 +43,76 @@ describe("Home", () => {
     expect(
       screen.getByText(/Real intelligence from enterprise sales cycles/),
     ).toBeInTheDocument();
+  });
+});
+
+describe("Home recent-intelligence feed", () => {
+  // Nine companies, newest first, matching the live dataset this was built for.
+  const NAMES = ["Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India"];
+  const manySummaries: ReviewSummary[] = NAMES.map((name, i) => ({
+    ...summary,
+    reviewId: `s-${name}`,
+    companyId: `comp-${name}`,
+    companyName: name,
+    // Descending dates so NAMES[0] is the most recent.
+    createdAt: new Date(Date.UTC(2026, 6, 30 - i)).toISOString(),
+  }));
+
+  const renderHome = () =>
+    render(
+      <MemoryRouter>
+        <Home user={null} isPaid={false} onSignInClick={() => {}} reviewSummaries={manySummaries} trackedIds={[]} onToggleTrack={() => {}} />
+      </MemoryRouter>,
+    );
+
+  const shownNames = () => NAMES.filter((n) => screen.queryByText(n) !== null);
+
+  beforeEach(() => localStorage.clear());
+
+  it("caps the feed instead of listing every company", () => {
+    renderHome();
+    expect(shownNames()).toHaveLength(HOME_FEED_SIZE);
+  });
+
+  it("leads with the newest accounts on a first visit", () => {
+    renderHome();
+    expect(shownNames()).toEqual(NAMES.slice(0, HOME_FEED_SIZE));
+  });
+
+  it("shows a different set on the next visit", () => {
+    renderHome();
+    const first = shownNames();
+    cleanup();
+
+    renderHome();
+    const second = shownNames();
+
+    expect(second).not.toEqual(first);
+    expect(second).toHaveLength(HOME_FEED_SIZE);
+    // The three the first visit had no room for must all appear.
+    expect(second).toEqual(expect.arrayContaining(["Golf", "Hotel", "India"]));
+  });
+
+  it("shows every company across two visits", () => {
+    renderHome();
+    const first = shownNames();
+    cleanup();
+    renderHome();
+    const seen = new Set([...first, ...shownNames()]);
+
+    expect(seen.size).toBe(NAMES.length);
+  });
+
+  it("still renders when storage is unavailable", () => {
+    const getItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = () => {
+      throw new Error("blocked");
+    };
+    try {
+      renderHome();
+      expect(shownNames()).toHaveLength(HOME_FEED_SIZE);
+    } finally {
+      Storage.prototype.getItem = getItem;
+    }
   });
 });

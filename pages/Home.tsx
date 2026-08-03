@@ -1,10 +1,18 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useSEO } from "../src/hooks/useSEO";
 import { ReviewSummary } from "../src/hooks/useReviewSummaries";
 import CompanyCard, { CompanyCardData } from "../src/components/CompanyCard";
 import { CardGridSkeleton } from "../src/components/Skeleton";
 import { companyLogoUrl, guessDomainFromName } from "../src/utils/companyLogo";
+import {
+  rotateWindow,
+  readFeedOffset,
+  advanceFeedOffset,
+  HOME_FEED_SIZE,
+  HOME_FEED_POOL,
+  HOME_FEED_OFFSET_KEY,
+} from "../src/utils/rotatingFeed";
 import { MappedUser } from "../src/hooks/useAuth";
 import Button from "../src/components/ui/Button";
 import SectionHeading from "../src/components/ui/SectionHeading";
@@ -75,6 +83,20 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
         };
       });
   }, [reviewSummaries]);
+
+  // The feed shows a rotating slice of the newest accounts rather than every
+  // company we hold, so the page has a fixed length and a return visit surfaces
+  // accounts the last one missed. Read the offset once, so re-renders keep the
+  // same cards, and move it on for next time.
+  const [feedOffset] = useState(() => readFeedOffset(HOME_FEED_OFFSET_KEY));
+  useEffect(() => {
+    advanceFeedOffset(HOME_FEED_OFFSET_KEY, HOME_FEED_SIZE);
+  }, []);
+
+  const feed = useMemo(
+    () => rotateWindow(companies.slice(0, HOME_FEED_POOL), HOME_FEED_SIZE, feedOffset),
+    [companies, feedOffset],
+  );
 
   // Distinct industries/verticals from reviewed companies, for the hero quick-chips.
   const industries = useMemo(
@@ -160,7 +182,7 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
         <SectionHeading title="Recent intelligence" live />
         <p className="text-slate-500 text-sm mt-2 mb-7">Freshly analysed accounts from the seller community.</p>
         {isLoading ? (
-          <CardGridSkeleton count={6} />
+          <CardGridSkeleton count={HOME_FEED_SIZE} />
         ) : isError ? (
           <div className="de-card p-12 text-center">
             <p className="text-slate-700 font-medium mb-2">Unable to load intelligence feed.</p>
@@ -172,7 +194,7 @@ const Home: React.FC<HomeProps> = ({ user, isPaid, reviewSummaries, isLoading, i
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {companies.map((c) => (
+            {feed.map((c) => (
               <CompanyCard key={c.id} company={c} isPro={isPaid} isLoggedIn={!!user} />
             ))}
           </div>

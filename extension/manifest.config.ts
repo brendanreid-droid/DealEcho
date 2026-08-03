@@ -32,7 +32,7 @@ export default defineManifest({
   ...(publicKey ? { key: publicKey } : {}),
   manifest_version: 3,
   name: "Dealecho - Sales Intelligence",
-  version: "0.1.2",
+  version: "0.1.3",
   description: "See Dealecho deal intelligence for any company, on prospect sites or in your CRM.",
   action: {
     default_title: "Dealecho",

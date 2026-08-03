@@ -140,7 +140,9 @@ const GlobalTrends: React.FC<GlobalTrendsProps> = ({ user, isPaid, reviews, onSi
           <div className="max-w-4xl">
             <div className="flex items-center space-x-3 mb-6">
               <span className="bg-accent/30 text-accent-soft text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-2 rounded-full border border-accent/20 backdrop-blur-md flex items-center w-fit">
-                <Icon name="fa-globe" className="mr-2" size={10} />Global Trends
+                {/* Reminder on the page itself: nobody but an admin can reach
+                    this, and it is not finished. */}
+                <Icon name="fa-globe" className="mr-2" size={10} />Analytics Admin Only - work in progress
               </span>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-[1.1]">

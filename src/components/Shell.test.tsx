@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { Navigation } from "./Shell";
+import { Navigation, Footer } from "./Shell";
 
 const noop = () => {};
 
@@ -43,5 +43,41 @@ describe("Navigation", () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/");
+  });
+});
+
+describe("Footer", () => {
+  // /trends is unfinished and admin-gated at the route. The footer link is the
+  // only way in, so it must not advertise a page every other user is bounced
+  // off, and it must stay visible to Brendan as a reminder it is still WIP.
+  it("hides the analytics link from non-admins", () => {
+    render(
+      <MemoryRouter>
+        <Footer isAdmin={false} />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole("link", { name: /Analytics/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Search Accounts" })).toBeInTheDocument();
+  });
+
+  it("shows admins the analytics link, labelled as admin-only", () => {
+    render(
+      <MemoryRouter>
+        <Footer isAdmin />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: "Analytics Admin Only" })).toHaveAttribute(
+      "href",
+      "/trends",
+    );
+  });
+
+  it("hides it when no admin flag is passed at all", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole("link", { name: /Analytics/ })).toBeNull();
   });
 });

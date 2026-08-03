@@ -380,7 +380,8 @@ const App: React.FC = () => {
               <Route
                 path="/trends"
                 element={
-                  <ProtectedRoute requireAuth>
+                  /* Work in progress - admins only until it is finished. */
+                  <ProtectedRoute requireAuth requireAdmin>
                     <GlobalTrends
                       user={user}
                       isPaid={isPaid}
@@ -509,7 +510,7 @@ const App: React.FC = () => {
             onOpen={() => setShowChecklist(true)}
           />
         )}
-        <Footer />
+        <Footer isAdmin={isAdmin} />
         <CookieConsent />
         <VercelAnalytics />
       </div>

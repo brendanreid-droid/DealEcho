@@ -193,7 +193,7 @@ export const Navigation: React.FC<{
 };
 
 // ── Footer (real links, trust column, correct year) ──
-export const Footer: React.FC = () => (
+export const Footer: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) => (
   <footer className="bg-white border-t border-slate-200 py-12 mt-auto">
     <div className="max-w-7xl mx-auto px-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
@@ -214,7 +214,11 @@ export const Footer: React.FC = () => (
             <li><Link to="/search" className="text-slate-600 hover:text-accent">Search Accounts</Link></li>
             <li><Link to="/review/new" className="text-slate-600 hover:text-accent">Write Review</Link></li>
             <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control Centre</Link></li>
-            <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics</Link></li>
+            {/* /trends is still being built. The route is admin-gated, so
+                linking it for anyone else would just advertise a redirect. */}
+            {isAdmin && (
+              <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics Admin Only</Link></li>
+            )}
             <li><Link to="/pricing" className="text-slate-600 hover:text-accent">Pricing</Link></li>
             <li><Link to="/blog" className="text-slate-600 hover:text-accent">Blog</Link></li>
             <li>

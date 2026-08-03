@@ -214,7 +214,6 @@ export const Footer: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) => 
             <li><Link to="/search" className="text-slate-600 hover:text-accent">Search Accounts</Link></li>
             <li><Link to="/review/new" className="text-slate-600 hover:text-accent">Write Review</Link></li>
             <li><Link to="/control-centre" className="text-slate-600 hover:text-accent">Control Centre</Link></li>
-            <li><Link to="/pricing" className="text-slate-600 hover:text-accent">Pricing</Link></li>
             <li>
               <a
                 href={CHROME_EXTENSION_URL}
@@ -230,27 +229,28 @@ export const Footer: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = false }) => 
 
         <div>
           <h4 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+            Company
+          </h4>
+          <ul className="space-y-2 text-sm">
+            <li><Link to="/about" className="text-slate-600 hover:text-accent">About us</Link></li>
+            <li><Link to="/blog" className="text-slate-600 hover:text-accent">Blog</Link></li>
+            <li><Link to="/pricing" className="text-slate-600 hover:text-accent">Pricing</Link></li>
+            {/* /trends is still being built. The route is admin-gated, so
+                linking it for anyone else would just advertise a redirect. */}
+            {isAdmin && (
+              <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics Admin Only</Link></li>
+            )}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
             Trust &amp; legal
           </h4>
           <ul className="space-y-2 text-sm">
             <li><Link to="/privacy" className="text-slate-600 hover:text-accent">Privacy Policy</Link></li>
             <li><Link to="/terms" className="text-slate-600 hover:text-accent">Terms of Use</Link></li>
             <li><button onClick={openCookiePreferences} className="text-slate-600 hover:text-accent">Cookie Preferences</button></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            Company
-          </h4>
-          <ul className="space-y-2 text-sm">
-            <li><Link to="/about" className="text-slate-600 hover:text-accent">About us</Link></li>
-            <li><Link to="/blog" className="text-slate-600 hover:text-accent">Blog</Link></li>
-            {/* /trends is still being built. The route is admin-gated, so
-                linking it for anyone else would just advertise a redirect. */}
-            {isAdmin && (
-              <li><Link to="/trends" className="text-slate-600 hover:text-accent">Analytics Admin Only</Link></li>
-            )}
           </ul>
         </div>
       </div>

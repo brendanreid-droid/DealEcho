@@ -81,7 +81,7 @@ describe("Footer", () => {
     expect(screen.queryByRole("link", { name: /Analytics/ })).toBeNull();
   });
 
-  it("has a Company column after Product and Trust & legal", () => {
+  it("orders the columns Product, Company, Trust & legal", () => {
     render(
       <MemoryRouter>
         <Footer />
@@ -90,10 +90,10 @@ describe("Footer", () => {
     const headings = screen
       .getAllByRole("heading", { level: 4 })
       .map((h) => h.textContent);
-    expect(headings).toEqual(["Product", "Trust & legal", "Company"]);
+    expect(headings).toEqual(["Product", "Company", "Trust & legal"]);
   });
 
-  it("puts About us and Blog under Company", () => {
+  it("puts About us, Blog and Pricing under Company", () => {
     render(
       <MemoryRouter>
         <Footer />
@@ -101,9 +101,10 @@ describe("Footer", () => {
     );
     expect(screen.getByRole("link", { name: "About us" })).toHaveAttribute("href", "/about");
     expect(screen.getByRole("link", { name: "Blog" })).toHaveAttribute("href", "/blog");
+    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "/pricing");
   });
 
-  it("moves Blog out of the Product column", () => {
+  it("moves Blog and Pricing out of the Product column", () => {
     render(
       <MemoryRouter>
         <Footer />
@@ -111,7 +112,18 @@ describe("Footer", () => {
     );
     const product = screen.getByRole("heading", { name: "Product" }).parentElement!;
     expect(product.textContent).not.toContain("Blog");
+    expect(product.textContent).not.toContain("Pricing");
     expect(product.textContent).toContain("Search Accounts");
+  });
+
+  // One link, one home. A duplicate in two columns reads as a mistake.
+  it("lists Pricing once", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+    expect(screen.getAllByRole("link", { name: "Pricing" })).toHaveLength(1);
   });
 
   it("puts the admin analytics link under Company, not Product", () => {

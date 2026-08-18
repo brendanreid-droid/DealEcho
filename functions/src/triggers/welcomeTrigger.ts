@@ -2,6 +2,7 @@ import * as functions from "firebase-functions/v1";
 import { sendReactEmail } from "../lib/email";
 import * as React from "react";
 import { WelcomeEmail } from "../emails/WelcomeEmail";
+import { NewSignupAlertEmail } from "../emails/NewSignupAlertEmail";
 import { db } from "../lib/firebaseAdmin";
 
 export const sendWelcomeEmail = functions
@@ -49,5 +50,16 @@ export const sendWelcomeEmail = functions
       });
     } catch (err) {
       console.error("Failed to execute welcome email trigger:", err);
+    }
+
+    // Internal notification - failures here must never block the user-facing welcome email above.
+    try {
+      await sendReactEmail({
+        to: "brendan@dealecho.io",
+        subject: `New signup: ${email}`,
+        component: React.createElement(NewSignupAlertEmail, { email, name, uid: user.uid }),
+      });
+    } catch (err) {
+      console.error("Failed to send new signup alert email:", err);
     }
   });

@@ -34,6 +34,14 @@ interface EmailLayoutProps {
    * the extension its primary call to action).
    */
   showExtension?: boolean;
+  /**
+   * Renders a preview banner at the top of the body. Set ONLY by
+   * adminPreviewLifecycleEmail. The subject and every header stay identical to
+   * the real send, so a preview is a faithful deliverability test - prefixing
+   * the subject with "TEST" was itself a scored spam token and made the
+   * preview measure something the real email never does.
+   */
+  previewBanner?: boolean;
 }
 
 export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
@@ -44,6 +52,7 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
   transactional = false,
   footerReason,
   showExtension = true,
+  previewBanner = false,
 }) => {
   // Never hide the unsubscribe link on mail that carries a custom reason: that
   // path exists for non-members, who must always be able to opt out.
@@ -70,6 +79,11 @@ export const DealEchoEmailLayout: React.FC<EmailLayoutProps> = ({
 
           {/* Email Body Content */}
           <Section style={bodyContentSection}>
+            {previewBanner && (
+              <Text style={previewBannerStyle}>
+                ADMIN PREVIEW &middot; recipients receive this without this bar
+              </Text>
+            )}
             {children}
             {showExtension && <ExtensionCallout />}
           </Section>
@@ -140,6 +154,19 @@ const taglineText = {
   textTransform: "uppercase" as const,
   letterSpacing: "0.15em",
   margin: "0",
+};
+
+const previewBannerStyle = {
+  backgroundColor: "#fef3c7",
+  border: "1px solid #fcd34d",
+  color: "#92400e",
+  fontSize: "11px",
+  fontWeight: "800",
+  letterSpacing: "0.08em",
+  borderRadius: "10px",
+  padding: "10px 14px",
+  margin: "0 0 28px 0",
+  textAlign: "center" as const,
 };
 
 const bodyContentSection = {

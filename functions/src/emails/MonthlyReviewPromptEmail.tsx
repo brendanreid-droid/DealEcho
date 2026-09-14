@@ -62,6 +62,7 @@ interface MonthlyReviewPromptEmailProps {
   uid?: string;
   /** Index into MONTHLY_VARIANTS. Out-of-range values wrap. */
   variant: number;
+  previewBanner?: boolean;
 }
 
 export const MonthlyReviewPromptEmail: React.FC<MonthlyReviewPromptEmailProps> = ({
@@ -69,6 +70,7 @@ export const MonthlyReviewPromptEmail: React.FC<MonthlyReviewPromptEmailProps> =
   email,
   uid,
   variant,
+  previewBanner,
 }) => {
   const v = MONTHLY_VARIANTS[
     ((variant % MONTHLY_VARIANTS.length) + MONTHLY_VARIANTS.length) %
@@ -79,6 +81,7 @@ export const MonthlyReviewPromptEmail: React.FC<MonthlyReviewPromptEmailProps> =
       previewTextText={v.preheader}
       userEmail={email}
       userUid={uid}
+      previewBanner={previewBanner}
     >
       <Heading style={h1}>{v.heading.replace("{name}", firstName(name))}</Heading>
 

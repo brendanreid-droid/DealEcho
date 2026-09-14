@@ -2824,7 +2824,8 @@ const Admin: React.FC = () => {
               <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-5">
                 These send on a schedule, not on demand. Use this panel to send yourself a copy of any of them,
                 including monthly variants that would otherwise only appear in the month their rotation selects.
-                Every preview is prefixed [TEST].
+                Subject and headers match the real send exactly, so a preview doubles as a deliverability
+                test. A banner inside the body marks it as a preview.
               </p>
               <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">
                 Send previews to

@@ -8,6 +8,7 @@ interface FirstReviewNudgeEmailProps {
   name: string;
   email: string;
   uid?: string;
+  previewBanner?: boolean;
 }
 
 export const FIRST_REVIEW_NUDGE_SUBJECT =
@@ -23,11 +24,13 @@ export const FirstReviewNudgeEmail: React.FC<FirstReviewNudgeEmailProps> = ({
   name,
   email,
   uid,
+  previewBanner,
 }) => (
   <DealEchoEmailLayout
     previewTextText="Two minutes on a deal you already ran."
     userEmail={email}
     userUid={uid}
+    previewBanner={previewBanner}
   >
     <Heading style={h1}>You're in, {firstName(name)}. Now the easy part.</Heading>
 

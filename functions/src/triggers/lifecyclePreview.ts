@@ -27,8 +27,15 @@ type Template = "signupNudge" | "monthlyReviewPrompt" | "reengagement";
  * on demand. Without this, variant 2 of the monthly prompt is only observable
  * in whichever month the rotation happens to select it.
  *
- * Admin only. Always prefixed [TEST] so a preview is never mistaken for the
- * real send.
+ * Admin only.
+ *
+ * Subject and headers are IDENTICAL to the real send. Previews used to carry a
+ * "[TEST]" subject prefix, which meant every preview measured the
+ * deliverability of a message no recipient ever receives - useless as a test
+ * instrument, which is exactly what these get used for. (The prefix itself
+ * scored nothing on SpamAssassin when checked 2026-09-14; it was removed for
+ * fidelity, not for filter points.) A preview is marked by a banner inside the
+ * body instead.
  */
 export const adminPreviewLifecycleEmail = onCall(
   { cors: true, secrets: ["RESEND_API_KEY"] },
@@ -54,8 +61,13 @@ export const adminPreviewLifecycleEmail = onCall(
     if (template === "signupNudge") {
       await sendReactEmail({
         to: testEmail,
-        subject: `[TEST] ${FIRST_REVIEW_NUDGE_SUBJECT}`,
-        component: React.createElement(FirstReviewNudgeEmail, { name, email, uid }),
+        subject: FIRST_REVIEW_NUDGE_SUBJECT,
+        component: React.createElement(FirstReviewNudgeEmail, {
+          name,
+          email,
+          uid,
+          previewBanner: true,
+        }),
         unsubscribe: { email, uid },
       });
       return { success: true, template, sentTo: testEmail };
@@ -71,12 +83,13 @@ export const adminPreviewLifecycleEmail = onCall(
       }
       await sendReactEmail({
         to: testEmail,
-        subject: `[TEST] ${MONTHLY_VARIANTS[variant].subject}`,
+        subject: MONTHLY_VARIANTS[variant].subject,
         component: React.createElement(MonthlyReviewPromptEmail, {
           name,
           email,
           uid,
           variant,
+          previewBanner: true,
         }),
         unsubscribe: { email, uid },
       });
@@ -86,8 +99,13 @@ export const adminPreviewLifecycleEmail = onCall(
     if (template === "reengagement") {
       await sendReactEmail({
         to: testEmail,
-        subject: "[TEST] Stay ahead of your pipeline with Dealecho",
-        component: React.createElement(ReengagementEmail, { name, email, uid }),
+        subject: "Stay ahead of your pipeline with Dealecho",
+        component: React.createElement(ReengagementEmail, {
+          name,
+          email,
+          uid,
+          previewBanner: true,
+        }),
         unsubscribe: { email, uid },
       });
       return { success: true, template, sentTo: testEmail };

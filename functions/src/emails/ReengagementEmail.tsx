@@ -7,13 +7,15 @@ interface ReengagementEmailProps {
   name: string;
   email: string;
   uid?: string;
+  previewBanner?: boolean;
 }
 
-export const ReengagementEmail: React.FC<ReengagementEmailProps> = ({ name, email, uid }) => (
+export const ReengagementEmail: React.FC<ReengagementEmailProps> = ({ name, email, uid, previewBanner }) => (
   <DealEchoEmailLayout
     previewTextText="New verified reviews have landed since your last login."
     userEmail={email}
     userUid={uid}
+    previewBanner={previewBanner}
   >
     <Heading style={h1}>It's been a month, {name.split(" ")[0]}</Heading>
 

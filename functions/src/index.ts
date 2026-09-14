@@ -55,7 +55,7 @@ export { trackNewsletterOpen } from "./triggers/trackNewsletterOpen";
 export { sendCustomPasswordResetEmail } from "./authCustom";
 
 // Marketing Attribution (UTM capture + admin reporting)
-export { recordAcquisition, adminGetAcquisitionReport, updateMarketingProfile, recordActivity } from "./marketing";
+export { recordAcquisition, adminGetAcquisitionReport, updateMarketingProfile, recordActivity, adminGetTopSearches } from "./marketing";
 
 // Enterprise Team Management
 export {

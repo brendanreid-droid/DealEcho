@@ -171,6 +171,13 @@ service cloud.firestore {
       }
     }
 
+    // ── Search stats (monthly top-searched-company counters) ───────────────────
+    // Written by recordActivity, read by adminGetTopSearches - both Admin SDK.
+    // Clients never touch this collection directly.
+    match /searchStats/{month}/queries/{slug} {
+      allow read, write: if false;
+    }
+
     // ── Teams ─────────────────────────────────────────────────────────────────
     // Only team members can read. Cloud Functions (Admin SDK) only for writes.
     match /teams/{teamId} {

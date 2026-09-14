@@ -208,6 +208,11 @@ interface AcquisitionReport {
   generatedAt: string;
 }
 
+interface TopSearchRow {
+  query: string;
+  count: number;
+}
+
 // Build a CSV string from an array of objects, ordered by the given columns.
 // Values are quoted and internal quotes doubled per RFC 4180.
 function toCsv<T extends object>(
@@ -328,6 +333,12 @@ const Admin: React.FC = () => {
   const [report, setReport] = useState<AcquisitionReport | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
 
+  // Top-searched-companies state
+  const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const [searchesMonth, setSearchesMonth] = useState(currentMonthKey);
+  const [topSearches, setTopSearches] = useState<TopSearchRow[]>([]);
+  const [topSearchesLoading, setTopSearchesLoading] = useState(false);
+
   const addToast = (message: string, type: "success" | "error") => {
     const id = ++_toastId;
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -373,6 +384,28 @@ const Admin: React.FC = () => {
       setReportLoading(false);
     }
   }, [functions]);
+
+  // Load top-searched companies for the selected month
+  const loadTopSearches = useCallback(
+    async (month: string) => {
+      setTopSearchesLoading(true);
+      try {
+        const fn = httpsCallable<
+          { month: string; limit: number },
+          { month: string; results: TopSearchRow[] }
+        >(functions, "adminGetTopSearches");
+        const result = await fn({ month, limit: 20 });
+        setTopSearches(result.data.results);
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error ? err.message : "Failed to load top searches";
+        addToast(msg, "error");
+      } finally {
+        setTopSearchesLoading(false);
+      }
+    },
+    [functions],
+  );
 
   // Load reviews from Firestore via Admin SDK (using existing auth)
   const loadReviews = useCallback(async () => {
@@ -520,6 +553,20 @@ const Admin: React.FC = () => {
       loadReport();
     }
   }, [isAdmin, isLoading, tab, report, reportLoading, loadReport]);
+
+  // Lazy-load top searches the first time the marketing tab is opened.
+  useEffect(() => {
+    if (
+      isAdmin &&
+      !isLoading &&
+      tab === "marketing" &&
+      topSearches.length === 0 &&
+      !topSearchesLoading
+    ) {
+      loadTopSearches(searchesMonth);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, isLoading, tab]);
 
   // Real-time Firestore listener: reflect role/subscription changes without refresh
   useEffect(() => {
@@ -1625,6 +1672,86 @@ const Admin: React.FC = () => {
                               </td>
                               <td className="px-4 py-2.5 text-right text-slate-400">
                                 {g.profileViews}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Top searched companies */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mt-6">
+                  <div className="px-4 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-black text-white">
+                        Top Searched Companies
+                      </h3>
+                      <p className="text-slate-500 text-[11px] mt-0.5 mb-2">
+                        Search box queries ranked by count for the selected
+                        month.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="month"
+                        value={searchesMonth}
+                        onChange={(e) => {
+                          setSearchesMonth(e.target.value);
+                          loadTopSearches(e.target.value);
+                        }}
+                        className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-white text-xs"
+                      />
+                      <button
+                        onClick={() => loadTopSearches(searchesMonth)}
+                        disabled={topSearchesLoading}
+                        className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-black transition-all flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {topSearchesLoading ? (
+                          <Loader2 className="animate-spin" size={12} />
+                        ) : (
+                          <Icon name="fa-sync-alt" size={11} />
+                        )}
+                        Refresh
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+                          <th className="px-4 py-2 text-right">Rank</th>
+                          <th className="px-4 py-2">Search Query</th>
+                          <th className="px-4 py-2 text-right">Searches</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topSearches.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={3}
+                              className="px-4 py-6 text-center text-slate-500"
+                            >
+                              {topSearchesLoading
+                                ? "Loading..."
+                                : "No searches recorded for this month yet."}
+                            </td>
+                          </tr>
+                        ) : (
+                          topSearches.map((row, i) => (
+                            <tr
+                              key={row.query}
+                              className="border-b border-white/5 last:border-0 text-slate-200"
+                            >
+                              <td className="px-4 py-2.5 text-right text-slate-500 font-black">
+                                {i + 1}
+                              </td>
+                              <td className="px-4 py-2.5 font-semibold">
+                                {row.query}
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-black text-accent-soft">
+                                {row.count}
                               </td>
                             </tr>
                           ))

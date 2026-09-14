@@ -223,7 +223,7 @@ const Search: React.FC<SearchProps> = ({
     const industry = reviewSummaries
       .map((s) => s.industry)
       .find((i) => i && i.toLowerCase() === query);
-    recordActivity("search", industry, query);
+    recordActivity("search", industry, query, q.trim());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 

@@ -167,13 +167,24 @@ function sanitizeLocale(raw: any): LocalePayload | null {
 // ── recordActivity ────────────────────────────────────────────────────────────
 const ACTIVITY_TYPES = new Set(["search", "profile_view"]);
 const INDUSTRY_PATTERN = /^[A-Za-z0-9 &\-/().,'+]{1,60}$/;
+const QUERY_PATTERN = /^[A-Za-z0-9 &\-/().,'+]{1,80}$/;
 const MAX_INDUSTRY_KEYS = 50;
+
+/** "2026-08" in UTC, used as the doc ID for monthly search-stat buckets. */
+function currentMonthKey(): string {
+  return new Date().toISOString().slice(0, 7);
+}
 
 /**
  * Fire-and-forget behavioral counters, aggregated on the caller's OWN user doc
  * under `behavior` (no raw event log). Industry strings are charset/length
  * checked and the industries map is capped so a hostile client cannot grow the
  * doc without bound. Feeds the admin marketing report's ICP signals.
+ *
+ * Search queries additionally increment a per-month, per-query counter under
+ * `searchStats/{YYYY-MM}/queries/{slug}` so admins can see the most-searched
+ * companies for a given month. The month is computed server-side (never taken
+ * from the client) so a caller can't backdate counts into a past month.
  */
 export const recordActivity = onCall({ cors: true }, async (request) => {
   if (!request.auth) {
@@ -189,6 +200,13 @@ export const recordActivity = onCall({ cors: true }, async (request) => {
   if (typeof rawIndustry === "string") {
     const trimmed = rawIndustry.trim();
     if (INDUSTRY_PATTERN.test(trimmed)) industry = trimmed;
+  }
+
+  let query: string | null = null;
+  const rawQuery = request.data?.query;
+  if (typeof rawQuery === "string") {
+    const trimmed = rawQuery.trim().replace(/\s+/g, " ");
+    if (QUERY_PATTERN.test(trimmed)) query = trimmed;
   }
 
   const userRef = db.collection("users").doc(request.auth.uid);
@@ -214,8 +232,67 @@ export const recordActivity = onCall({ cors: true }, async (request) => {
     behavior.industries = { [industry]: FieldValue.increment(1) };
   }
 
-  await userRef.set({ behavior }, { merge: true });
+  const writes: Promise<unknown>[] = [
+    userRef.set({ behavior }, { merge: true }),
+  ];
+
+  if (type === "search" && query) {
+    const slug = encodeURIComponent(query.toLowerCase()).slice(0, 300);
+    const queryRef = db
+      .collection("searchStats")
+      .doc(currentMonthKey())
+      .collection("queries")
+      .doc(slug);
+    writes.push(
+      queryRef.set(
+        {
+          query,
+          count: FieldValue.increment(1),
+          lastSearchedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      ),
+    );
+  }
+
+  await Promise.all(writes);
   return { status: "ok" };
+});
+
+/**
+ * Admin-only: top N most-searched queries for a given month (defaults to the
+ * current month). Backed by the per-query counters `recordActivity` writes.
+ */
+export const adminGetTopSearches = onCall({ cors: true }, async (request) => {
+  requireAdmin(request);
+
+  const rawMonth = request.data?.month;
+  const month =
+    typeof rawMonth === "string" && /^\d{4}-\d{2}$/.test(rawMonth)
+      ? rawMonth
+      : currentMonthKey();
+
+  const rawLimit = request.data?.limit;
+  const limit =
+    typeof rawLimit === "number" && rawLimit > 0
+      ? Math.min(Math.floor(rawLimit), 50)
+      : 20;
+
+  const snap = await db
+    .collection("searchStats")
+    .doc(month)
+    .collection("queries")
+    .orderBy("count", "desc")
+    .limit(limit)
+    .get();
+
+  return {
+    month,
+    results: snap.docs.map((d) => ({
+      query: d.data().query as string,
+      count: d.data().count as number,
+    })),
+  };
 });
 
 // ── recordAcquisition ─────────────────────────────────────────────────────────

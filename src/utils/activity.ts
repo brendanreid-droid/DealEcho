@@ -14,6 +14,7 @@ export function recordActivity(
   type: "search" | "profile_view",
   industry?: string,
   dedupeKey?: string,
+  query?: string,
 ): void {
   try {
     if (!auth.currentUser) return;
@@ -26,7 +27,11 @@ export function recordActivity(
       getFunctions(undefined, "australia-southeast1"),
       "recordActivity",
     );
-    void fn({ type, ...(industry ? { industry } : {}) }).catch(() => {});
+    void fn({
+      type,
+      ...(industry ? { industry } : {}),
+      ...(query ? { query } : {}),
+    }).catch(() => {});
   } catch {
     /* activity capture must never break the app */
   }

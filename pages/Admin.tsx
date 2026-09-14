@@ -213,6 +213,49 @@ interface TopSearchRow {
   count: number;
 }
 
+/**
+ * The cron-driven lifecycle emails, mirrored here purely so the Automated
+ * Emails panel can describe and preview them. The `key` values must match the
+ * `template` argument accepted by the adminPreviewLifecycleEmail callable, and
+ * `index` must match the variant order in MONTHLY_VARIANTS on the server.
+ */
+const LIFECYCLE_TEMPLATES: {
+  key: string;
+  name: string;
+  schedule: string;
+  description: string;
+  variants: { index?: number; label: string }[];
+}[] = [
+  {
+    key: "signupNudge",
+    name: "Day 2 Signup Nudge",
+    schedule: "Daily, 09:00 Sydney",
+    description:
+      "Goes to accounts created 2 to 7 days ago that have done nothing since, asking them to review a deal from last quarter. Sent once per account.",
+    variants: [{ label: "Send preview" }],
+  },
+  {
+    key: "monthlyReviewPrompt",
+    name: "Monthly Review Prompt",
+    schedule: "25th of each month, 09:00 Sydney",
+    description:
+      "Goes to every registered user, free, paid and admin, asking them to review the deals they worked that month. Three variants rotate by calendar month so the mail never looks the same twice running.",
+    variants: [
+      { index: 0, label: "A · Reciprocity" },
+      { index: 1, label: "B · Recall decay" },
+      { index: 2, label: "C · Post mortem" },
+    ],
+  },
+  {
+    key: "reengagement",
+    name: "30 Day Re-engagement",
+    schedule: "Daily, midnight Sydney",
+    description:
+      "Goes to accounts with no activity for 30 days, capped at 200 per run, with a 30 day cooldown between nudges.",
+    variants: [{ label: "Send preview" }],
+  },
+];
+
 // Build a CSV string from an array of objects, ordered by the given columns.
 // Values are quoted and internal quotes doubled per RFC 4180.
 function toCsv<T extends object>(
@@ -308,7 +351,10 @@ const Admin: React.FC = () => {
   const [newsletterTestEmail, setNewsletterTestEmail] = useState("");
   const [newsletters, setNewsletters] = useState<any[]>([]);
   const [newslettersLoading, setNewslettersLoading] = useState(false);
-  const [newsletterSubTab, setNewsletterSubTab] = useState<"compose" | "history">("compose");
+  const [newsletterSubTab, setNewsletterSubTab] = useState<"compose" | "history" | "lifecycle">("compose");
+  // Lifecycle email preview state
+  const [lifecycleTestEmail, setLifecycleTestEmail] = useState("");
+  const [lifecycleSending, setLifecycleSending] = useState<string | null>(null);
   const [selectedHistoryNewsletter, setSelectedHistoryNewsletter] = useState<any | null>(null);
 
   // Create User modal state
@@ -767,6 +813,35 @@ const Admin: React.FC = () => {
       addToast(msg, "error");
     } finally {
       setEditSaving(false);
+    }
+  };
+
+  // Send one automated lifecycle email to a test address. These normally fire on
+  // a cron, so without this the only way to see a given monthly variant is to
+  // wait for the month whose rotation selects it.
+  const handlePreviewLifecycle = async (template: string, variant?: number) => {
+    if (!lifecycleTestEmail) {
+      addToast("Enter a test email address first.", "error");
+      return;
+    }
+    const key = variant === undefined ? template : `${template}-${variant}`;
+    setLifecycleSending(key);
+    try {
+      const fn = httpsCallable<
+        { template: string; variant?: number; testEmail: string },
+        { success: boolean; sentTo: string }
+      >(functions, "adminPreviewLifecycleEmail");
+      const res = await fn({
+        template,
+        ...(variant === undefined ? {} : { variant }),
+        testEmail: lifecycleTestEmail,
+      });
+      addToast(`Preview sent to ${res.data.sentTo}.`, "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to send preview.";
+      addToast(msg, "error");
+    } finally {
+      setLifecycleSending(null);
     }
   };
 
@@ -2457,6 +2532,17 @@ const Admin: React.FC = () => {
                 <Icon name="fa-history" size={12} />
                 Sent Campaigns
               </button>
+              <button
+                onClick={() => setNewsletterSubTab("lifecycle")}
+                className={`px-5 py-2 rounded-xl text-xs font-black capitalize transition-all flex items-center gap-1.5 ${
+                  newsletterSubTab === "lifecycle"
+                    ? "bg-indigo-600 text-white shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Icon name="fa-robot" size={12} />
+                Automated Emails
+              </button>
             </div>
 
             {newsletterSubTab === "compose" ? (
@@ -2654,7 +2740,7 @@ const Admin: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : newsletterSubTab === "history" ? (
           /* Sent Campaigns History Subtab */
           <div>
             {newslettersLoading ? (
@@ -2726,6 +2812,66 @@ const Admin: React.FC = () => {
                 </table>
               </div>
             )}
+          </div>
+        ) : (
+          /* Automated Emails Subtab: preview the cron-driven lifecycle mail */
+          <div className="animate-fade-in text-white max-w-3xl">
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-6">
+              <h3 className="text-base font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
+                <Icon name="fa-robot" className="text-indigo-400" size={14} />
+                Automated Lifecycle Emails
+              </h3>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed mb-5">
+                These send on a schedule, not on demand. Use this panel to send yourself a copy of any of them,
+                including monthly variants that would otherwise only appear in the month their rotation selects.
+                Every preview is prefixed [TEST].
+              </p>
+              <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                Send previews to
+              </label>
+              <input
+                type="email"
+                value={lifecycleTestEmail}
+                onChange={(e) => setLifecycleTestEmail(e.target.value)}
+                placeholder="you@dealecho.io"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50"
+              />
+            </div>
+
+            <div className="space-y-4">
+              {LIFECYCLE_TEMPLATES.map((t) => (
+                <div
+                  key={t.key}
+                  className="bg-white/5 border border-white/10 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+                >
+                  <div className="flex-1">
+                    <h4 className="text-sm font-black text-white">{t.name}</h4>
+                    <p className="text-slate-500 text-[11px] font-semibold mt-0.5">{t.schedule}</p>
+                    <p className="text-slate-400 text-xs mt-1.5 leading-relaxed">{t.description}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {t.variants.map((v) => {
+                      const key = v.index === undefined ? t.key : `${t.key}-${v.index}`;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => handlePreviewLifecycle(t.key, v.index)}
+                          disabled={lifecycleSending !== null}
+                          className="px-4 py-2 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 text-white text-xs font-black transition-all flex items-center gap-2 disabled:opacity-40"
+                        >
+                          {lifecycleSending === key ? (
+                            <Loader2 className="animate-spin" size={12} />
+                          ) : (
+                            <Icon name="fa-paper-plane" size={11} />
+                          )}
+                          {v.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

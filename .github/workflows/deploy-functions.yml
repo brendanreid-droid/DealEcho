@@ -109,7 +109,7 @@ jobs:
       # edits (including the shared footer in emails/Layout.tsx) only reach
       # users once these deploy.
       - name: Deploy email functions
-        run: firebase deploy --only functions:sendWelcomeEmail,functions:sendCustomPasswordResetEmail,functions:checkInactiveUsers,functions:onReviewCreated,functions:trackNewsletterOpen,functions:updateNotificationPreferences --force
+        run: firebase deploy --only functions:sendWelcomeEmail,functions:sendCustomPasswordResetEmail,functions:checkInactiveUsers,functions:onReviewCreated,functions:trackNewsletterOpen,functions:updateNotificationPreferences,functions:sendSignupNudges,functions:sendMonthlyReviewPrompt,functions:adminPreviewLifecycleEmail --force
  
 
 

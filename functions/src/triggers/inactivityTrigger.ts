@@ -1,90 +1,64 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { db } from "../lib/firebaseAdmin";
-import { sendReactEmail } from "../lib/email";
 import * as React from "react";
+import { loadRecipients } from "../lib/recipients";
+import { selectReengagementTargets } from "../lib/lifecycle";
+import { dispatchLifecycleEmails } from "../lib/lifecycleDispatch";
 import { ReengagementEmail } from "../emails/ReengagementEmail";
 
+/** Cap on one run, so a backlog drains over several days instead of at once. */
+const MAX_PER_RUN = 200;
+
+/**
+ * 30-day re-engagement nudge.
+ *
+ * Previously this queried `users` for `lastActive < cutoff`. Nothing in the
+ * repo writes `lastActive` - the field recordActivity maintains is
+ * `behavior.lastActiveAt` - so the query matched nobody and this cron sent zero
+ * emails for its entire life. It now shares the recipient loader with the other
+ * lifecycle emails, which also reaches dormant accounts carrying no `behavior`
+ * map at all, and so unreachable by any Firestore query.
+ */
 export const checkInactiveUsers = onSchedule(
   {
-    schedule: "0 0 * * *", // Once per day at midnight
-    timeZone: "Australia/Sydney", // Sydney timezone matches existing setup
+    schedule: "0 0 * * *",
+    timeZone: "Australia/Sydney",
+    timeoutSeconds: 540,
     secrets: ["RESEND_API_KEY"],
   },
-  async (event) => {
+  async () => {
     try {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const thirtyDaysAgoIso = thirtyDaysAgo.toISOString();
+      const recipients = await loadRecipients();
+      const targets = selectReengagementTargets(recipients, new Date()).slice(
+        0,
+        MAX_PER_RUN,
+      );
 
-      console.log(`Running checkInactiveUsers scheduled cron... Looking for users inactive since ${thirtyDaysAgoIso}`);
-
-      // Query users whose last active stamp was before 30 days ago
-      // and who haven't been nudged in the last 30 days (prevents spamming them daily)
-      const inactiveUsersSnapshot = await db
-        .collection("users")
-        .where("lastActive", "<", thirtyDaysAgoIso)
-        .limit(100) // Batch limit to respect execution time caps
-        .get();
-
-      if (inactiveUsersSnapshot.empty) {
-        console.log("No inactive users found.");
+      if (targets.length === 0) {
+        console.log("checkInactiveUsers: no dormant users to re-engage.");
         return;
       }
 
-      console.log(`Found ${inactiveUsersSnapshot.size} inactive users to re-engage.`);
+      console.log(
+        `checkInactiveUsers: re-engaging ${targets.length} of ${recipients.length} registered users.`,
+      );
 
-      const emailPromises = inactiveUsersSnapshot.docs.map(async (doc) => {
-        const userData = doc.data();
-        const email = userData.email || doc.id;
-        const name = userData.name || "there";
-
-        // Validate email
-        if (!email || !email.includes("@")) {
-          console.log(`Skipping invalid email for inactive user doc ${doc.id}`);
-          return;
-        }
-
-        // Re-engagement is marketing mail, so honour the same opt-out that
-        // gates the newsletter.
-        if (userData.notificationPreferences?.weeklyDigest === false) {
-          console.log(`Skipping user ${email} - opted out of marketing email.`);
-          return;
-        }
-
-        // Never nudge a suspended account.
-        if (userData.suspended === true) {
-          console.log(`Skipping suspended user ${email}.`);
-          return;
-        }
-
-        // Check if already nudged in the last 30 days to protect user experience
-        if (userData.lastNudgedAt) {
-          const lastNudgeDate = new Date(userData.lastNudgedAt);
-          const thirtyDaysAgoNudgeCheck = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-          if (lastNudgeDate > thirtyDaysAgoNudgeCheck) {
-            console.log(`Skipping user ${email} - already received re-engagement nudge in last 30 days.`);
-            return;
-          }
-        }
-
-        const component = React.createElement(ReengagementEmail, { name, email, uid: doc.id });
-        
-        // Update user document first to mark nudge timestamp (prevents race conditions / double sends)
-        await doc.ref.update({
-          lastNudgedAt: new Date().toISOString(),
-        });
-
-        // Send email via Resend React helper
-        return sendReactEmail({
-          to: email,
-          subject: "Stay ahead of your pipeline with Dealecho",
-          component,
-        });
+      const sent = await dispatchLifecycleEmails({
+        label: "checkInactiveUsers",
+        targets,
+        markField: "lastNudgedAt",
+        markValue: () => new Date().toISOString(),
+        subject: "Stay ahead of your pipeline with Dealecho",
+        component: (r) =>
+          React.createElement(ReengagementEmail, {
+            name: r.name,
+            email: r.email,
+            uid: r.uid,
+          }),
       });
 
-      await Promise.all(emailPromises);
-      console.log(`Dispatched inactivity re-engagement emails to active batch.`);
+      console.log(`checkInactiveUsers: dispatched ${sent}/${targets.length}.`);
     } catch (err) {
-      console.error("Failed to execute inactivity scheduled trigger:", err);
+      console.error("checkInactiveUsers: run failed:", err);
     }
-  }
+  },
 );

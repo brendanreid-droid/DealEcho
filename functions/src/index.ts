@@ -41,6 +41,9 @@ export { getAccountFlags } from "./accountFlags";
 export { sendWelcomeEmail } from "./triggers/welcomeTrigger";
 export { onReviewCreated } from "./triggers/onReviewCreated";
 export { checkInactiveUsers } from "./triggers/inactivityTrigger";
+export { sendSignupNudges } from "./triggers/signupNudgeTrigger";
+export { sendMonthlyReviewPrompt } from "./triggers/monthlyReviewPrompt";
+export { adminPreviewLifecycleEmail } from "./triggers/lifecyclePreview";
 
 // Notification Preferences
 export { updateNotificationPreferences } from "./notifications";
